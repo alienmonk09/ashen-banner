@@ -213,8 +213,22 @@ export class BattleScene implements Scene {
     this.ui.setHint("Left-click to act · Right-click to cancel · Enter to end turn");
   }
 
+  /** True only when the human player may issue input right now. */
+  private get playerInControl(): boolean {
+    if (this.active?.team !== "player") return false;
+    if (this.ctx.animator.busy) return false;
+    return (
+      this.phase === "menu" ||
+      this.phase === "move" ||
+      this.phase === "attackTarget" ||
+      this.phase === "skillTarget" ||
+      this.phase === "itemTarget"
+    );
+  }
+
   private cancelToMenu(): void {
-    if (this.phase === "menu" || this.phase === "enemy" || this.phase === "over" || this.phase === "intro") return;
+    // Never cancel while mid-resolve/animation or when it's not the player's input.
+    if (!this.playerInControl || this.phase === "menu") return;
     this.refreshMenu();
   }
 
@@ -267,7 +281,9 @@ export class BattleScene implements Scene {
     }
     this.phase = "skillTarget";
     this.ui.setHint(`${skill.name}: click a target tile in range.`);
-    this.rangeTiles = tilesInRange(this.grid, this.active.pos, skill.range, false);
+    // Support skills (heal/buff/revive) may target the caster's own tile.
+    const includeSelf = skill.effect !== "damage" && skill.effect !== "debuff";
+    this.rangeTiles = tilesInRange(this.grid, this.active.pos, skill.range, includeSelf);
   }
 
   private enterItemMenu(): void {
@@ -320,10 +336,12 @@ export class BattleScene implements Scene {
   }
 
   private handleKey(key: string): void {
+    // Ignore all keyboard input unless the player is actively in control
+    // (not mid-animation/resolve, not the enemy's turn). Prevents ending a
+    // turn while a move is still animating, which would corrupt turn state.
+    if (!this.playerInControl) return;
     if (key === "Escape") return this.cancelToMenu();
-    if ((key === "Enter" || key === "e" || key === "E") && this.phase !== "enemy" && this.phase !== "over") {
-      if (this.active?.team === "player") this.endActiveTurn();
-    }
+    if (key === "Enter" || key === "e" || key === "E") this.endActiveTurn();
   }
 
   private inRangeTiles(tile: Point): boolean {
@@ -368,9 +386,11 @@ export class BattleScene implements Scene {
 
   private castSkill(skill: SkillDef, center: Point): void {
     if (!this.active) return;
-    const affected = aoeTiles(this.grid, center, skill.aoe)
-      .map((t) => this.units.find((u) => samePoint(u.pos, t)))
-      .filter((u): u is Unit => !!u);
+    // All occupants of every affected tile (a fallen unit may share a tile with
+    // a living one); resolveSkillOnTarget null-guards inapplicable targets.
+    const affected = aoeTiles(this.grid, center, skill.aoe).flatMap((t) =>
+      this.units.filter((u) => samePoint(u.pos, t)),
+    );
 
     const results: HitResult[] = [];
     let anyKilled = false;
@@ -401,9 +421,12 @@ export class BattleScene implements Scene {
   private tryItem(tile: Point): void {
     if (!this.active || !this.selectedItemId || !this.inRangeTiles(tile)) return;
     const item = getItem(this.selectedItemId);
-    // Items target a tile occupant (dead units still occupy for revive).
-    const target = this.units.find((u) => samePoint(u.pos, tile));
-    if (!target || target.team !== this.active.team) return;
+    // Pick the occupant the item applies to: a fallen ally for revive (a living
+    // unit may stand on a corpse's tile), otherwise a living ally.
+    const occupants = this.units.filter((u) => samePoint(u.pos, tile) && u.team === this.active!.team);
+    const target =
+      item.effect === "revive" ? occupants.find((u) => !u.alive) : occupants.find((u) => u.alive);
+    if (!target) return;
     const res = resolveItem(target, item.effect, item.amount);
     if (!res) {
       this.ui.toast("That has no effect here.");
@@ -465,9 +488,9 @@ export class BattleScene implements Scene {
       }
     } else if (plan.action.kind === "skill" && plan.action.skillId && plan.action.targetTile) {
       const skill = getSkill(plan.action.skillId);
-      const affected = aoeTiles(this.grid, plan.action.targetTile, skill.aoe)
-        .map((t) => this.units.find((u) => samePoint(u.pos, t)))
-        .filter((u): u is Unit => !!u);
+      const affected = aoeTiles(this.grid, plan.action.targetTile, skill.aoe).flatMap((t) =>
+        this.units.filter((u) => samePoint(u.pos, t)),
+      );
       const isOffensive = skill.effect === "damage" || skill.effect === "debuff";
       let cast = false;
       for (const target of affected) {

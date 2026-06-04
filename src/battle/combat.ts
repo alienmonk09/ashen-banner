@@ -143,14 +143,19 @@ export function resolveItem(
   amount: number,
 ): HitResult | null {
   switch (effect) {
-    case "healHp":
-      if (!target.alive) return null;
+    case "healHp": {
+      // No effect (and so: don't consume) on a dead or already-full target.
+      if (!target.alive || target.stats.hp >= target.stats.maxHp) return null;
+      const before = target.stats.hp;
       healHp(target, amount);
-      return { unitId: target.id, kind: "heal", amount, crit: false, killed: false, revived: false };
-    case "healMp":
-      if (!target.alive) return null;
+      return { unitId: target.id, kind: "heal", amount: target.stats.hp - before, crit: false, killed: false, revived: false };
+    }
+    case "healMp": {
+      if (!target.alive || target.stats.mp >= target.stats.maxMp) return null;
+      const before = target.stats.mp;
       target.stats.mp = Math.min(target.stats.maxMp, target.stats.mp + amount);
-      return { unitId: target.id, kind: "mp", amount, crit: false, killed: false, revived: false };
+      return { unitId: target.id, kind: "mp", amount: target.stats.mp - before, crit: false, killed: false, revived: false };
+    }
     case "revive":
       if (target.alive) return null;
       target.alive = true;

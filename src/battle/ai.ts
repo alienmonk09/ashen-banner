@@ -21,18 +21,15 @@ export interface AIPlan {
   action: AIAction;
 }
 
-/** Deterministic (no-variance) damage estimate used for AI scoring. */
-function estimateDamage(attacker: Unit, target: Unit, power: number, magical: boolean): number {
-  const base = magical
-    ? (attacker.stats.mag * power) / 10 - target.stats.res
-    : power - effectiveDef(target);
-  return Math.max(1, Math.round(base));
-}
-
+/**
+ * Deterministic (no-variance) estimate of a basic weapon attack, mirroring
+ * resolveWeaponAttack: damage = (atk or mag) + weaponPower - effectiveDef.
+ * Weapon attacks always subtract DEF, even for magical weapons (rods/staves).
+ */
 function estimateWeaponDamage(attacker: Unit, target: Unit): number {
   const w = getWeapon(attacker.weaponId);
-  const atkStat = w.kind === "magical" ? attacker.stats.mag : attacker.stats.atk;
-  return estimateDamage(attacker, target, atkStat + w.power, w.kind === "magical");
+  const stat = w.kind === "magical" ? attacker.stats.mag : attacker.stats.atk;
+  return Math.max(1, Math.round(stat + w.power - effectiveDef(target)));
 }
 
 interface Option {

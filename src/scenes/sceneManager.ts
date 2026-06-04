@@ -6,6 +6,8 @@ import type { GameState } from "../core/state";
 export interface Scene {
   update(dt: number): void;
   dispose(): void;
+  /** Optional: react to a viewport resize (e.g. re-anchor floating UI). */
+  onResize?(): void;
 }
 
 /** Navigation callbacks wired up in main.ts to avoid circular scene imports. */
@@ -35,5 +37,9 @@ export class SceneManager {
 
   update(dt: number): void {
     this.current?.update(dt);
+  }
+
+  resize(): void {
+    this.current?.onResize?.();
   }
 }

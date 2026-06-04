@@ -2,7 +2,7 @@ import type { MapDef, Point, SkillDef, Unit } from "../core/types";
 import { RNG } from "../core/rng";
 import { grantJp, grantXp, createUnit } from "../core/unit";
 import { refreshForBattle } from "../core/state";
-import { Grid, occupancy, samePoint } from "../battle/grid";
+import { Grid, moveBlockers, samePoint } from "../battle/grid";
 import { pathTo, reachable } from "../battle/pathfinding";
 import { aoeTiles, tilesInRange } from "../battle/targeting";
 import {
@@ -210,6 +210,7 @@ export class BattleScene implements Scene {
     this.selectedItemId = null;
     this.rangeTiles = [];
     this.ui.hideSubmenu();
+    this.anchorMenuToActive();
     this.ui.showActions({
       canMove: !this.hasMoved,
       canAct: !this.hasActed,
@@ -220,6 +221,22 @@ export class BattleScene implements Scene {
       onWait: () => this.endActiveTurn(),
     });
     this.ui.setHint("Left-click to act · Right-click to cancel · Enter to end turn");
+  }
+
+  /**
+   * Anchor the action menu near the active unit's on-screen position so it
+   * loads next to the unit you just clicked/moved instead of docked at the
+   * bottom. Submenus reuse this anchor (the unit does not move while a menu
+   * is open). Off-screen clamping is handled by the UI layer.
+   */
+  private anchorMenuToActive(): void {
+    if (!this.active) {
+      this.ui.setMenuAnchor(null);
+      return;
+    }
+    const z = this.grid.heightAt(this.active.pos.x, this.active.pos.y);
+    const p = worldToScreen(this.active.pos.x, this.active.pos.y, z, this.origin);
+    this.ui.setMenuAnchor({ x: p.sx, y: p.sy });
   }
 
   /** True only when the human player may issue input right now. */
@@ -246,9 +263,9 @@ export class BattleScene implements Scene {
     this.phase = "move";
     this.ui.clearActions();
     this.ui.setHint("Click a highlighted tile to move there.");
-    const occ = occupancy(this.units, this.active.id);
-    const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, occ);
-    this.rangeTiles = [...reach.costs.keys()].map((k) => {
+    const { solid, passThrough } = moveBlockers(this.units, this.active);
+    const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, solid, passThrough);
+    this.rangeTiles = [...reach.destinations].map((k) => {
       const [x, y] = k.split(",").map(Number);
       return { x, y };
     });
@@ -364,8 +381,8 @@ export class BattleScene implements Scene {
   private async tryMove(tile: Point): Promise<void> {
     if (!this.active || !this.inRangeTiles(tile)) return;
     if (this.unitAt(tile)) return;
-    const occ = occupancy(this.units, this.active.id);
-    const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, occ);
+    const { solid, passThrough } = moveBlockers(this.units, this.active);
+    const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, solid, passThrough);
     const path = pathTo(reach, tile);
     if (!path) return;
     this.phase = "resolving";
@@ -582,6 +599,13 @@ export class BattleScene implements Scene {
     this.ui.setTurnOrder(ordered);
   }
 
+  /** Re-anchor the floating menu to the active unit and re-clamp after a resize
+   *  (the camera re-centers, so the unit's on-screen position moves). */
+  onResize(): void {
+    this.anchorMenuToActive();
+    this.ui.reflowFloating();
+  }
+
   // --- Loop ---
 
   update(dt: number): void {
@@ -635,8 +659,8 @@ export class BattleScene implements Scene {
     if (this.phase === "move") {
       overlays.move = this.rangeTiles;
       if (this.hoverTile && this.inRangeTiles(this.hoverTile) && this.active) {
-        const occ = occupancy(this.units, this.active.id);
-        const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, occ);
+        const { solid, passThrough } = moveBlockers(this.units, this.active);
+        const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, solid, passThrough);
         overlays.path = pathTo(reach, this.hoverTile) ?? [];
       }
     } else if (this.phase === "attackTarget" || this.phase === "itemTarget") {

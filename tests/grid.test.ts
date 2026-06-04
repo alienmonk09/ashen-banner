@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Grid, key, manhattan, samePoint, occupancy } from "../src/battle/grid";
+import { Grid, key, manhattan, samePoint, occupancy, moveBlockers } from "../src/battle/grid";
 import type { MapDef, Point, Unit } from "../src/core/types";
 
 // --- Helpers -------------------------------------------------------------
@@ -334,5 +334,61 @@ describe("occupancy", () => {
     const units = [makeUnit("a", { x: 0, y: 0 })];
     occupancy(units, "a");
     expect(units.length).toBe(1);
+  });
+});
+
+// --- moveBlockers --------------------------------------------------------
+
+/** Unit stub with a team — moveBlockers reads id, pos, alive, and team. */
+function makeTeamUnit(id: string, pos: Point, team: "player" | "enemy", alive = true): Unit {
+  return { id, pos, alive, team } as unknown as Unit;
+}
+
+describe("moveBlockers", () => {
+  it("classifies same-team units as pass-through and other-team as solid", () => {
+    const mover = makeTeamUnit("m", { x: 0, y: 0 }, "player");
+    const units = [
+      mover,
+      makeTeamUnit("ally", { x: 1, y: 0 }, "player"),
+      makeTeamUnit("foe", { x: 2, y: 0 }, "enemy"),
+    ];
+    const { solid, passThrough } = moveBlockers(units, mover);
+    expect(passThrough.has("1,0")).toBe(true);
+    expect(passThrough.has("2,0")).toBe(false);
+    expect(solid.has("2,0")).toBe(true);
+    expect(solid.has("1,0")).toBe(false);
+  });
+
+  it("never includes the mover's own tile in either set", () => {
+    const mover = makeTeamUnit("m", { x: 3, y: 3 }, "enemy");
+    const { solid, passThrough } = moveBlockers([mover], mover);
+    expect(solid.has("3,3")).toBe(false);
+    expect(passThrough.has("3,3")).toBe(false);
+    expect(solid.size).toBe(0);
+    expect(passThrough.size).toBe(0);
+  });
+
+  it("skips dead units regardless of team", () => {
+    const mover = makeTeamUnit("m", { x: 0, y: 0 }, "player");
+    const units = [
+      mover,
+      makeTeamUnit("deadAlly", { x: 1, y: 0 }, "player", false),
+      makeTeamUnit("deadFoe", { x: 0, y: 1 }, "enemy", false),
+    ];
+    const { solid, passThrough } = moveBlockers(units, mover);
+    expect(passThrough.size).toBe(0);
+    expect(solid.size).toBe(0);
+  });
+
+  it("is symmetric: an enemy mover treats enemies as pass-through and players as solid", () => {
+    const mover = makeTeamUnit("m", { x: 0, y: 0 }, "enemy");
+    const units = [
+      mover,
+      makeTeamUnit("foeAlly", { x: 1, y: 0 }, "enemy"),
+      makeTeamUnit("player", { x: 0, y: 1 }, "player"),
+    ];
+    const { solid, passThrough } = moveBlockers(units, mover);
+    expect(passThrough.has("1,0")).toBe(true);
+    expect(solid.has("0,1")).toBe(true);
   });
 });

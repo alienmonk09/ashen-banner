@@ -52,3 +52,28 @@ export function occupancy(units: Unit[], excludeId?: string): Set<string> {
   }
   return set;
 }
+
+export interface MoveBlockers {
+  /** Tiles the mover cannot enter (occupied by an enemy). */
+  solid: Set<string>;
+  /** Tiles the mover may cross but not stop on (occupied by an ally). */
+  passThrough: Set<string>;
+}
+
+/**
+ * Split live unit occupancy relative to `mover`: allies are pass-through (you
+ * may move across a friendly unit but not finish on it), enemies are solid
+ * (they block movement entirely). The mover's own tile is ignored. The same
+ * rule applies to player and enemy units alike.
+ */
+export function moveBlockers(units: Unit[], mover: Unit): MoveBlockers {
+  const solid = new Set<string>();
+  const passThrough = new Set<string>();
+  for (const u of units) {
+    if (!u.alive || u.id === mover.id) continue;
+    const k = key(u.pos);
+    if (u.team === mover.team) passThrough.add(k);
+    else solid.add(k);
+  }
+  return { solid, passThrough };
+}

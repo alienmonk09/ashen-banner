@@ -36,7 +36,10 @@ function boot(): void {
     },
   };
 
-  const resize = () => renderer.resize(app.clientWidth, app.clientHeight);
+  const resize = () => {
+    renderer.resize(app.clientWidth, app.clientHeight);
+    manager.resize();
+  };
   resize();
   window.addEventListener("resize", resize);
 

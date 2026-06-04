@@ -179,6 +179,76 @@ describe("reachable", () => {
     // (1,1) is reachable via (1,0) or (0,1), both at cost 2 — never overwritten higher.
     expect(costs.get("1,1")).toBe(2);
   });
+
+  it("lists every reachable tile as a destination when there are no pass-through tiles", () => {
+    const grid = new Grid(makeMap({ width: 3, height: 3 }));
+    const start: Point = { x: 0, y: 0 };
+    const { costs, destinations } = reachable(grid, start, 10, 1, NO_OCCUPANTS);
+    expect(destinations.size).toBe(costs.size);
+    for (const k of costs.keys()) expect(destinations.has(k)).toBe(true);
+  });
+});
+
+describe("reachable pass-through (allies)", () => {
+  it("routes through a pass-through tile but excludes it from destinations", () => {
+    // Block column x=1 except the single gap at (1,2), which is an ally tile.
+    const blocked = Array.from({ length: 5 }, () => Array(5).fill(false));
+    for (let y = 0; y < 5; y++) if (y !== 2) blocked[y][1] = true;
+    const grid = new Grid(makeMap({ blocked }));
+    const start: Point = { x: 0, y: 2 };
+    const passThrough = new Set<string>(["1,2"]);
+    const { costs, destinations } = reachable(grid, start, 10, 1, NO_OCCUPANTS, passThrough);
+    // The ally tile is crossed (recorded in costs) and the far side is reached...
+    expect(costs.has("1,2")).toBe(true);
+    expect(costs.has("2,2")).toBe(true);
+    // ...but you cannot stop on the ally tile itself.
+    expect(destinations.has("1,2")).toBe(false);
+    expect(destinations.has("2,2")).toBe(true);
+  });
+
+  it("reconstructs a path straight through an ally tile", () => {
+    const grid = new Grid(makeMap());
+    const start: Point = { x: 0, y: 0 };
+    const passThrough = new Set<string>(["1,0"]);
+    const result = reachable(grid, start, 4, 1, NO_OCCUPANTS, passThrough);
+    const path = pathTo(result, { x: 2, y: 0 });
+    expect(path).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+  });
+
+  it("keeps solid (5th arg) tiles fully impassable — no crossing, no stopping", () => {
+    const grid = new Grid(makeMap());
+    const start: Point = { x: 0, y: 2 };
+    const solid = new Set<string>();
+    for (let y = 0; y < 5; y++) solid.add(`1,${y}`);
+    const { costs, destinations } = reachable(grid, start, 10, 1, solid);
+    expect(costs.has("1,2")).toBe(false);
+    expect(costs.has("2,2")).toBe(false);
+    expect(destinations.has("1,2")).toBe(false);
+  });
+
+  it("treats a tile listed as both solid and pass-through as solid (solid wins)", () => {
+    // Corridor: column x=1 is walled except a single gap at (1,2). The far side
+    // (x>=2) is reachable only by crossing that gap, so the gap's classification
+    // is observable. Same tile, two classifications, contrasting outcomes.
+    const blocked = Array.from({ length: 5 }, () => Array(5).fill(false));
+    for (let y = 0; y < 5; y++) if (y !== 2) blocked[y][1] = true;
+    const grid = new Grid(makeMap({ blocked }));
+    const start: Point = { x: 0, y: 2 };
+
+    // Gap is BOTH solid and pass-through -> solid wins: gap sealed, far side closed.
+    const both = reachable(grid, start, 10, 1, new Set(["1,2"]), new Set(["1,2"]));
+    expect(both.costs.has("1,2")).toBe(false);
+    expect(both.costs.has("2,2")).toBe(false);
+
+    // Same gap as pass-through ONLY -> crossable: far side opens, gap not a stop.
+    const passOnly = reachable(grid, start, 10, 1, new Set(), new Set(["1,2"]));
+    expect(passOnly.costs.has("2,2")).toBe(true);
+    expect(passOnly.destinations.has("1,2")).toBe(false);
+  });
 });
 
 describe("pathTo", () => {

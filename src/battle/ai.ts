@@ -1,5 +1,5 @@
 import type { Point, SkillDef, Unit } from "../core/types";
-import { Grid, manhattan, occupancy, samePoint } from "./grid";
+import { Grid, manhattan, moveBlockers, samePoint } from "./grid";
 import { pathTo, reachable } from "./pathfinding";
 import { aoeTiles, tilesInRange } from "./targeting";
 import { forecastSkill, forecastWeapon } from "./forecast";
@@ -38,14 +38,15 @@ interface Option {
  * most killable enemy; if nothing is reachable, advance toward the nearest foe.
  */
 export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
-  const occupied = occupancy(units, unit.id);
-  const reach = reachable(grid, unit.pos, unit.stats.move, unit.stats.jump, occupied);
+  const { solid, passThrough } = moveBlockers(units, unit);
+  const reach = reachable(grid, unit.pos, unit.stats.move, unit.stats.jump, solid, passThrough);
 
-  // Stand tiles: every reachable tile plus the current position.
-  const standTiles: Point[] = [unit.pos];
-  for (const k of reach.costs.keys()) {
+  // Stand tiles: every tile the unit may actually stop on (includes its own
+  // position at cost 0; excludes ally-occupied pass-through tiles).
+  const standTiles: Point[] = [];
+  for (const k of reach.destinations) {
     const [x, y] = k.split(",").map(Number);
-    if (!(x === unit.pos.x && y === unit.pos.y)) standTiles.push({ x, y });
+    standTiles.push({ x, y });
   }
 
   const enemies = units.filter((u) => u.alive && u.team !== unit.team);

@@ -34,6 +34,8 @@ export class BattleUI {
   private hintEl: HTMLDivElement;
   private bannerEl: HTMLDivElement;
   private toastTimer = 0;
+  /** Screen point (CSS px) the action menu/submenu anchor to; null = docked. */
+  private menuAnchor: { x: number; y: number } | null = null;
 
   constructor(parent: HTMLElement) {
     this.layer = el("div", { className: "ui-layer" });
@@ -137,6 +139,48 @@ export class BattleUI {
 
   // --- Action menu ---
 
+  /** Set where the action menu/submenu should appear (CSS px, ui-layer space),
+   *  or null to dock at the bottom of the screen. */
+  setMenuAnchor(p: { x: number; y: number } | null): void {
+    this.menuAnchor = p;
+  }
+
+  /** Re-apply floating placement to whichever menu panel is currently visible.
+   *  Called after a viewport resize so the menu re-anchors and re-clamps. */
+  reflowFloating(): void {
+    if (this.actionMenu.style.display !== "none") this.placeFloating(this.actionMenu);
+    if (this.submenu.style.display !== "none") this.placeFloating(this.submenu);
+  }
+
+  /** Position a floating panel near the anchor (clamped to the viewport), or
+   *  clear inline positioning so the CSS-defined docked position applies. */
+  private placeFloating(panel: HTMLDivElement): void {
+    if (!this.menuAnchor) {
+      panel.style.left = "";
+      panel.style.top = "";
+      panel.style.right = "";
+      panel.style.bottom = "";
+      panel.style.transform = "";
+      return;
+    }
+    const margin = 10;
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+    panel.style.transform = "none";
+    let x = this.menuAnchor.x + 28;
+    let y = this.menuAnchor.y - 16;
+    panel.style.left = `${x}px`;
+    panel.style.top = `${y}px`;
+    // Clamp into the viewport now that the panel has a measurable size.
+    const r = panel.getBoundingClientRect();
+    if (r.right > window.innerWidth - margin) x -= r.right - (window.innerWidth - margin);
+    if (r.bottom > window.innerHeight - margin) y -= r.bottom - (window.innerHeight - margin);
+    if (x < margin) x = margin;
+    if (y < margin) y = margin;
+    panel.style.left = `${x}px`;
+    panel.style.top = `${y}px`;
+  }
+
   showActions(state: ActionState): void {
     this.hideSubmenu();
     clear(this.actionMenu);
@@ -153,6 +197,7 @@ export class BattleUI {
     this.actionMenu.appendChild(mk("Item", state.canAct, state.onItem));
     this.actionMenu.appendChild(mk("Wait", true, state.onWait));
     this.actionMenu.style.display = "flex";
+    this.placeFloating(this.actionMenu);
   }
 
   clearActions(): void {
@@ -185,6 +230,7 @@ export class BattleUI {
     }
     this.submenu.appendChild(el("button", { className: "btn small", text: "← Back", onClick: onBack }));
     this.submenu.style.display = "flex";
+    this.placeFloating(this.submenu);
   }
 
   showItemMenu(entries: Array<{ item: ItemDef; count: number }>, onPick: (id: string) => void, onBack: () => void): void {
@@ -206,6 +252,7 @@ export class BattleUI {
     }
     this.submenu.appendChild(el("button", { className: "btn small", text: "← Back", onClick: onBack }));
     this.submenu.style.display = "flex";
+    this.placeFloating(this.submenu);
   }
 
   hideSubmenu(): void {

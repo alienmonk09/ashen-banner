@@ -33,7 +33,9 @@ export const MAX_PARTY = ROSTER.length;
  * ments arrive at a readable pace. Maps must offer at least this many spawns.
  */
 export function partyCapForPhase(phaseIndex: number): number {
-  if (phaseIndex >= 4) return Math.min(6, MAX_PARTY);
+  // 7-phase campaign (indices 0–6): the 5th slot opens mid-run, the 6th is
+  // held back for the finale (the last phase) so the roster peaks at the climax.
+  if (phaseIndex >= 6) return Math.min(6, MAX_PARTY);
   if (phaseIndex >= 2) return 5;
   return PARTY_SIZE;
 }

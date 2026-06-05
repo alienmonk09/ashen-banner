@@ -253,6 +253,8 @@ export interface EnemySpawn {
   skillIds?: string[];
   /** AI behavioral archetype for this spawn. Absent = "balanced". */
   personality?: AIPersonality;
+  /** Race of this enemy. Absent = "human". */
+  raceId?: RaceId;
 }
 
 export const CT_THRESHOLD = 100;

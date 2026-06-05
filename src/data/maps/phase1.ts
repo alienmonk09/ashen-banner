@@ -26,8 +26,8 @@ export const phase1: MapDef = {
     { x: 3, y: 6 },
   ],
   enemies: [
-    { name: "Brigand Swordsman", classId: "knight", level: 2, weaponId: "sword", skillIds: ["powerStrike"], pos: { x: 4, y: 1 } },
-    { name: "Camp Lookout", classId: "archer", level: 1, weaponId: "bow", skillIds: [], pos: { x: 2, y: 2 } },
-    { name: "Wandering Brawler", classId: "monk", level: 1, weaponId: "knuckles", skillIds: [], pos: { x: 5, y: 1 } },
+    { name: "Brigand Swordsman", classId: "knight", level: 2, weaponId: "sword", skillIds: ["powerStrike"], pos: { x: 4, y: 1 }, raceId: "orc" },
+    { name: "Camp Lookout", classId: "archer", level: 1, weaponId: "bow", skillIds: [], pos: { x: 2, y: 2 }, raceId: "halfling" },
+    { name: "Wandering Brawler", classId: "monk", level: 1, weaponId: "knuckles", skillIds: [], pos: { x: 5, y: 1 }, raceId: "orc" },
   ],
 };

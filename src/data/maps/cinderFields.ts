@@ -70,11 +70,11 @@ export const cinderFields: MapDef = {
     { x: 6, y: 9 },
   ],
   enemies: [
-    { name: "Cinder Marauder", classId: "knight", level: 5, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 1 }, personality: "aggressive" },
-    { name: "Ash Archer", classId: "archer", level: 5, weaponId: "longbow", skillIds: ["aimedShot", "cripple"], pos: { x: 10, y: 1 } },
-    { name: "Scorch Mage", classId: "blackMage", level: 5, weaponId: "rod", skillIds: ["fire", "poison"], pos: { x: 6, y: 0 } },
-    { name: "Field Cleric", classId: "whiteMage", level: 4, weaponId: "staff", skillIds: ["cure", "protect"], pos: { x: 2, y: 2 }, personality: "support" },
-    { name: "Reaver Monk", classId: "monk", level: 5, weaponId: "knuckles", skillIds: ["palmStrike", "earthShake"], pos: { x: 10, y: 2 }, personality: "aggressive" },
-    { name: "Brigand Lieutenant", classId: "thief", level: 5, weaponId: "dagger", skillIds: ["backstab", "hamstring"], pos: { x: 6, y: 2 } },
+    { name: "Cinder Marauder", classId: "knight", level: 5, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 1 }, personality: "aggressive", raceId: "orc" },
+    { name: "Ash Archer", classId: "archer", level: 5, weaponId: "longbow", skillIds: ["aimedShot", "cripple"], pos: { x: 10, y: 1 }, raceId: "halfling" },
+    { name: "Scorch Mage", classId: "blackMage", level: 5, weaponId: "rod", skillIds: ["fire", "poison"], pos: { x: 6, y: 0 }, raceId: "elf" },
+    { name: "Field Cleric", classId: "whiteMage", level: 4, weaponId: "staff", skillIds: ["cure", "protect"], pos: { x: 2, y: 2 }, personality: "support", raceId: "human" },
+    { name: "Reaver Monk", classId: "monk", level: 5, weaponId: "knuckles", skillIds: ["palmStrike", "earthShake"], pos: { x: 10, y: 2 }, personality: "aggressive", raceId: "orc" },
+    { name: "Brigand Lieutenant", classId: "thief", level: 5, weaponId: "dagger", skillIds: ["backstab", "hamstring"], pos: { x: 6, y: 2 }, raceId: "halfling" },
   ],
 };

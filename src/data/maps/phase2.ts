@@ -39,9 +39,9 @@ export const phase2: MapDef = {
     { x: 1, y: 5 },
   ],
   enemies: [
-    { name: "Hill Sorcerer", classId: "blackMage", level: 3, weaponId: "rod", skillIds: ["fire", "poison"], pos: { x: 8, y: 4 } },
-    { name: "Ridge Sentry", classId: "knight", level: 4, weaponId: "sword", skillIds: ["powerStrike"], pos: { x: 6, y: 2 } },
-    { name: "Crag Sentry", classId: "knight", level: 3, weaponId: "sword", skillIds: ["guard"], pos: { x: 6, y: 6 } },
-    { name: "Pass Brawler", classId: "monk", level: 3, weaponId: "knuckles", skillIds: ["palmStrike"], pos: { x: 4, y: 4 } },
+    { name: "Hill Sorcerer", classId: "blackMage", level: 3, weaponId: "rod", skillIds: ["fire", "poison"], pos: { x: 8, y: 4 }, raceId: "elf" },
+    { name: "Ridge Sentry", classId: "knight", level: 4, weaponId: "sword", skillIds: ["powerStrike"], pos: { x: 6, y: 2 }, raceId: "dwarf" },
+    { name: "Crag Sentry", classId: "knight", level: 3, weaponId: "sword", skillIds: ["guard"], pos: { x: 6, y: 6 }, raceId: "orc" },
+    { name: "Pass Brawler", classId: "monk", level: 3, weaponId: "knuckles", skillIds: ["palmStrike"], pos: { x: 4, y: 4 }, raceId: "orc" },
   ],
 };

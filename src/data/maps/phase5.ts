@@ -45,11 +45,11 @@ export const phase5: MapDef = {
     { x: 5, y: 8 },
   ],
   enemies: [
-    { name: "Maldrath the Unbowed", classId: "knight", level: 9, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 2 } },
-    { name: "Seris, Throne Cleric", classId: "whiteMage", level: 7, weaponId: "staff", skillIds: ["cure", "cura", "raise", "protect", "haste"], pos: { x: 5, y: 3 } },
-    { name: "Vexin the Emberborn", classId: "blackMage", level: 7, weaponId: "rod", skillIds: ["fire", "bolt", "poison", "stop"], pos: { x: 6, y: 2 } },
-    { name: "Ironsworn Hale", classId: "knight", level: 6, weaponId: "sword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 4 } },
-    { name: "Bastion Monk Garr", classId: "monk", level: 6, weaponId: "knuckles", skillIds: ["palmStrike", "chakra"], pos: { x: 5, y: 4 } },
-    { name: "Throne Archer Vael", classId: "archer", level: 6, weaponId: "longbow", skillIds: ["aimedShot"], pos: { x: 3, y: 3 } },
+    { name: "Maldrath the Unbowed", classId: "knight", level: 9, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 2 }, raceId: "human" },
+    { name: "Seris, Throne Cleric", classId: "whiteMage", level: 7, weaponId: "staff", skillIds: ["cure", "cura", "raise", "protect", "haste"], pos: { x: 5, y: 3 }, raceId: "human" },
+    { name: "Vexin the Emberborn", classId: "blackMage", level: 7, weaponId: "rod", skillIds: ["fire", "bolt", "poison", "stop"], pos: { x: 6, y: 2 }, raceId: "elf" },
+    { name: "Ironsworn Hale", classId: "knight", level: 6, weaponId: "sword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 4 }, raceId: "dwarf" },
+    { name: "Bastion Monk Garr", classId: "monk", level: 6, weaponId: "knuckles", skillIds: ["palmStrike", "chakra"], pos: { x: 5, y: 4 }, raceId: "orc" },
+    { name: "Throne Archer Vael", classId: "archer", level: 6, weaponId: "longbow", skillIds: ["aimedShot"], pos: { x: 3, y: 3 }, raceId: "halfling" },
   ],
 };

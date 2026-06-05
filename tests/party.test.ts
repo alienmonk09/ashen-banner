@@ -30,10 +30,10 @@ describe("hero roster", () => {
     expect(partyCapForPhase(0)).toBe(PARTY_SIZE);
     expect(partyCapForPhase(1)).toBe(PARTY_SIZE);
     expect(partyCapForPhase(2)).toBe(5);
-    expect(partyCapForPhase(3)).toBe(5);
-    expect(partyCapForPhase(4)).toBe(6);
+    expect(partyCapForPhase(4)).toBe(5);
+    expect(partyCapForPhase(6)).toBe(6); // the sixth slot is held for the finale
     expect(partyCapForPhase(9)).toBeLessThanOrEqual(MAX_PARTY);
-    expect(partyCapForPhase(4)).toBeGreaterThan(partyCapForPhase(0));
+    expect(partyCapForPhase(6)).toBeGreaterThan(partyCapForPhase(0));
   });
 
   it("offers only un-recruited roster heroes as reinforcements", () => {

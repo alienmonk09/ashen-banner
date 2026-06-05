@@ -57,10 +57,10 @@ export const phase3: MapDef = {
     { x: 4, y: 6 },
   ],
   enemies: [
-    { name: "Bridge Vanguard", classId: "knight", level: 5, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 1 } },
-    { name: "River Guard", classId: "knight", level: 4, weaponId: "sword", skillIds: ["guard"], pos: { x: 3, y: 3 } },
-    { name: "Far Bank Archer", classId: "archer", level: 5, weaponId: "longbow", skillIds: ["aimedShot", "cripple"], pos: { x: 2, y: 2 } },
-    { name: "Cliffside Mage", classId: "blackMage", level: 5, weaponId: "rod", skillIds: ["fire", "bolt"], pos: { x: 6, y: 2 } },
-    { name: "Wandering Monk", classId: "monk", level: 4, weaponId: "knuckles", skillIds: ["palmStrike", "chakra"], pos: { x: 6, y: 0 } },
+    { name: "Bridge Vanguard", classId: "knight", level: 5, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 1 }, raceId: "dwarf" },
+    { name: "River Guard", classId: "knight", level: 4, weaponId: "sword", skillIds: ["guard"], pos: { x: 3, y: 3 }, raceId: "human" },
+    { name: "Far Bank Archer", classId: "archer", level: 5, weaponId: "longbow", skillIds: ["aimedShot", "cripple"], pos: { x: 2, y: 2 }, raceId: "halfling" },
+    { name: "Cliffside Mage", classId: "blackMage", level: 5, weaponId: "rod", skillIds: ["fire", "bolt"], pos: { x: 6, y: 2 }, raceId: "elf" },
+    { name: "Wandering Monk", classId: "monk", level: 4, weaponId: "knuckles", skillIds: ["palmStrike", "chakra"], pos: { x: 6, y: 0 }, raceId: "orc" },
   ],
 };

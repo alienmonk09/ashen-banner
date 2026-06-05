@@ -118,6 +118,7 @@ export class BattleScene implements Scene {
           weaponId: e.weaponId,
           learnedSkillIds: e.skillIds ?? [],
           personality: e.personality,
+          raceId: e.raceId,
         }),
       );
     }

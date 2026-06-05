@@ -505,6 +505,22 @@ export const SKILLS: Record<string, SkillDef> = {
     scaling: "physical",
     statusKind: "slow",
   },
+  // pull: true — the hooked spear tip snags the foe and drags them adjacent.
+  harpoon: {
+    id: "harpoon",
+    name: "Harpoon",
+    description: "Hurl the spear on a chain. Deals a glancing blow then yanks the foe one tile closer.",
+    mpCost: 5,
+    jpCost: 200,
+    range: 3,
+    aoe: "single",
+    power: 12,
+    element: "none",
+    effect: "damage",
+    scaling: "physical",
+    knockback: 1,
+    pull: true,
+  },
   // Geomancer
   boulder: {
     id: "boulder",

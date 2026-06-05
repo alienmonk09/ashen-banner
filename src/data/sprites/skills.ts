@@ -612,6 +612,26 @@ export const SKILL_SPRITES: Record<string, SpriteDef> = {
       "..AA..........",
     ],
   },
+  // Lancer — harpoon: a spear on a chain that drags the foe closer (pull variant)
+  harpoon: {
+    palette: { A: "#1a0a00", B: "#5a2a00", C: "#bf5f2a", D: "#e08040", E: "#f0c080", F: "#c8d0d8", G: "#f0f4f8" },
+    rows: [
+      "..........FG..",
+      ".........FGF..",
+      "........FGF...",
+      ".......FGF....",
+      "......FGF.....",
+      ".....FGF......",
+      "....FGF.......",
+      "...FGFF.......",
+      "..FGDDF.......",
+      ".FGDDECF......",
+      "FGDDDECDF.....",
+      ".ADDDDCBA.....",
+      "..ADDDBA......",
+      "...ABBA.......",
+    ],
+  },
   // Geomancer skill icons
   boulder: {
     palette: { A: "#1a0e05", B: "#5a3e20", C: "#8a6040", D: "#b08060", E: "#d4a870", F: "#e8c898", G: "#ffffff" },

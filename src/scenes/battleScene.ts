@@ -845,12 +845,11 @@ export class BattleScene implements Scene {
     return true;
   }
 
-  /** Shove a living single-target skill's victim directly away from the caster. */
-  /** Shove a target; returns true if the fall on landing killed it. */
+  /** Shove or pull a target; returns true if the displacement fall killed it. */
   private applyKnockback(skill: SkillDef, caster: Unit, target: Unit): boolean {
     if (!skill.knockback || skill.aoe !== "single" || !target.alive) return false;
     const from = target.pos;
-    const dest = knockbackTo(this.grid, this.units, caster.pos, from, skill.knockback);
+    const dest = knockbackTo(this.grid, this.units, caster.pos, from, skill.knockback, skill.pull ?? false);
     if (samePoint(dest, from)) return false;
     const drop = this.grid.heightAt(from.x, from.y) - this.grid.heightAt(dest.x, dest.y);
     void this.ctx.animator.moveAlong(target.id, [from, dest]);

@@ -99,9 +99,10 @@ export function leapLanding(grid: Grid, units: Unit[], caster: Unit, target: Poi
 
 /**
  * Compute the landing tile when a unit at `target` is shoved `distance` tiles
- * directly away from `caster`. Steps are blocked by the grid edge, blocked
- * tiles, and tiles occupied by other living units. Returns the last valid tile
- * (may equal `target` if every step is blocked).
+ * directly away from `caster` (or pulled toward it when `pull` is true). Steps
+ * are blocked by the grid edge, blocked tiles, and tiles occupied by other
+ * living units. Returns the last valid tile (may equal `target` if every step
+ * is blocked). A pull never moves the target onto or past the caster's tile.
  */
 export function knockbackTo(
   grid: Grid,
@@ -109,10 +110,15 @@ export function knockbackTo(
   caster: Point,
   target: Point,
   distance: number,
+  pull = false,
 ): Point {
+  // Shove: step away from caster. Pull: step toward caster (reverse direction).
   const dir = directionTo(caster, target);
-  const step = dirVector(dir);
-  // Occupancy of all living units except the unit being shoved.
+  const rawStep = dirVector(dir);
+  const step = pull
+    ? { x: -rawStep.x, y: -rawStep.y }
+    : rawStep;
+  // Occupancy of all living units except the unit being shoved/pulled.
   const occ = new Set(
     units.filter((u) => u.alive && !samePoint(u.pos, target)).map((u) => key(u.pos)),
   );
@@ -123,6 +129,8 @@ export function knockbackTo(
     if (!grid.inBounds(nx, ny)) break;
     if (grid.isBlocked(nx, ny)) break;
     if (occ.has(key({ x: nx, y: ny }))) break;
+    // A pull must never land the target on or past the caster's tile.
+    if (pull && samePoint({ x: nx, y: ny }, caster)) break;
     cur = { x: nx, y: ny };
   }
   return cur;

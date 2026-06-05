@@ -196,4 +196,68 @@ describe("skill definitions", () => {
     expect(skill.knockback).toBe(1);
     expect(skill.aoe).toBe("single");
   });
+
+  it("harpoon has pull: true, knockback, and aoe: single", () => {
+    const skill = SKILLS["harpoon"];
+    expect(skill.pull).toBe(true);
+    expect(skill.knockback).toBeGreaterThan(0);
+    expect(skill.aoe).toBe("single");
+  });
+});
+
+describe("knockbackTo — pull variant", () => {
+  it("pulls target one tile toward caster (caster west, target two east → pulled one west)", () => {
+    const grid = makeGrid(10, 10);
+    // Caster at (2,5), target at (4,5) — pull distance 1, target moves west to (3,5).
+    const caster: Point = { x: 2, y: 5 };
+    const target: Point = { x: 4, y: 5 };
+    const dest = knockbackTo(grid, [], caster, target, 1, true);
+    expect(dest).toEqual({ x: 3, y: 5 });
+  });
+
+  it("pull stops one tile short of the caster (never lands on the caster's tile)", () => {
+    const grid = makeGrid(10, 10);
+    // Caster at (2,5), target at (4,5), pull distance 2 → would reach (2,5) but must stop at (3,5).
+    const caster: Point = { x: 2, y: 5 };
+    const target: Point = { x: 4, y: 5 };
+    const dest = knockbackTo(grid, [], caster, target, 2, true);
+    expect(dest).toEqual({ x: 3, y: 5 });
+  });
+
+  it("pull stops before an occupied tile between target and caster", () => {
+    const grid = makeGrid(10, 10);
+    // Caster at (2,5), target at (6,5), blocker at (5,5) — pull 3 tiles but (5,5) is occupied.
+    const caster: Point = { x: 2, y: 5 };
+    const target: Point = { x: 6, y: 5 };
+    const blocker = unitAt({ x: 5, y: 5 });
+    const dest = knockbackTo(grid, [blocker], caster, target, 3, true);
+    expect(dest).toEqual({ x: 6, y: 5 }); // can't move — immediately blocked
+  });
+
+  it("pull stops before a blocked tile between target and caster", () => {
+    // Caster at (2,5), target at (6,5), blocked tile at (5,5) — pull stops at (6,5).
+    const grid = makeGridWithBlocked(10, 10, [{ x: 5, y: 5 }]);
+    const caster: Point = { x: 2, y: 5 };
+    const target: Point = { x: 6, y: 5 };
+    const dest = knockbackTo(grid, [], caster, target, 3, true);
+    expect(dest).toEqual({ x: 6, y: 5 });
+  });
+
+  it("pull=false (default) gives the same result as the original shove", () => {
+    const grid = makeGrid(10, 10);
+    const caster: Point = { x: 2, y: 5 };
+    const target: Point = { x: 3, y: 5 };
+    // Regression: explicit false must be identical to omitting the argument.
+    expect(knockbackTo(grid, [], caster, target, 1, false)).toEqual(
+      knockbackTo(grid, [], caster, target, 1),
+    );
+  });
+
+  it("pull works from the north (caster north, target two south → pulled one north)", () => {
+    const grid = makeGrid(10, 10);
+    const caster: Point = { x: 5, y: 2 };
+    const target: Point = { x: 5, y: 4 };
+    const dest = knockbackTo(grid, [], caster, target, 1, true);
+    expect(dest).toEqual({ x: 5, y: 3 });
+  });
 });

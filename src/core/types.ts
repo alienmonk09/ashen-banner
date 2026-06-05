@@ -116,6 +116,8 @@ export interface SkillDef {
   statusDuration?: number;
   /** Tiles to shove the target directly away from the caster after the hit resolves (single-target only). */
   knockback?: number;
+  /** When true, the skill's `knockback` distance pulls the target TOWARD the caster instead of away. */
+  pull?: boolean;
   /** Leap skills: the caster jumps adjacent to the target before striking, ignoring line-of-sight. */
   leap?: boolean;
   /** FFT-style charge delay: the skill is announced now but resolves on the caster's next turn.

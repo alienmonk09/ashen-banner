@@ -10,7 +10,7 @@ import { CHARACTER_SPRITES } from "../src/data/sprites/characters";
 import { SKILL_SPRITES } from "../src/data/sprites/skills";
 import { WEAPON_SPRITES } from "../src/data/sprites/weapons";
 
-const LANCER_SKILL_IDS = ["jump", "lanceThrust", "hobble", "sweep"];
+const LANCER_SKILL_IDS = ["jump", "lanceThrust", "hobble", "harpoon", "sweep"];
 
 // --- Grid helpers ---
 
@@ -85,7 +85,7 @@ describe("Lancer class", () => {
     }
   });
 
-  it("has exactly the 4 lancer skill ids in its skillIds", () => {
+  it("has exactly the 5 lancer skill ids in its skillIds", () => {
     for (const sid of LANCER_SKILL_IDS) {
       expect(def.skillIds).toContain(sid);
     }

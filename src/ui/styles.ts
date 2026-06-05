@@ -60,6 +60,7 @@ const CSS = `
 .a-skill .act-dot { background: #b98cff; box-shadow: 0 0 6px rgba(185,140,255,0.7); }
 .a-item .act-dot { background: #5fbf72; box-shadow: 0 0 6px rgba(95,191,114,0.7); }
 .a-end .act-dot { background: #e0b070; box-shadow: 0 0 6px rgba(224,176,112,0.7); }
+.a-undo .act-dot { background: #8ab4d0; box-shadow: 0 0 6px rgba(138,180,208,0.7); }
 .act-label { line-height: 1; }
 .key-hint {
   margin-left: 4px; font-size: 11px; font-weight: 700; line-height: 1;

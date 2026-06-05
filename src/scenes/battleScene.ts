@@ -1,4 +1,4 @@
-import type { MapDef, Point, SkillDef, Unit } from "../core/types";
+import type { Direction, MapDef, Point, SkillDef, Unit } from "../core/types";
 import { RNG } from "../core/rng";
 import { grantJp, grantXp, createUnit } from "../core/unit";
 import { enemyLevelFor, refreshForBattle, GIL_PER_KILL } from "../core/state";
@@ -68,6 +68,7 @@ export class BattleScene implements Scene {
   private active: Unit | null = null;
   private hasMoved = false;
   private hasActed = false;
+  private preMove: { pos: Point; facing: Direction } | null = null;
   /** Turns begun this battle (drives the "survive N turns" objective). */
   private turnCount = 0;
   /** Camera orientation (clockwise quarter-turns); the player can rotate freely. */
@@ -237,6 +238,7 @@ export class BattleScene implements Scene {
     this.ui.setObjective(this.objectiveText());
     this.hasMoved = false;
     this.hasActed = false;
+    this.preMove = null;
     this.selectedSkill = null;
     this.rangeTiles = [];
     this.refreshTurnBar();
@@ -333,11 +335,13 @@ export class BattleScene implements Scene {
     this.ui.showActions({
       canMove: !this.hasMoved,
       canAct: !this.hasActed,
+      canUndo: this.hasMoved && !this.hasActed && this.preMove !== null,
       onMove: () => this.enterMove(),
       onAttack: () => this.enterAttack(),
       onSkill: () => this.enterSkillMenu(),
       onItem: () => this.enterItemMenu(),
       onWait: () => this.endActiveTurn(),
+      onUndo: () => this.undoMove(),
     });
     this.ui.setHint("Left-click to act · Right-click to cancel · Enter to end turn · , / . to rotate view");
   }
@@ -517,6 +521,7 @@ export class BattleScene implements Scene {
     const reach = reachable(this.grid, this.active.pos, this.active.stats.move, this.active.stats.jump, solid, passThrough, zoc);
     const path = pathTo(reach, tile);
     if (!path) return;
+    this.preMove = { pos: { ...this.active.pos }, facing: this.active.facing };
     this.phase = "resolving";
     this.rangeTiles = [];
     this.ui.hideCombatControls();
@@ -723,6 +728,7 @@ export class BattleScene implements Scene {
 
   private afterAction(): void {
     this.hasActed = true;
+    this.preMove = null;
     this.selectedSkill = null;
     this.selectedItemId = null;
     this.rangeTiles = [];
@@ -738,6 +744,16 @@ export class BattleScene implements Scene {
       this.endActiveTurn();
       return;
     }
+    this.refreshMenu();
+  }
+
+  private undoMove(): void {
+    if (!this.active || !this.preMove || this.hasActed) return;
+    this.active.pos = { ...this.preMove.pos };
+    this.active.facing = this.preMove.facing;
+    this.hasMoved = false;
+    this.preMove = null;
+    this.anchorMenuToActive();
     this.refreshMenu();
   }
 

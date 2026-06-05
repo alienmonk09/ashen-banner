@@ -10,11 +10,13 @@ import { iconImg, portraitImg } from "./icons";
 export interface ActionState {
   canMove: boolean;
   canAct: boolean;
+  canUndo?: boolean;
   onMove: () => void;
   onAttack: () => void;
   onSkill: () => void;
   onItem: () => void;
   onWait: () => void;
+  onUndo?: () => void;
 }
 
 export interface BannerOpts {
@@ -297,6 +299,9 @@ export class BattleUI {
       return b;
     };
     this.actionMenu.appendChild(mk("Move", state.canMove, state.onMove, { accent: "a-move", tip: "Walk to a highlighted tile (respects range, terrain & jump)" }));
+    if (state.canUndo) {
+      this.actionMenu.appendChild(mk("Undo Move", true, state.onUndo ?? (() => {}), { accent: "a-undo", tip: "Take back your move — resets position so you can move again or choose elsewhere" }));
+    }
     this.actionMenu.appendChild(mk("Attack", state.canAct, state.onAttack, { accent: "a-attack", tip: "Strike an enemy in weapon range — flank or rear for bonus damage" }));
     this.actionMenu.appendChild(mk("Skill", state.canAct, state.onSkill, { accent: "a-skill", tip: "Cast a learned class skill (costs MP)" }));
     this.actionMenu.appendChild(mk("Item", state.canAct, state.onItem, { accent: "a-item", tip: "Use a shared consumable" }));

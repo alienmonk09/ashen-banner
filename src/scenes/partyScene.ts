@@ -1,4 +1,4 @@
-import type { ClassId, EquipSlot, Unit } from "../core/types";
+import type { ClassId, EquipSlot, Reaction, Unit } from "../core/types";
 import { CLASSES, getClass } from "../data/classes";
 import { getRace } from "../data/races";
 import { getWeapon } from "../data/weapons";
@@ -26,6 +26,18 @@ import { el, clear } from "../ui/dom";
 import { iconImg } from "../ui/icons";
 import { startMusic, stopMusic } from "../engine/music";
 import type { GameContext, Scene } from "./sceneManager";
+
+const REACTION_LABELS: Record<string, string> = {
+  counter: "Counter",
+  autoPotion: "Auto-Potion",
+  cover: "Cover",
+};
+
+const REACTION_OPTIONS: [string, string][] = [
+  ["counter", "Counter"],
+  ["autoPotion", "Auto-Potion"],
+  ["cover", "Cover"],
+];
 
 /** Between-phase screen: class change, equipment, and spending JP on skills. */
 export class PartyScene implements Scene {
@@ -65,6 +77,11 @@ export class PartyScene implements Scene {
       const first = getClass(classId).skillIds[0];
       if (first && !unit.learnedSkillIds.includes(first)) unit.learnedSkillIds.push(first);
     }
+    this.render();
+  }
+
+  private setReaction(unit: Unit, value: string): void {
+    unit.reactionId = value ? (value as Reaction) : undefined;
     this.render();
   }
 
@@ -196,6 +213,26 @@ export class PartyScene implements Scene {
     }
     subSel.addEventListener("change", () => this.setSubJob(unit, subSel.value as ClassId | ""));
     card.appendChild(subSel);
+
+    // Equippable reaction — one extra reaction ability on top of class-innate reactions.
+    const innate = getClass(unit.classId).reactions ?? [];
+    const innateNote = innate.length
+      ? `Innate: ${innate.map((r) => REACTION_LABELS[r]).join(", ")}`
+      : "No innate reactions";
+    card.appendChild(
+      el("label", { text: `Reaction (${innateNote})` }),
+    );
+    const reactionSel = el("select");
+    const reactionNoneOpt = el("option", { text: "— none —", attrs: { value: "" } });
+    if (!unit.reactionId) reactionNoneOpt.selected = true;
+    reactionSel.appendChild(reactionNoneOpt);
+    for (const [id, label] of REACTION_OPTIONS) {
+      const opt = el("option", { text: label, attrs: { value: id } });
+      if (unit.reactionId === id) opt.selected = true;
+      reactionSel.appendChild(opt);
+    }
+    reactionSel.addEventListener("change", () => this.setReaction(unit, reactionSel.value));
+    card.appendChild(reactionSel);
 
     // Equipment.
     card.appendChild(

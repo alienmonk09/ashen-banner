@@ -196,6 +196,8 @@ export interface Unit {
   learnedSkillIds: string[];
   /** Optional secondary job: its learned skills are usable alongside the primary's. */
   subClassId?: ClassId;
+  /** Optional extra reaction ability equipped at the Party Camp (stacks with class-innate reactions). */
+  reactionId?: Reaction;
   weaponId: string;
   armorId?: string;
   accessoryId?: string;

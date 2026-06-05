@@ -1,4 +1,4 @@
-import type { ClassId, Difficulty, RaceId, Unit } from "./types";
+import type { ClassId, Difficulty, RaceId, Reaction, Unit } from "./types";
 import { createStartingParty } from "../data/party";
 import { startingInventory, getItem } from "../data/items";
 import { CLASSES } from "../data/classes";
@@ -81,6 +81,7 @@ export function buyEquipment(state: GameState, id: string): boolean {
 }
 
 const VALID_DIFFICULTIES: Difficulty[] = ["easy", "normal", "hard"];
+const VALID_REACTIONS: Reaction[] = ["counter", "autoPotion", "cover"];
 
 /**
  * Adjust an enemy's authored level by the selected difficulty.
@@ -119,6 +120,7 @@ function isValidSave(data: unknown): data is GameState {
     if (!WEAPONS[u.weaponId]) return false;
     if (u.armorId !== undefined && (!EQUIPMENT[u.armorId] || EQUIPMENT[u.armorId].slot !== "armor")) return false;
     if (u.accessoryId !== undefined && (!EQUIPMENT[u.accessoryId] || EQUIPMENT[u.accessoryId].slot !== "accessory")) return false;
+    if (u.reactionId !== undefined && !VALID_REACTIONS.includes(u.reactionId as Reaction)) return false;
     if (!u.stats || typeof u.stats.maxHp !== "number") return false;
     if (typeof u.level !== "number" || !Array.isArray(u.learnedSkillIds)) return false;
     if (!u.pos || typeof u.pos.x !== "number" || typeof u.pos.y !== "number") return false;

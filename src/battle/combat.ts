@@ -1,4 +1,4 @@
-import type { ActiveStatus, Element, ItemEffect, SkillDef, StatusKind, TerrainType, Unit, WeaponDef, WeaponKind } from "../core/types";
+import type { ActiveStatus, Element, ItemEffect, Reaction, SkillDef, StatusKind, TerrainType, Unit, WeaponDef, WeaponKind } from "../core/types";
 import { RNG } from "../core/rng";
 import { attackAngle, type AttackAngle } from "./facing";
 import { getRace } from "../data/races";
@@ -195,9 +195,17 @@ export function resolveWeaponAttack(
   return { unitId: target.id, kind: "damage", amount: value, crit, killed, revived: false };
 }
 
-/** True if the unit's class has the Counter reaction (strikes back at melee). */
+/**
+ * Returns true when the unit has a given reaction, either through its class's
+ * innate list or through a manually-equipped extra reaction.
+ */
+export function unitHasReaction(unit: Unit, r: Reaction): boolean {
+  return (getClass(unit.classId).reactions?.includes(r) ?? false) || unit.reactionId === r;
+}
+
+/** True if the unit has the Counter reaction (innate or equipped). */
 export function canCounter(unit: Unit): boolean {
-  return getClass(unit.classId).reactions?.includes("counter") ?? false;
+  return unitHasReaction(unit, "counter");
 }
 
 /**
@@ -219,14 +227,14 @@ export function resolveCounterAttack(
   return resolveWeaponAttack(defender, attacker, defenderWeapon, rng, ctx);
 }
 
-/** True if the unit's class has the Auto-Potion reaction. */
+/** True if the unit has the Auto-Potion reaction (innate or equipped). */
 export function hasAutoPotion(unit: Unit): boolean {
-  return getClass(unit.classId).reactions?.includes("autoPotion") ?? false;
+  return unitHasReaction(unit, "autoPotion");
 }
 
-/** True if the unit's class has the Cover reaction (intercepts hits aimed at adjacent wounded allies). */
+/** True if the unit has the Cover reaction (innate or equipped; intercepts hits aimed at adjacent wounded allies). */
 export function hasCover(unit: Unit): boolean {
-  return getClass(unit.classId).reactions?.includes("cover") ?? false;
+  return unitHasReaction(unit, "cover");
 }
 
 /**

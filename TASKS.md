@@ -14,8 +14,8 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **842 passing across 39 files**. Working tree: clean.
-- Last commit: `3ab14c6 feat(v0.4): zone of control`.
+- Build: clean. Tests: **878 passing across 41 files**. Working tree: clean.
+- Last commit: `1f5ba27 feat(v0.5): sell consumables & equipment`.
 - NOTE: the Codex reviewer started returning "Reviewer failed to output a response" on
   EVERY scope (even small diffs) partway through this session — a transient runtime fault,
   not a code signal. It worked for ~10 earlier features (caught ~9 real P2s). Recent
@@ -79,15 +79,20 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 - **Cover reaction** (v0.4) — a guardian (Knight) intercepts a single-target hit for a wounded
   adjacent ally; reactions[] refactor. Reaction line complete (Counter/Auto-Potion/Cover). `df7b84a`.
 - **Zone of control** (v0.4) — enemy-adjacent tiles halt movement; AI bound too; sim converges. `3ab14c6`.
+- **Equippable reactions** (v0.4) — equip Counter/Auto-Potion/Cover at camp on top of innate;
+  unitHasReaction = innate ∪ equipped. FFT reaction system complete. `88b598b`.
+- **Sell** (v0.5) — sell consumables & owned gear for half price; selling gear unequips it. `1f5ba27`.
 
-## Next up (prioritized — all that remain are higher-risk or need a design decision)
+## Next up (prioritized)
 1. **Skill charge time** (v0.4, FFT casting) — powerful magic resolves a few CT ticks later;
-   needs a charging state on Unit + turn-loop awareness + a charging indicator + interrupt.
-   Highest risk (touches the core turn loop) — spec carefully + lean on the sim + smoke.
-2. **Weapon shop / ownership** — parallel to the equipment Gear Shop, for class weapons.
-3. **Recruitable units** (v0.5) — turn a beaten foe into a party member (capture + roster).
-4. **Equippable reactions** (FFT-style) — now reactions[] exists; let units pick a reaction at camp.
-5. **Job mastery** (v0.5); content: dialogue/portraits (v0.6), fog of war. See `ROADMAP.md`.
+   charging state on Unit + turn-loop awareness + indicator + interrupt. HIGHEST RISK (core
+   turn loop). ⚠ Do this when the Codex reviewer recovers (need the review backstop); lean
+   hard on the AI-vs-AI sim + browser smoke.
+2. **Recruitable units** (v0.5) — turn a beaten foe into a party member (capture + roster).
+3. **Weapon shop / ownership** — like the Gear Shop but weapons are class-locked + never-unarmed,
+   so the dropdown/migration is fiddlier; decide the model.
+4. **Save slots**, **battle log / replay**, **undo-move** (v1.0 QoL); **job mastery** (v0.5);
+   content: dialogue/portraits (v0.6), fog of war, weather. See `ROADMAP.md`.
 2. **Cover-ally reaction** — intercept a hit for an adjacent ally. Needs: `ClassDef.reaction`
    → `reactions[]` refactor (so a tank can have counter + cover), an attack target-redirect at
    resolution (weapon + single-skill, player + AI paths), and ideally honest forecast.

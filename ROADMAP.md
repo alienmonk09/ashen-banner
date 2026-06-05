@@ -86,7 +86,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 
 - 🚧 **Reaction abilities** — ✅ Counter (Knight/Monk strike back), ✅ Auto-Potion (Thief
   self-heals when low), and ✅ Cover (a guardian intercepts a hit for a wounded adjacent
-  ally; classes now hold a list of reactions); ⏳ equippable reactions (FFT-style) still to come
+  ally; classes hold a list of reactions) and ✅ equippable reactions (equip an extra
+  Counter/Auto-Potion/Cover at camp on top of innate ones — FFT-style)
 - 🚧 **Knockback / forced movement** — ✅ shoves (single-target skills push the victim N
   tiles, stopping at walls/edges/units; shove-into-lava synergy) and ✅ fall damage off
   ledges; ⏳ pulls, throws
@@ -107,7 +108,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 
 - ⏳ **Recruitable / capturable units** — turn beaten foes or story NPCs into party members
 - 🚧 **Shop & economy** — ✅ gil drops from defeats; ✅ camp shop for consumables AND
-  equipment (own-before-equip ownership gate); ⏳ weapon shop & selling between chapters
+  equipment (own-before-equip ownership gate); ✅ selling back (half price; unequips sold
+  gear); ⏳ weapon shop
 - ⏳ **Job mastery** — master a class to unlock the next; passives carried across jobs
 - ✅ **Difficulty modes & AI personalities** — Easy/Normal/Hard (scale enemy levels at New
   Game); per-enemy AI archetypes (aggressive/defensive/support/balanced) biasing AI scoring

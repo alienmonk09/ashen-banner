@@ -56,11 +56,12 @@ export const CLASSES: Record<ClassId, ClassDef> = {
   thief: {
     id: "thief",
     name: "Thief",
-    description: "Swift skirmisher. Fastest in the field, hits hard, but fragile.",
+    description: "Swift skirmisher. Fastest in the field, hits hard, but fragile — keeps a potion ready for when things go south.",
     base: { hp: 82, mp: 28, atk: 13, def: 7, mag: 5, res: 7, spd: 14, move: 5, jump: 3 },
     growth: { hp: 8, mp: 3, atk: 1.9, def: 0.9, mag: 0.5, res: 0.9, spd: 1.2 },
     skillIds: ["backstab", "hamstring", "fanOfKnives"],
     weaponIds: ["dagger", "rapier"],
+    reaction: "autoPotion",
     color: "#7a5fbf",
   },
   druid: {

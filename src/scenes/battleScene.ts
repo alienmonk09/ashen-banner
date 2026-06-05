@@ -8,6 +8,7 @@ import { aoeTiles, tilesInRange } from "../battle/targeting";
 import {
   applyTerrainEffect,
   isStopped,
+  resolveAutoPotion,
   resolveCounterAttack,
   resolveItem,
   resolveSkillOnTarget,
@@ -523,6 +524,14 @@ export class BattleScene implements Scene {
     this.afterAction();
   }
 
+  /** Resolve an Auto-Potion reaction for a player unit that just took damage. */
+  private tryAutoPotion(unit: Unit): void {
+    if (unit.team !== "player" || !unit.alive) return;
+    const res = resolveAutoPotion(unit, this.ctx.state.inventory);
+    if (!res) return;
+    this.pushPopup(res);
+  }
+
   /** Resolve a counterattack from `defender` against `attacker` (melee only). */
   private tryCounter(defender: Unit, attacker: Unit, incomingWeaponRange: number): void {
     if (incomingWeaponRange !== 1 || !defender.alive) return;
@@ -671,6 +680,8 @@ export class BattleScene implements Scene {
         this.pushPopup(res);
         // The struck player unit may counter the attacker.
         this.tryCounter(target, unit, weapon.range);
+        // A surviving low-HP player unit may auto-consume a potion.
+        this.tryAutoPotion(target);
       }
     } else if (plan.action.kind === "skill" && plan.action.skillId && plan.action.targetTile) {
       const skill = getSkill(plan.action.skillId);
@@ -689,6 +700,8 @@ export class BattleScene implements Scene {
         if (r) {
           this.pushEffect(target.pos, skillVfx);
           this.pushPopup(r);
+          // A surviving low-HP player unit hit by an offensive skill may auto-heal.
+          if (r.kind === "damage") this.tryAutoPotion(target);
           cast = true;
         }
       }

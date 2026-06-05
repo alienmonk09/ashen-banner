@@ -4,6 +4,7 @@ import { attackAngle, type AttackAngle } from "./facing";
 import { getRace } from "../data/races";
 import { getClass } from "../data/classes";
 import { terrainEffect } from "../data/terrain";
+import { getItem } from "../data/items";
 
 export type HitKind = "damage" | "heal" | "mp" | "revive" | "status";
 
@@ -215,6 +216,39 @@ export function resolveCounterAttack(
   const dist = Math.abs(defender.pos.x - attacker.pos.x) + Math.abs(defender.pos.y - attacker.pos.y);
   if (dist === 0 || dist > defenderWeapon.range) return null;
   return resolveWeaponAttack(defender, attacker, defenderWeapon, rng, ctx);
+}
+
+/** True if the unit's class has the Auto-Potion reaction. */
+export function hasAutoPotion(unit: Unit): boolean {
+  return getClass(unit.classId).reaction === "autoPotion";
+}
+
+/**
+ * When a player unit drops below `threshold` HP fraction after taking damage,
+ * automatically consume a potion from the shared party inventory and heal.
+ * Prefers "potion" over "hiPotion". Returns a heal HitResult, or null if the
+ * reaction cannot fire (wrong class, HP above threshold, no stock, or dead).
+ * Mutates both the unit's HP and the inventory count.
+ */
+export function resolveAutoPotion(
+  unit: Unit,
+  inventory: Record<string, number>,
+  threshold = 0.3,
+): HitResult | null {
+  if (!unit.alive || !hasAutoPotion(unit)) return null;
+  if (unit.stats.hp / unit.stats.maxHp >= threshold) return null;
+  const itemId =
+    (inventory["potion"] ?? 0) > 0
+      ? "potion"
+      : (inventory["hiPotion"] ?? 0) > 0
+        ? "hiPotion"
+        : null;
+  if (!itemId) return null;
+  const item = getItem(itemId);
+  const res = resolveItem(unit, "healHp", item.amount);
+  if (!res) return null;
+  inventory[itemId] = (inventory[itemId] ?? 0) - 1;
+  return res;
 }
 
 export function addStatus(unit: Unit, status: ActiveStatus): void {

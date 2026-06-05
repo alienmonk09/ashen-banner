@@ -84,7 +84,7 @@ export interface ClassDef {
   color: string;
 }
 
-export type Reaction = "counter";
+export type Reaction = "counter" | "autoPotion";
 
 export type Element = "none" | "fire" | "ice" | "bolt" | "holy" | "nature";
 

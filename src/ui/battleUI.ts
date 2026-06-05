@@ -118,7 +118,7 @@ export class BattleUI {
               .join(", ")
           : "",
       }),
-      el("div", { className: "skills-line", attrs: { style: "opacity:0.7" }, text: cls.reaction === "counter" ? "Reaction: Counter (strikes back at melee)" : "" }),
+      el("div", { className: "skills-line", attrs: { style: "opacity:0.7" }, text: cls.reactions?.includes("counter") ? "Reaction: Counter (strikes back at melee)" : "" }),
       statusChips(unit),
     ];
   }

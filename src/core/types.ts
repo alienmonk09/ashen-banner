@@ -80,13 +80,13 @@ export interface ClassDef {
   skillIds: string[];
   /** Weapon ids this class can equip. */
   weaponIds: string[];
-  /** Innate reaction ability, if any (e.g. "counter" strikes back at melee attackers). */
-  reaction?: Reaction;
+  /** Innate reaction abilities, if any (e.g. "counter" strikes back at melee attackers). */
+  reactions?: Reaction[];
   /** Color used to tint the unit token. */
   color: string;
 }
 
-export type Reaction = "counter" | "autoPotion";
+export type Reaction = "counter" | "autoPotion" | "cover";
 
 export type Element = "none" | "fire" | "ice" | "bolt" | "holy" | "nature";
 

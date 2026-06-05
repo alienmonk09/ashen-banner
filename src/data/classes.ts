@@ -9,7 +9,7 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     growth: { hp: 14, mp: 2, atk: 2.2, def: 1.8, mag: 0.4, res: 0.8, spd: 0.6 },
     skillIds: ["powerStrike", "guard"],
     weaponIds: ["sword", "greatsword"],
-    reaction: "counter",
+    reactions: ["counter", "cover"],
     color: "#5b8dd6",
   },
   archer: {
@@ -50,7 +50,7 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     growth: { hp: 12, mp: 3, atk: 2.0, def: 1.2, mag: 1.0, res: 0.9, spd: 0.9 },
     skillIds: ["palmStrike", "chakra", "earthShake"],
     weaponIds: ["knuckles", "fellKnuckles"],
-    reaction: "counter",
+    reactions: ["counter"],
     color: "#d68a4f",
   },
   thief: {
@@ -61,7 +61,7 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     growth: { hp: 8, mp: 3, atk: 1.9, def: 0.9, mag: 0.5, res: 0.9, spd: 1.2 },
     skillIds: ["backstab", "hamstring", "fanOfKnives"],
     weaponIds: ["dagger", "rapier"],
-    reaction: "autoPotion",
+    reactions: ["autoPotion"],
     color: "#7a5fbf",
   },
   druid: {

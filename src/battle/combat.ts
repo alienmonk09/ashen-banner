@@ -5,6 +5,7 @@ import { getRace } from "../data/races";
 import { getClass } from "../data/classes";
 import { terrainEffect } from "../data/terrain";
 import { getItem } from "../data/items";
+import { manhattan } from "./grid";
 
 export type HitKind = "damage" | "heal" | "mp" | "revive" | "status";
 
@@ -196,7 +197,7 @@ export function resolveWeaponAttack(
 
 /** True if the unit's class has the Counter reaction (strikes back at melee). */
 export function canCounter(unit: Unit): boolean {
-  return getClass(unit.classId).reaction === "counter";
+  return getClass(unit.classId).reactions?.includes("counter") ?? false;
 }
 
 /**
@@ -220,7 +221,37 @@ export function resolveCounterAttack(
 
 /** True if the unit's class has the Auto-Potion reaction. */
 export function hasAutoPotion(unit: Unit): boolean {
-  return getClass(unit.classId).reaction === "autoPotion";
+  return getClass(unit.classId).reactions?.includes("autoPotion") ?? false;
+}
+
+/** True if the unit's class has the Cover reaction (intercepts hits aimed at adjacent wounded allies). */
+export function hasCover(unit: Unit): boolean {
+  return getClass(unit.classId).reactions?.includes("cover") ?? false;
+}
+
+/**
+ * Returns the living ally who will intercept a single-target hit aimed at
+ * `target`, or null when no valid guardian is present. Rules:
+ * - Same team as the target, different unit, and alive.
+ * - Has the Cover reaction (hasCover).
+ * - Orthogonally adjacent to the target (manhattan distance 1).
+ * - Has strictly MORE current HP than the target (a healthy guard shields a
+ *   wounded ally — never redirect onto someone worse off).
+ * When multiple guards qualify, the one with the highest current HP wins
+ * (highest HP first; ties are left in their original order, stable).
+ */
+export function coverFor(target: Unit, units: Unit[]): Unit | null {
+  const candidates = units.filter(
+    (u) =>
+      u !== target &&
+      u.alive &&
+      u.team === target.team &&
+      hasCover(u) &&
+      manhattan(u.pos, target.pos) === 1 &&
+      u.stats.hp > target.stats.hp,
+  );
+  if (candidates.length === 0) return null;
+  return candidates.reduce((best, u) => (u.stats.hp > best.stats.hp ? u : best));
 }
 
 /**

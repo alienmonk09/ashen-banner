@@ -7,6 +7,7 @@ import { pathTo, reachable } from "../battle/pathfinding";
 import { aoeTiles, knockbackTo, leapLanding, tilesInRange } from "../battle/targeting";
 import {
   applyTerrainEffect,
+  coverFor,
   fallDamage,
   isStopped,
   resolveAutoPotion,
@@ -530,13 +531,17 @@ export class BattleScene implements Scene {
     const weapon = getWeapon(this.active.weaponId);
     this.active.facing = directionTo(this.active.pos, target.pos);
     this.lunge = { id: this.active.id, tx: target.pos.x, ty: target.pos.y, age: 0 };
-    const res = resolveWeaponAttack(this.active, target, weapon, this.rng, this.posCtx(target.pos));
-    this.pushEffect(target.pos, vfxKeyForWeapon(weapon));
+    // NOTE: the damage forecast preview still shows the original target — Cover is
+    // a reactive interception (like Counter), not previewed before the hit resolves.
+    const actual = coverFor(target, this.units) ?? target;
+    if (actual !== target) this.ui.toast(`${actual.name} covers ${target.name}!`);
+    const res = resolveWeaponAttack(this.active, actual, weapon, this.rng, this.posCtx(actual.pos));
+    this.pushEffect(actual.pos, vfxKeyForWeapon(weapon));
     this.pushPopup(res);
     this.awardForAction(this.active, { offensive: true, killed: res.killed });
     this.awardGil(res.killed ? 1 : 0);
     // A surviving melee-struck defender may strike back.
-    this.tryCounter(target, this.active);
+    this.tryCounter(actual, this.active);
     this.afterAction();
   }
 
@@ -595,7 +600,12 @@ export class BattleScene implements Scene {
       // Damage hits enemies; heal/buff/revive affect allies.
       if (isOffensive && target.team === this.active.team) continue;
       if (!isOffensive && target.team !== this.active.team) continue;
-      const r = resolveSkillOnTarget(this.active, target, skill, this.rng, this.posCtx(target.pos));
+      // Cover intercepts single-target offensive hits only (not AoE, not heals/buffs/revives).
+      // NOTE: the damage forecast preview still shows the original target — Cover is
+      // a reactive interception (like Counter), not previewed before the hit resolves.
+      const actual = (isOffensive && skill.aoe === "single") ? (coverFor(target, this.units) ?? target) : target;
+      if (actual !== target) this.ui.toast(`${actual.name} covers ${target.name}!`);
+      const r = resolveSkillOnTarget(this.active, actual, skill, this.rng, this.posCtx(actual.pos));
       if (r) {
         results.push(r);
         if (r.killed) anyKilled = true;
@@ -616,8 +626,13 @@ export class BattleScene implements Scene {
     }
     // A single-target melee skill provokes the surviving victim's Counter, like a
     // basic attack (tryCounter self-gates on adjacency, so ranged casts don't).
+    // After a possible cover redirect, the actual hit unit is found via the result
+    // rather than by tile position (the redirected unit may not be at `center`).
     if (isOffensive && skill.aoe === "single") {
-      const victim = this.units.find((u) => u.alive && u.team !== this.active!.team && samePoint(u.pos, center));
+      const damageResult = results.find((r) => r.kind === "damage");
+      const victim = damageResult
+        ? this.units.find((u) => u.alive && u.id === damageResult.unitId)
+        : this.units.find((u) => u.alive && u.team !== this.active!.team && samePoint(u.pos, center));
       if (victim) this.tryCounter(victim, this.active);
     }
     this.awardGil(results.filter((r) => r.killed).length);
@@ -764,13 +779,17 @@ export class BattleScene implements Scene {
         const weapon = getWeapon(unit.weaponId);
         unit.facing = directionTo(unit.pos, target.pos);
         this.lunge = { id: unit.id, tx: target.pos.x, ty: target.pos.y, age: 0 };
-        const res = resolveWeaponAttack(unit, target, weapon, this.rng, heightDelta(target.pos));
-        this.pushEffect(target.pos, vfxKeyForWeapon(weapon));
+        // NOTE: the damage forecast preview still shows the original target — Cover is
+        // a reactive interception (like Counter), not previewed before the hit resolves.
+        const actual = coverFor(target, this.units) ?? target;
+        if (actual !== target) this.ui.toast(`${actual.name} covers ${target.name}!`);
+        const res = resolveWeaponAttack(unit, actual, weapon, this.rng, heightDelta(actual.pos));
+        this.pushEffect(actual.pos, vfxKeyForWeapon(weapon));
         this.pushPopup(res);
         // The struck player unit may counter the attacker.
-        this.tryCounter(target, unit);
+        this.tryCounter(actual, unit);
         // A surviving low-HP player unit may auto-consume a potion.
-        this.tryAutoPotion(target);
+        this.tryAutoPotion(actual);
       }
     } else if (plan.action.kind === "skill" && plan.action.skillId && plan.action.targetTile) {
       const skill = getSkill(plan.action.skillId);
@@ -791,14 +810,19 @@ export class BattleScene implements Scene {
       for (const target of affected) {
         if (isOffensive && target.team === unit.team) continue;
         if (!isOffensive && target.team !== unit.team) continue;
-        const r = resolveSkillOnTarget(unit, target, skill, this.rng, heightDelta(target.pos));
+        // Cover intercepts single-target offensive hits only (not AoE, not heals/buffs/revives).
+        // NOTE: the damage forecast preview still shows the original target — Cover is
+        // a reactive interception (like Counter), not previewed before the hit resolves.
+        const actual = (isOffensive && skill.aoe === "single") ? (coverFor(target, this.units) ?? target) : target;
+        if (actual !== target) this.ui.toast(`${actual.name} covers ${target.name}!`);
+        const r = resolveSkillOnTarget(unit, actual, skill, this.rng, heightDelta(actual.pos));
         if (r) {
-          this.pushEffect(target.pos, skillVfx);
+          this.pushEffect(actual.pos, skillVfx);
           this.pushPopup(r);
           // A surviving low-HP player unit hit by an offensive skill may auto-heal.
           if (r.kind === "damage") {
-            this.tryAutoPotion(target);
-            if (!knockbackTarget) knockbackTarget = target;
+            this.tryAutoPotion(actual);
+            if (!knockbackTarget) knockbackTarget = actual;
           }
           cast = true;
         }
@@ -807,7 +831,10 @@ export class BattleScene implements Scene {
       // resolved BEFORE knockback so the victim is still next to the attacker.
       if (isOffensive && skill.aoe === "single") {
         const victim = this.units.find((u) => u.alive && u.team !== unit.team && samePoint(u.pos, center));
-        if (victim) this.tryCounter(victim, unit);
+        // After a possible cover redirect, the actual hit target may differ from center;
+        // counter keys off whoever actually took the hit (tracked via knockbackTarget).
+        const counterUnit = knockbackTarget ?? victim;
+        if (counterUnit) this.tryCounter(counterUnit, unit);
       }
       if (cast) {
         unit.stats.mp = Math.max(0, unit.stats.mp - skill.mpCost);

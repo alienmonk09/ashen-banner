@@ -14,8 +14,12 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **791 passing across 35 files**. Working tree: clean.
-- Last commit: `6740882 fix: final review — recruit timing & enemy races`.
+- Build: clean. Tests: **795 passing across 36 files**. Working tree: clean.
+- Last commit: `16ef81a feat(v0.4): knockback fall damage`.
+- NOTE: the full `review --base main` pass now exceeds the reviewer's output limit
+  (diff too large) and returns "Reviewer failed to output a response". The 3 substantive
+  passes converged (4→3→2 P2s, all fixed); review recent commits with a NEARER `--base`
+  (e.g. `--base <last-reviewed-sha>`) instead of `main` going forward.
 - Commits: v0.2+v0.3 base → Counter → Time Mage → objectives(rout/defeat/survive)
   → secondary job → **audio → equipment slots → terrain effects → Summoner →
   objective variety(seize/defend)**.

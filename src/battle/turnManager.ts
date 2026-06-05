@@ -1,4 +1,4 @@
-import { CT_THRESHOLD, type Team, type Unit } from "../core/types";
+import { CT_THRESHOLD, type Objective, type Team, type Unit } from "../core/types";
 import { effectiveSpd, tickStatuses, type HitResult } from "./combat";
 
 /** Living units only, in their array order. */
@@ -40,13 +40,42 @@ export function endTurn(unit: Unit): HitResult[] {
   return tickStatuses(unit);
 }
 
-/** Winner if the battle is decided, else null. */
+/** Winner of a plain rout (defeat all foes), or null. */
 export function battleWinner(units: Unit[]): Team | null {
   const playersAlive = units.some((u) => u.team === "player" && u.alive);
   const enemiesAlive = units.some((u) => u.team === "enemy" && u.alive);
   if (!playersAlive) return "enemy";
   if (!enemiesAlive) return "player";
   return null;
+}
+
+/**
+ * Decide a battle against its objective. The player always loses when wiped out;
+ * otherwise the objective sets the win: rout all foes, defeat a named target, or
+ * survive a number of turns (routing also wins a survival map). Returns the
+ * winning team, or null if the fight continues.
+ */
+export function evaluateOutcome(
+  units: Unit[],
+  objective: Objective | undefined,
+  turnsElapsed: number,
+): Team | null {
+  if (!units.some((u) => u.team === "player" && u.alive)) return "enemy";
+  const enemiesAlive = units.some((u) => u.team === "enemy" && u.alive);
+  const obj = objective ?? { kind: "rout" };
+  switch (obj.kind) {
+    case "rout":
+      return enemiesAlive ? null : "player";
+    case "defeat": {
+      const present = units.some((u) => u.team === "enemy" && u.name === obj.targetName);
+      if (!present) return enemiesAlive ? null : "player"; // target absent → rout
+      const targetAlive = units.some((u) => u.team === "enemy" && u.alive && u.name === obj.targetName);
+      return targetAlive ? null : "player";
+    }
+    case "survive":
+      if (!enemiesAlive) return "player";
+      return turnsElapsed >= obj.turns ? "player" : null;
+  }
 }
 
 export interface TurnPreview {

@@ -16,7 +16,7 @@ import {
 } from "../battle/combat";
 import { hasLineOfSight } from "../battle/los";
 import { directionTo } from "../battle/facing";
-import { advanceToNextActor, battleWinner, endTurn, previewOrder } from "../battle/turnManager";
+import { advanceToNextActor, endTurn, evaluateOutcome, previewOrder } from "../battle/turnManager";
 import { planEnemyTurn } from "../battle/ai";
 import { forecastSkill, forecastWeapon } from "../battle/forecast";
 import { screenToTile, worldToScreen, rotateTile, type Rotation, type ScreenPoint } from "../engine/iso";
@@ -61,6 +61,8 @@ export class BattleScene implements Scene {
   private active: Unit | null = null;
   private hasMoved = false;
   private hasActed = false;
+  /** Turns begun this battle (drives the "survive N turns" objective). */
+  private turnCount = 0;
   /** Camera orientation (clockwise quarter-turns); the player can rotate freely. */
   private rot: Rotation = 0;
 
@@ -169,7 +171,7 @@ export class BattleScene implements Scene {
     this.ui.hideRotateControl();
     this.ui.showBanner({
       title: `Phase ${this.phaseIndex + 1}: ${this.map.name}`,
-      body: this.map.intro,
+      body: `${this.map.intro}\n\n${this.objectiveText()}`,
       buttonLabel: "Begin Battle",
       onClick: () => {
         this.ui.hideBanner();
@@ -178,12 +180,32 @@ export class BattleScene implements Scene {
     });
   }
 
+  /** Battle outcome against the map's objective at the current turn count. */
+  private outcome(): "player" | "enemy" | null {
+    return evaluateOutcome(this.units, this.map.objective, this.turnCount);
+  }
+
+  /** Human-readable objective line for the HUD (with live survival progress). */
+  private objectiveText(): string {
+    const obj = this.map.objective ?? { kind: "rout" };
+    switch (obj.kind) {
+      case "defeat":
+        return `Objective: defeat ${obj.targetName}`;
+      case "survive":
+        return `Objective: survive ${Math.min(this.turnCount, obj.turns)}/${obj.turns} turns`;
+      default:
+        return "Objective: defeat all enemies";
+    }
+  }
+
   private beginNextTurn(): void {
-    const winner = battleWinner(this.units);
+    const winner = this.outcome();
     if (winner) return this.endBattle(winner);
 
     this.active = advanceToNextActor(this.units);
     if (!this.active) return;
+    this.turnCount++;
+    this.ui.setObjective(this.objectiveText());
     this.hasMoved = false;
     this.hasActed = false;
     this.selectedSkill = null;
@@ -230,6 +252,7 @@ export class BattleScene implements Scene {
     this.active = null;
     this.ui.hideCombatControls();
     this.ui.hideRotateControl();
+    this.ui.setObjective(null);
     this.ui.setActiveUnit(null);
     this.ui.setTargetInfo(null);
     if (winner === "player") {
@@ -566,8 +589,9 @@ export class BattleScene implements Scene {
     this.selectedItemId = null;
     this.rangeTiles = [];
     this.ui.setActiveUnit(this.active);
-    if (battleWinner(this.units)) {
-      this.endBattle(battleWinner(this.units)!);
+    const outcome = this.outcome();
+    if (outcome) {
+      this.endBattle(outcome);
       return;
     }
     // The active unit can be felled by a counterattack — end its turn instead of
@@ -650,7 +674,8 @@ export class BattleScene implements Scene {
 
     this.ui.setActiveUnit(unit);
     await this.ctx.animator.wait(0.5);
-    if (battleWinner(this.units)) return this.endBattle(battleWinner(this.units)!);
+    const outcome = this.outcome();
+    if (outcome) return this.endBattle(outcome);
     this.endActiveTurn();
   }
 

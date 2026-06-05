@@ -27,6 +27,7 @@ export interface BannerOpts {
 export class BattleUI {
   private layer: HTMLDivElement;
   private turnBar: HTMLDivElement;
+  private objectivePanel: HTMLDivElement;
   private unitPanel: HTMLDivElement;
   private targetPanel: HTMLDivElement;
   private actionMenu: HTMLDivElement;
@@ -43,6 +44,7 @@ export class BattleUI {
   constructor(parent: HTMLElement) {
     this.layer = el("div", { className: "ui-layer" });
     this.turnBar = el("div", { className: "panel turn-bar" });
+    this.objectivePanel = el("div", { className: "panel objective" });
     this.unitPanel = el("div", { className: "panel unit-panel" });
     this.targetPanel = el("div", { className: "panel target-panel" });
     this.actionMenu = el("div", { className: "panel action-menu" });
@@ -54,6 +56,7 @@ export class BattleUI {
     this.rotateCtl = el("div", { className: "panel rotate-ctl" });
     for (const n of [
       this.turnBar,
+      this.objectivePanel,
       this.unitPanel,
       this.targetPanel,
       this.actionMenu,
@@ -154,6 +157,16 @@ export class BattleUI {
       this.turnBar.appendChild(chip);
     });
     this.turnBar.style.display = "flex";
+  }
+
+  /** Show the current battle objective (or hide it with null). */
+  setObjective(text: string | null): void {
+    if (!text) {
+      this.objectivePanel.style.display = "none";
+      return;
+    }
+    this.objectivePanel.textContent = text;
+    this.objectivePanel.style.display = "block";
   }
 
   // --- Camera rotation control ---

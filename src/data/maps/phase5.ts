@@ -8,6 +8,8 @@ export const phase5: MapDef = {
   name: "The Tyrant's Stand",
   intro:
     "Atop the shattered keep, the tyrant Maldrath the Unbowed waits upon his raised throne, flanked by his last loyal guard. Two chasms split the approach — there is only one way up, and he has made it a killing floor.",
+  // The war ends when the tyrant falls — his guard need not be wiped out.
+  objective: { kind: "defeat", targetName: "Maldrath the Unbowed" },
   width: 10,
   height: 10,
   heights: [

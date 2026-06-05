@@ -9,7 +9,7 @@ The backlog draws on the classics of the genre — **Final Fantasy Tactics**,
 
 ## v0.1 — Playable MVP ✅
 
-The complete core loop ships and is covered by the test suite (489 tests, 21
+The complete core loop ships and is covered by the test suite (495 tests, 21
 files), including a full AI-vs-AI battle simulation that auto-plays all seven
 phases to a decisive result.
 
@@ -84,7 +84,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 - ⏳ **Zone of control & engagement** — passing an enemy's reach has a cost
 - ⏳ **Spell charge time** — powerful magic resolves a few CT ticks later (FFT casting),
   with a charging indicator and the option to interrupt
-- ⏳ **Objective variety** — seize a point, survive N turns, escort, defend, rout-vs-boss
+- 🚧 **Objective variety** — ✅ rout, defeat-the-commander (the finale: kill Maldrath),
+  and survive-N-turns, shown in a HUD objective banner; ⏳ seize a point, escort, defend
 - ⏳ **Terrain effects** — healing tiles, slow mire, damage floors, height-gated cover
 - 💭 **Fog of war / vision** — sight radius, scouting, ambush
 - 💭 **Weather & day/night** — accuracy/affinity shifts, timed events

@@ -131,8 +131,14 @@ const CSS = `
 .turn-chip.enemy { outline: 2px solid #ff5a5a; outline-offset: -2px; }
 .chip-portrait { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; }
 
-.toast {
+.objective {
   left: 50%; transform: translateX(-50%); top: 58px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.02em; padding: 5px 12px;
+  color: #ffe0a0; border-color: rgba(210,170,120,0.45);
+}
+
+.toast {
+  left: 50%; transform: translateX(-50%); top: 92px;
   font-size: 14px; padding: 6px 14px; opacity: 0; transition: opacity 0.2s;
   background: rgba(10,12,20,0.9);
 }
@@ -149,7 +155,7 @@ const CSS = `
   box-shadow: 0 12px 48px rgba(0,0,0,0.6);
 }
 .banner-card h1 { font-size: 28px; margin-bottom: 10px; }
-.banner-card p { font-size: 15px; opacity: 0.88; line-height: 1.5; margin-bottom: 18px; }
+.banner-card p { font-size: 15px; opacity: 0.88; line-height: 1.5; margin-bottom: 18px; white-space: pre-line; }
 .banner-card .btn { font-size: 16px; padding: 10px 24px; }
 
 .phase-select { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(120,140,200,0.25); }

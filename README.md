@@ -58,7 +58,9 @@ npm test           # run the Vitest suite
   damage, Haste/Slow bend turn speed.
 - **Reactions.** Melee bruisers — **Knight** and **Monk** — strike back at any
   adjacent foe that hits them in melee, so charging a held line has a price.
-- Win by defeating all enemies. Between phases, the **Party Camp** screen lets
+- Each battle shows its **objective** (top center). Most are won by routing the
+  enemy, but some differ — the finale is won by **defeating the tyrant** himself,
+  his guard optional. Between phases, the **Party Camp** screen lets
   you change classes, swap weapons, spend JP to learn new skills, and **recruit
   reinforcements** from the rest of the roster as the campaign opens deployment
   slots (a fifth hero mid-campaign, a sixth for the finale). Progress is saved
@@ -125,7 +127,7 @@ docs/superpowers/specs/  design spec
 
 ## Tests
 
-`npm test` runs **489 tests across 21 files**: per-module unit tests (RNG,
+`npm test` runs **495 tests across 21 files**: per-module unit tests (RNG,
 pathfinding, targeting, combat, facing/back-attacks, line of sight, elevation /
 status / elemental / counter modifiers, turn order, AI, grid, movement/pass-through,
 iso projection, save/load, races, hero roster & reinforcements) plus map-data
@@ -134,9 +136,11 @@ decisive winner while asserting HP/stat invariants every turn.
 
 ## Roadmap
 
-See **[ROADMAP.md](ROADMAP.md)**. Short version: v0.2 tactics depth shipped
-(facing/back-attacks, line of sight, elevation modifiers, the full status kit) —
-next is a secondary-job system and more content, then narrative/audio.
+See **[ROADMAP.md](ROADMAP.md)**. Short version: v0.2 tactics depth and most of
+v0.3 have shipped (facing/back-attacks, line of sight, elevation, the full status
+kit, elemental affinities, party-size progression, the Time Mage, counters,
+objective variety, two larger maps) — next is a secondary-job system, equipment,
+more classes, then narrative/audio.
 
 ## Known minor limitations
 

@@ -187,10 +187,21 @@ export interface Tile {
   walkable: boolean;
 }
 
+/**
+ * Win condition for a battle. The player always loses if wiped out; the
+ * objective decides what counts as a win. Defaults to "rout" (defeat all foes).
+ */
+export type Objective =
+  | { kind: "rout" }
+  | { kind: "defeat"; targetName: string }
+  | { kind: "survive"; turns: number };
+
 export interface MapDef {
   id: string;
   name: string;
   intro: string;
+  /** Win condition; omitted = defeat all enemies. */
+  objective?: Objective;
   width: number;
   height: number;
   /** Height per tile, row-major [y][x]. */

@@ -3,6 +3,7 @@ import {
   advanceToNextActor,
   endTurn,
   battleWinner,
+  evaluateOutcome,
   previewOrder,
 } from "../src/battle/turnManager";
 import { createUnit } from "../src/core/unit";
@@ -237,6 +238,55 @@ describe("battleWinner", () => {
       makeUnit({ id: "e2", team: "enemy", alive: false }),
     ];
     expect(battleWinner(units)).toBe("player");
+  });
+});
+
+describe("evaluateOutcome", () => {
+  const party = () => makeUnit({ id: "p", team: "player" });
+  const foe = (id = "e") => makeUnit({ id, team: "enemy" });
+
+  it("defaults to rout: player wins only when all foes are down", () => {
+    expect(evaluateOutcome([party(), foe()], undefined, 0)).toBeNull();
+    const dead = foe();
+    dead.alive = false;
+    expect(evaluateOutcome([party(), dead], undefined, 0)).toBe("player");
+  });
+
+  it("enemy always wins when the party is wiped, whatever the objective", () => {
+    const p = party();
+    p.alive = false;
+    expect(evaluateOutcome([p, foe()], { kind: "survive", turns: 99 }, 0)).toBe("enemy");
+    expect(evaluateOutcome([p, foe()], { kind: "defeat", targetName: "e" }, 0)).toBe("enemy");
+  });
+
+  it("defeat: ends when the named target dies even if other foes live", () => {
+    const boss = foe("boss");
+    const minion = foe("minion");
+    const obj = { kind: "defeat" as const, targetName: "boss" };
+    expect(evaluateOutcome([party(), boss, minion], obj, 0)).toBeNull();
+    boss.alive = false;
+    expect(evaluateOutcome([party(), boss, minion], obj, 0)).toBe("player"); // minion still alive
+  });
+
+  it("defeat: an absent target falls back to a rout", () => {
+    const obj = { kind: "defeat" as const, targetName: "ghost" };
+    const live = foe();
+    expect(evaluateOutcome([party(), live], obj, 0)).toBeNull();
+    live.alive = false;
+    expect(evaluateOutcome([party(), live], obj, 0)).toBe("player");
+  });
+
+  it("survive: player wins once the turn target is reached", () => {
+    const obj = { kind: "survive" as const, turns: 5 };
+    expect(evaluateOutcome([party(), foe()], obj, 4)).toBeNull();
+    expect(evaluateOutcome([party(), foe()], obj, 5)).toBe("player");
+  });
+
+  it("survive: routing the enemies also wins early", () => {
+    const obj = { kind: "survive" as const, turns: 99 };
+    const dead = foe();
+    dead.alive = false;
+    expect(evaluateOutcome([party(), dead], obj, 1)).toBe("player");
   });
 });
 

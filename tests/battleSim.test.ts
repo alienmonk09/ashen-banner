@@ -6,7 +6,7 @@ import { createStartingParty } from "../src/data/party";
 import { Grid, samePoint } from "../src/battle/grid";
 import { aoeTiles } from "../src/battle/targeting";
 import { resolveCounterAttack, resolveSkillOnTarget, resolveWeaponAttack } from "../src/battle/combat";
-import { advanceToNextActor, battleWinner, endTurn } from "../src/battle/turnManager";
+import { advanceToNextActor, battleWinner, endTurn, evaluateOutcome } from "../src/battle/turnManager";
 import { planEnemyTurn } from "../src/battle/ai";
 import { getWeapon } from "../src/data/weapons";
 import { getSkill } from "../src/data/skills";
@@ -90,12 +90,13 @@ describe("full battle simulation (AI vs AI)", () => {
   for (let phase = 0; phase < PHASES.length; phase++) {
     it(`phase ${phase + 1} runs to a decisive winner without crashing`, () => {
       const rng = new RNG(0xc0ffee + phase * 101);
+      const objective = PHASES[phase].objective;
       const { grid, units } = buildUnits(phase);
       expect(units.length).toBeGreaterThan(2);
 
-      let winner = battleWinner(units);
       let turns = 0;
       const CAP = 5000;
+      let winner = evaluateOutcome(units, objective, turns);
       while (!winner && turns < CAP) {
         const active = advanceToNextActor(units);
         expect(active).not.toBeNull();
@@ -103,8 +104,8 @@ describe("full battle simulation (AI vs AI)", () => {
         applyPlan(active, units, grid, rng);
         endTurn(active);
         assertInvariants(units);
-        winner = battleWinner(units);
         turns++;
+        winner = evaluateOutcome(units, objective, turns);
       }
 
       expect(turns).toBeLessThan(CAP); // it actually terminated

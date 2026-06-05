@@ -99,8 +99,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 - 🚧 **Objective variety** — ✅ rout, defeat-the-commander (the finale: kill Maldrath),
   survive-N-turns, ✅ seize-a-point and ✅ defend-a-point (gold tile marker in the HUD);
   ⏳ escort (needs an NPC unit concept)
-- 🚧 **Terrain effects** — ✅ lava damage floors & healing springs (end-of-turn HP deltas);
-  ⏳ slow mire, height-gated cover
+- 🚧 **Terrain effects** — ✅ lava damage floors, healing springs, and slow mire (end-of-turn
+  HP deltas / Slow status); ⏳ height-gated cover
 - 💭 **Fog of war / vision** — sight radius, scouting, ambush
 - 💭 **Weather & day/night** — accuracy/affinity shifts, timed events
 - 💭 **Large / multi-tile units & mounts** — cavalry move bonus, dragons
@@ -109,14 +109,15 @@ Classic mechanics that change how a fight is played, not just its numbers.
 
 - ✅ **Recruitable units** — a player unit adjacent to an enemy at ≤25% HP can recruit it; it
   flips sides and, if it survives, joins the party permanently (up to the roster cap)
-- 🚧 **Shop & economy** — ✅ gil drops from defeats; ✅ camp shop for consumables AND
-  equipment (own-before-equip ownership gate); ✅ selling back (half price; unequips sold
-  gear); ⏳ weapon shop
+- ✅ **Shop & economy** — gil drops from defeats; a camp shop covering consumables,
+  equipment, AND weapons (own-before-equip ownership gate), with buy and sell (half-price;
+  selling worn gear unequips it)
 - 🚧 **Job mastery** — ✅ master a class (learn all its skills) for a permanent +HP/+SPD passive
   carried across every class; ⏳ unlock-the-next gating later
 - ✅ **Difficulty modes & AI personalities** — Easy/Normal/Hard (scale enemy levels at New
   Game); per-enemy AI archetypes (aggressive/defensive/support/balanced) biasing AI scoring
-- 💭 **Casualty / permadeath option** — Fire-Emblem-style classic mode
+- ✅ **Classic mode (permadeath)** — opt-in at New Game; a hero who falls in a won battle is
+  lost from the roster for good
 - 💭 **Bravery / Faith / morale** — unit traits that scale reactions and magic
 - 💭 **Weapon/class triangle** — rock-paper-scissors matchups for readable counters
 

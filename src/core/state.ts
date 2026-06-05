@@ -22,6 +22,8 @@ export interface GameState {
   ownedEquipment: string[];
   /** Save slot this run persists to (0-based). Slot 0 uses the legacy key. */
   slot: number;
+  /** Number of times the campaign has been cleared in New Game+ mode. */
+  ngPlus: number;
 }
 
 export function createGameState(): GameState {
@@ -33,6 +35,7 @@ export function createGameState(): GameState {
     gil: 0,
     ownedEquipment: [],
     slot: 0,
+    ngPlus: 0,
   };
 }
 
@@ -136,15 +139,29 @@ const VALID_DIFFICULTIES: Difficulty[] = ["easy", "normal", "hard"];
 const VALID_REACTIONS: Reaction[] = ["counter", "autoPotion", "cover"];
 
 /**
- * Adjust an enemy's authored level by the selected difficulty.
+ * Adjust an enemy's authored level by the selected difficulty and NG+ cycle.
  * easy  → level - 1 (floored at 1)
  * normal → unchanged
  * hard  → level + 2
+ * Each NG+ cycle adds an additional +3 levels on top of difficulty scaling.
  */
-export function enemyLevelFor(baseLevel: number, difficulty: Difficulty): number {
-  if (difficulty === "easy") return Math.max(1, baseLevel - 1);
-  if (difficulty === "hard") return baseLevel + 2;
-  return baseLevel;
+export function enemyLevelFor(baseLevel: number, difficulty: Difficulty, ngPlus = 0): number {
+  let level: number;
+  if (difficulty === "easy") level = Math.max(1, baseLevel - 1);
+  else if (difficulty === "hard") level = baseLevel + 2;
+  else level = baseLevel;
+  return level + ngPlus * 3;
+}
+
+/**
+ * Begin a New Game+ run: increment the NG+ cycle counter, reset the phase to
+ * the start, refresh the consumable inventory, and keep everything else
+ * (party levels / skills, gil, owned equipment, difficulty, save slot).
+ */
+export function startNgPlus(state: GameState): void {
+  state.ngPlus += 1;
+  state.phaseIndex = 0;
+  state.inventory = startingInventory();
 }
 
 export const SAVE_KEY = "tactics-mvp-save";
@@ -218,6 +235,10 @@ export function loadGame(slot = 0): GameState | null {
       parsed.slot = slot;
     } else {
       parsed.slot = slot;
+    }
+    // Back-compat: old saves lack `ngPlus`; normalise any missing/invalid value.
+    if (typeof parsed.ngPlus !== "number" || !isFinite(parsed.ngPlus) || parsed.ngPlus < 0) {
+      parsed.ngPlus = 0;
     }
     // Migration: any gear a unit already has equipped should be in ownedEquipment.
     const owned = parsed.ownedEquipment as string[];

@@ -120,7 +120,7 @@ export class BattleScene implements Scene {
           name: e.name,
           team: "enemy",
           classId: e.classId,
-          level: enemyLevelFor(e.level, this.ctx.state.difficulty),
+          level: enemyLevelFor(e.level, this.ctx.state.difficulty, this.ctx.state.ngPlus),
           pos: e.pos,
           weaponId: e.weaponId,
           learnedSkillIds: e.skillIds ?? [],

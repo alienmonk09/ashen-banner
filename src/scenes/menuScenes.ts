@@ -1,6 +1,6 @@
 import { createStartingParty } from "../data/party";
 import { startingInventory } from "../data/items";
-import { clearSave, listSaves, loadGame, SAVE_SLOTS, type GameState } from "../core/state";
+import { clearSave, listSaves, loadGame, saveGame, startNgPlus, SAVE_SLOTS, type GameState } from "../core/state";
 import { PHASES } from "../data/maps";
 import { el } from "../ui/dom";
 import type { GameContext, Scene } from "./sceneManager";
@@ -15,6 +15,7 @@ function resetState(state: GameState): void {
   state.gil = 0;
   state.ownedEquipment = [];
   state.slot = 0;
+  state.ngPlus = 0;
 }
 
 function applyLoaded(state: GameState, loaded: GameState): void {
@@ -25,6 +26,7 @@ function applyLoaded(state: GameState, loaded: GameState): void {
   state.gil = loaded.gil;
   state.ownedEquipment = loaded.ownedEquipment;
   state.slot = loaded.slot;
+  state.ngPlus = loaded.ngPlus;
 }
 
 /** A simple full-screen menu built from a banner card. */
@@ -232,10 +234,21 @@ export class VictoryScene extends BannerScene {
     clearSave(ctx.state.slot);
     const survivors = ctx.state.party.filter((u) => u.alive).length;
     const maxLevel = Math.max(...ctx.state.party.map((u) => u.level));
+    const currentCycle = ctx.state.ngPlus;
+    const nextCycle = currentCycle + 1;
+    const ngPlusLabel = currentCycle > 0 ? `New Game+ (cycle ${nextCycle})` : "New Game+";
     this.showCard(
       "Campaign Complete",
-      `The tyrant is undone and the realm breathes free. Your party reached level ${maxLevel}, with ${survivors} heroes standing at the end. Thank you for playing.`,
+      `The tyrant is undone and the realm breathes free. Your party reached level ${maxLevel}, with ${survivors} heroes standing at the end. New Game+ is available — keep your leveled party and face enemies ${nextCycle * 3} levels tougher. Thank you for playing.`,
       [
+        {
+          label: ngPlusLabel,
+          onClick: () => {
+            startNgPlus(this.ctx.state);
+            saveGame(this.ctx.state);
+            this.ctx.nav.toParty();
+          },
+        },
         {
           label: "Play Again",
           onClick: () => {

@@ -65,6 +65,7 @@ export class PartySelectScene implements Scene {
     this.ctx.state.gil = 0;
     this.ctx.state.ownedEquipment = [];
     this.ctx.state.slot = this.slot;
+    this.ctx.state.ngPlus = 0;
     clearSave(this.slot);
     this.ctx.nav.toBattle(0);
   }

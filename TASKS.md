@@ -14,12 +14,13 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **795 passing across 36 files**. Working tree: clean.
-- Last commit: `16ef81a feat(v0.4): knockback fall damage`.
-- NOTE: the full `review --base main` pass now exceeds the reviewer's output limit
-  (diff too large) and returns "Reviewer failed to output a response". The 3 substantive
-  passes converged (4→3→2 P2s, all fixed); review recent commits with a NEARER `--base`
-  (e.g. `--base <last-reviewed-sha>`) instead of `main` going forward.
+- Build: clean. Tests: **842 passing across 39 files**. Working tree: clean.
+- Last commit: `3ab14c6 feat(v0.4): zone of control`.
+- NOTE: the Codex reviewer started returning "Reviewer failed to output a response" on
+  EVERY scope (even small diffs) partway through this session — a transient runtime fault,
+  not a code signal. It worked for ~10 earlier features (caught ~9 real P2s). Recent
+  features (equipment shop, cover, ZoC, fall damage, recruit/race) are verified by
+  build+test+browser+self-review only; re-run Codex review on them when it recovers.
 - Commits: v0.2+v0.3 base → Counter → Time Mage → objectives(rout/defeat/survive)
   → secondary job → **audio → equipment slots → terrain effects → Summoner →
   objective variety(seize/defend)**.
@@ -70,11 +71,23 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 - A consolidated Codex branch review (vs main) caught the above before merge.
 - **AI personalities** (v0.5) — per-enemy aggressive/defensive/support/balanced archetypes
   bias AI scoring (pure personalityWeight); sim still converges. `380c5a7` (+3 review fixes).
+- **Knockback fall damage** (v0.4) — a shove onto a tile 2+ levels lower deals fall damage. `16ef81a`.
+- **Enemy races + recruit-timing fix** (v0.5 polish) — varied enemy races make elemental
+  affinities matter for players; 6th deployment slot held for the finale. `6740882`.
+- **Equipment ownership + Gear Shop** (v0.5) — own-before-equip; buy gear with gil; dropdowns
+  list only owned; old saves migrate equipped gear. `9eb9c3a`.
+- **Cover reaction** (v0.4) — a guardian (Knight) intercepts a single-target hit for a wounded
+  adjacent ally; reactions[] refactor. Reaction line complete (Counter/Auto-Potion/Cover). `df7b84a`.
+- **Zone of control** (v0.4) — enemy-adjacent tiles halt movement; AI bound too; sim converges. `3ab14c6`.
 
 ## Next up (prioritized — all that remain are higher-risk or need a design decision)
-1. **Equipment/weapon shop** (v0.5) — the gil economy + CONSUMABLES shop already shipped
-   (`4188faa`). Selling gear needs an OWNERSHIP gate (own-before-equip) that reworks the camp
-   equip dropdowns (currently any gear is freely equippable) — decide that model first.
+1. **Skill charge time** (v0.4, FFT casting) — powerful magic resolves a few CT ticks later;
+   needs a charging state on Unit + turn-loop awareness + a charging indicator + interrupt.
+   Highest risk (touches the core turn loop) — spec carefully + lean on the sim + smoke.
+2. **Weapon shop / ownership** — parallel to the equipment Gear Shop, for class weapons.
+3. **Recruitable units** (v0.5) — turn a beaten foe into a party member (capture + roster).
+4. **Equippable reactions** (FFT-style) — now reactions[] exists; let units pick a reaction at camp.
+5. **Job mastery** (v0.5); content: dialogue/portraits (v0.6), fog of war. See `ROADMAP.md`.
 2. **Cover-ally reaction** — intercept a hit for an adjacent ally. Needs: `ClassDef.reaction`
    → `reactions[]` refactor (so a tank can have counter + cover), an attack target-redirect at
    resolution (weapon + single-skill, player + AI paths), and ideally honest forecast.

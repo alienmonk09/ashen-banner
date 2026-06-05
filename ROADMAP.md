@@ -84,12 +84,14 @@ The next push: grow the party, make the UI teach itself, and widen the campaign.
 
 Classic mechanics that change how a fight is played, not just its numbers.
 
-- 🚧 **Reaction abilities** — ✅ Counter (Knight/Monk strike back) and ✅ Auto-Potion
-  (Thief self-heals from inventory when low); ⏳ cover an ally, and equippable
-  reactions (FFT-style) still to come
+- 🚧 **Reaction abilities** — ✅ Counter (Knight/Monk strike back), ✅ Auto-Potion (Thief
+  self-heals when low), and ✅ Cover (a guardian intercepts a hit for a wounded adjacent
+  ally; classes now hold a list of reactions); ⏳ equippable reactions (FFT-style) still to come
 - 🚧 **Knockback / forced movement** — ✅ shoves (single-target skills push the victim N
-  tiles, stopping at walls/edges/units; shove-into-lava synergy); ⏳ pulls, throws, fall damage
-- ⏳ **Zone of control & engagement** — passing an enemy's reach has a cost
+  tiles, stopping at walls/edges/units; shove-into-lava synergy) and ✅ fall damage off
+  ledges; ⏳ pulls, throws
+- ✅ **Zone of control & engagement** — moving into a tile adjacent to a living enemy ends
+  your movement there (you can engage but not slip past the line); the AI is bound too
 - ⏳ **Spell charge time** — powerful magic resolves a few CT ticks later (FFT casting),
   with a charging indicator and the option to interrupt
 - 🚧 **Objective variety** — ✅ rout, defeat-the-commander (the finale: kill Maldrath),
@@ -104,7 +106,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 ## v0.5 — Roster, economy & meta ⏳
 
 - ⏳ **Recruitable / capturable units** — turn beaten foes or story NPCs into party members
-- ⏳ **Shop & economy** — gil drops, buy/sell weapons, armor, items between chapters
+- 🚧 **Shop & economy** — ✅ gil drops from defeats; ✅ camp shop for consumables AND
+  equipment (own-before-equip ownership gate); ⏳ weapon shop & selling between chapters
 - ⏳ **Job mastery** — master a class to unlock the next; passives carried across jobs
 - ✅ **Difficulty modes & AI personalities** — Easy/Normal/Hard (scale enemy levels at New
   Game); per-enemy AI archetypes (aggressive/defensive/support/balanced) biasing AI scoring

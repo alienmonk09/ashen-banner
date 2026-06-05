@@ -6,10 +6,51 @@ import {
   grantXp,
   grantJp,
   nextLearnableSkill,
+  nextLearnableSkillForClass,
   learnNextSkill,
+  learnSkillForClass,
 } from "../src/core/unit";
 import { getClass } from "../src/data/classes";
 import type { Unit } from "../src/core/types";
+
+describe("secondary-job skill learning", () => {
+  const mk = () => createUnit({ name: "U", team: "player", classId: "knight", pos: { x: 0, y: 0 } });
+
+  it("nextLearnableSkillForClass walks a given class's skills in order", () => {
+    const u = mk();
+    const wm = getClass("whiteMage").skillIds;
+    // Knows nothing of White Mage yet → first WM skill is next.
+    expect(nextLearnableSkillForClass(u, "whiteMage")).toBe(wm[0]);
+    u.learnedSkillIds.push(wm[0]);
+    expect(nextLearnableSkillForClass(u, "whiteMage")).toBe(wm[1]);
+  });
+
+  it("learnSkillForClass spends JP to learn a secondary job's skill", () => {
+    const u = mk();
+    u.jp = 100000;
+    const wm0 = getClass("whiteMage").skillIds[0];
+    const before = u.jp;
+    const learned = learnSkillForClass(u, "whiteMage", 100);
+    expect(learned).toBe(wm0);
+    expect(u.learnedSkillIds).toContain(wm0);
+    expect(u.jp).toBe(before - 100);
+  });
+
+  it("won't learn across classes without enough JP", () => {
+    const u = mk();
+    u.jp = 0;
+    expect(learnSkillForClass(u, "whiteMage", 100)).toBeNull();
+    expect(u.learnedSkillIds).not.toContain(getClass("whiteMage").skillIds[0]);
+  });
+
+  it("returns null once a class is fully learned", () => {
+    const u = mk();
+    for (const id of getClass("archer").skillIds) u.learnedSkillIds.push(id);
+    expect(nextLearnableSkillForClass(u, "archer")).toBeNull();
+    u.jp = 100000;
+    expect(learnSkillForClass(u, "archer", 100)).toBeNull();
+  });
+});
 
 describe("xpForLevel", () => {
   it("returns 100 at level 1", () => {

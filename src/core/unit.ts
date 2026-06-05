@@ -114,24 +114,32 @@ export function grantJp(unit: Unit, amount: number): void {
   unit.jp += amount;
 }
 
-/** The next skill the unit can learn for its class, or null if all learned. */
-export function nextLearnableSkill(unit: Unit): string | null {
-  const c = getClass(unit.classId);
-  for (const id of c.skillIds) {
+/** The next skill the unit can learn for a given class, or null if all learned. */
+export function nextLearnableSkillForClass(unit: Unit, classId: ClassId): string | null {
+  for (const id of getClass(classId).skillIds) {
     if (!unit.learnedSkillIds.includes(id)) return id;
   }
   return null;
 }
 
+/** The next skill the unit can learn for its primary class, or null if all learned. */
+export function nextLearnableSkill(unit: Unit): string | null {
+  return nextLearnableSkillForClass(unit, unit.classId);
+}
+
 /**
- * Try to learn the next skill in class order, spending JP.
- * Returns the learned skill id or null if it can't be learned.
+ * Try to learn the next skill in a class's order, spending JP. Works for the
+ * primary class or a secondary job. Returns the learned skill id, or null.
  */
-export function learnNextSkill(unit: Unit, jpCost: number): string | null {
-  const next = nextLearnableSkill(unit);
-  if (!next) return null;
-  if (unit.jp < jpCost) return null;
+export function learnSkillForClass(unit: Unit, classId: ClassId, jpCost: number): string | null {
+  const next = nextLearnableSkillForClass(unit, classId);
+  if (!next || unit.jp < jpCost) return null;
   unit.jp -= jpCost;
   unit.learnedSkillIds.push(next);
   return next;
+}
+
+/** Try to learn the next primary-class skill, spending JP. */
+export function learnNextSkill(unit: Unit, jpCost: number): string | null {
+  return learnSkillForClass(unit, unit.classId, jpCost);
 }

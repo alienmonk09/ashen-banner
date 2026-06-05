@@ -42,6 +42,7 @@ function isValidSave(data: unknown): data is GameState {
   for (const u of s.party) {
     if (!u || typeof u !== "object") return false;
     if (!CLASSES[u.classId as ClassId]) return false;
+    if (u.subClassId !== undefined && !CLASSES[u.subClassId as ClassId]) return false;
     if (!RACES[u.raceId as RaceId]) return false;
     if (!WEAPONS[u.weaponId]) return false;
     if (!u.stats || typeof u.stats.maxHp !== "number") return false;

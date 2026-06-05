@@ -169,6 +169,8 @@ export interface Unit {
   xp: number;
   jp: number;
   learnedSkillIds: string[];
+  /** Optional secondary job: its learned skills are usable alongside the primary's. */
+  subClassId?: ClassId;
   weaponId: string;
   pos: Point;
   /** Which way the unit faces; drives flank/rear attack bonuses. Per-battle volatile. */

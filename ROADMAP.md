@@ -9,7 +9,7 @@ The backlog draws on the classics of the genre — **Final Fantasy Tactics**,
 
 ## v0.1 — Playable MVP ✅
 
-The complete core loop ships and is covered by the test suite (495 tests, 21
+The complete core loop ships and is covered by the test suite (499 tests, 21
 files), including a full AI-vs-AI battle simulation that auto-plays all seven
 phases to a decisive result.
 
@@ -65,7 +65,9 @@ The next push: grow the party, make the UI teach itself, and widen the campaign.
 - ✅ **Choose your party** — pick four heroes from a roster of seven at New Game
 - ✅ **Races** — Human/Elf/Dwarf/Halfling/Orc, each with flat stat modifiers
 - ✅ **Two more classes** — Thief (Enzo) and Druid (Penelope)
-- ⏳ **Secondary job / ability pool** — equip a second class's skills (FFT-style)
+- ✅ **Secondary job / ability pool** — equip a second class's skill set at the camp;
+  its learned skills are usable alongside the primary's (FFT-style). Learn across both
+  jobs with JP; the first sub-job skill is granted on equip.
 - 🚧 **More classes** — ✅ Time Mage (Comet + haste/slow/stop control), retrainable at
   camp; ⏳ Lancer (jump), Summoner (big AoE), Geomancer still to come
 - ✅ **Elemental affinities** — races carry fire/bolt/nature weaknesses & resistances

@@ -3,7 +3,12 @@ import { CLASSES, getClass } from "../data/classes";
 import { getRace } from "../data/races";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
-import { statsForLevel, nextLearnableSkill, learnNextSkill, xpForLevel } from "../core/unit";
+import {
+  statsForLevel,
+  nextLearnableSkillForClass,
+  learnSkillForClass,
+  xpForLevel,
+} from "../core/unit";
 import { saveGame } from "../core/state";
 import { PHASES } from "../data/maps";
 import {
@@ -33,12 +38,27 @@ export class PartyScene implements Scene {
     if (unit.classId === classId) return;
     unit.classId = classId;
     const cls = getClass(classId);
-    // Recompute stats for the new class at the unit's level (full HP/MP).
-    unit.stats = statsForLevel(classId, unit.level);
+    // Recompute stats for the new class at the unit's level (full HP/MP),
+    // keeping the unit's racial modifiers (they persist across class changes).
+    unit.stats = statsForLevel(classId, unit.level, unit.raceId);
     // Re-equip a weapon this class can use.
     if (!cls.weaponIds.includes(unit.weaponId)) unit.weaponId = cls.weaponIds[0];
     // Ensure at least the first class skill is known so the class is usable.
     if (!unit.learnedSkillIds.includes(cls.skillIds[0])) unit.learnedSkillIds.push(cls.skillIds[0]);
+    // A unit can't sub-job its own primary.
+    if (unit.subClassId === classId) unit.subClassId = undefined;
+    this.render();
+  }
+
+  private setSubJob(unit: Unit, classId: ClassId | ""): void {
+    if (classId === "" || classId === unit.classId) {
+      unit.subClassId = undefined;
+    } else {
+      unit.subClassId = classId;
+      // Auto-learn the first sub-job skill so the secondary set is usable at once.
+      const first = getClass(classId).skillIds[0];
+      if (first && !unit.learnedSkillIds.includes(first)) unit.learnedSkillIds.push(first);
+    }
     this.render();
   }
 
@@ -47,11 +67,31 @@ export class PartyScene implements Scene {
     this.render();
   }
 
-  private learn(unit: Unit): void {
-    const next = nextLearnableSkill(unit);
+  private learnFrom(unit: Unit, classId: ClassId): void {
+    const next = nextLearnableSkillForClass(unit, classId);
     if (!next) return;
-    const cost = getSkill(next).jpCost;
-    if (learnNextSkill(unit, cost)) this.render();
+    if (learnSkillForClass(unit, classId, getSkill(next).jpCost)) this.render();
+  }
+
+  /** A "JP / Learn next" row for a given class (primary or secondary job). */
+  private learnRow(unit: Unit, classId: ClassId, labelPrefix: string): HTMLElement {
+    const next = nextLearnableSkillForClass(unit, classId);
+    const row = el("div", { className: "jpline" });
+    if (next) {
+      const skill = getSkill(next);
+      const affordable = unit.jp >= skill.jpCost;
+      row.appendChild(
+        el("button", {
+          className: "btn small",
+          text: `${labelPrefix}Learn ${skill.name} (${skill.jpCost} JP)`,
+          attrs: affordable ? {} : { disabled: "true" },
+          onClick: affordable ? () => this.learnFrom(unit, classId) : undefined,
+        }),
+      );
+    } else {
+      row.appendChild(el("span", { text: `${labelPrefix}all learned`, attrs: { style: "font-size:12px;opacity:0.6" } }));
+    }
+    return row;
   }
 
   /** Average party level (floored at 3) — new recruits join at this level. */
@@ -131,6 +171,21 @@ export class PartyScene implements Scene {
     classSel.addEventListener("change", () => this.changeClass(unit, classSel.value as ClassId));
     card.appendChild(classSel);
 
+    // Secondary job — a second class's skill set, usable alongside the primary.
+    card.appendChild(el("label", { text: "Sub-job (second skill set)" }));
+    const subSel = el("select");
+    const noneOpt = el("option", { text: "— none —", attrs: { value: "" } });
+    if (!unit.subClassId) noneOpt.selected = true;
+    subSel.appendChild(noneOpt);
+    for (const c of Object.values(CLASSES)) {
+      if (c.id === unit.classId) continue; // can't sub your own primary
+      const opt = el("option", { text: c.name, attrs: { value: c.id } });
+      if (c.id === unit.subClassId) opt.selected = true;
+      subSel.appendChild(opt);
+    }
+    subSel.addEventListener("change", () => this.setSubJob(unit, subSel.value as ClassId | ""));
+    card.appendChild(subSel);
+
     // Equipment.
     card.appendChild(
       el("label", {
@@ -148,34 +203,26 @@ export class PartyScene implements Scene {
     wSel.addEventListener("change", () => this.equip(unit, wSel.value));
     card.appendChild(wSel);
 
-    // Skills.
-    const knownIds = unit.learnedSkillIds.filter((id) => cls.skillIds.includes(id));
-    const known = knownIds.map((id) => getSkill(id).name);
-    card.appendChild(el("div", { className: "skills", text: `Skills: ${known.length ? known.join(", ") : "—"}` }));
+    // Skills usable now = learned skills from the primary class + secondary job.
+    const usable = new Set(cls.skillIds);
+    if (unit.subClassId) for (const id of getClass(unit.subClassId).skillIds) usable.add(id);
+    const knownIds = unit.learnedSkillIds.filter((id) => usable.has(id));
+    card.appendChild(
+      el("div", {
+        className: "skills",
+        text: `Skills: ${knownIds.length ? knownIds.map((id) => getSkill(id).name).join(", ") : "—"}`,
+      }),
+    );
     if (knownIds.length) {
       const srow = el("div", { className: "skill-icons" });
       for (const id of knownIds) srow.appendChild(iconImg(getSkillSprite(id), 20));
       card.appendChild(srow);
     }
 
-    const next = nextLearnableSkill(unit);
-    const jpLine = el("div", { className: "jpline" });
-    jpLine.appendChild(el("span", { text: `JP: ${unit.jp}`, attrs: { style: "font-size:13px" } }));
-    if (next) {
-      const skill = getSkill(next);
-      const affordable = unit.jp >= skill.jpCost;
-      jpLine.appendChild(
-        el("button", {
-          className: "btn small",
-          text: `Learn ${skill.name} (${skill.jpCost} JP)`,
-          attrs: affordable ? {} : { disabled: "true" },
-          onClick: affordable ? () => this.learn(unit) : undefined,
-        }),
-      );
-    } else {
-      jpLine.appendChild(el("span", { text: "All skills learned", attrs: { style: "font-size:12px;opacity:0.6" } }));
-    }
-    card.appendChild(jpLine);
+    // Spend JP: learn the next skill of the primary class and (if set) the sub-job.
+    card.appendChild(el("div", { text: `JP: ${unit.jp}`, attrs: { style: "font-size:13px;margin-top:6px" } }));
+    card.appendChild(this.learnRow(unit, unit.classId, ""));
+    if (unit.subClassId) card.appendChild(this.learnRow(unit, unit.subClassId, `${getClass(unit.subClassId).name}: `));
     return card;
   }
 

@@ -81,7 +81,8 @@ npm test           # run the Vitest suite
 
 Knight and Monk also carry the **Counter** reaction (they strike back at melee
 attackers). **Time Mage** has no default hero — retrain any unit into it at the
-Party Camp.
+Party Camp. Each unit can also equip a **secondary job** (a second class's skill
+set), so its learned skills from both jobs are usable in battle.
 
 ### Races
 
@@ -127,7 +128,7 @@ docs/superpowers/specs/  design spec
 
 ## Tests
 
-`npm test` runs **495 tests across 21 files**: per-module unit tests (RNG,
+`npm test` runs **499 tests across 21 files**: per-module unit tests (RNG,
 pathfinding, targeting, combat, facing/back-attacks, line of sight, elevation /
 status / elemental / counter modifiers, turn order, AI, grid, movement/pass-through,
 iso projection, save/load, races, hero roster & reinforcements) plus map-data

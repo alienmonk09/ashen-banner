@@ -365,9 +365,11 @@ export class BattleScene implements Scene {
 
   private enterSkillMenu(): void {
     if (!this.active || this.hasActed) return;
-    const classSkills = getClass(this.active.classId).skillIds;
+    // Usable skills = those learned from the primary class plus the secondary job.
+    const usable = new Set(getClass(this.active.classId).skillIds);
+    if (this.active.subClassId) for (const id of getClass(this.active.subClassId).skillIds) usable.add(id);
     const skills = this.active.learnedSkillIds
-      .filter((id) => classSkills.includes(id))
+      .filter((id) => usable.has(id))
       .map(getSkill);
     this.ui.clearActions();
     this.ui.setHint("Choose a skill.");

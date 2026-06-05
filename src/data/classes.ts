@@ -94,6 +94,16 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     weaponIds: ["grimoire"],
     color: "#6a3fbf",
   },
+  geomancer: {
+    id: "geomancer",
+    name: "Geomancer",
+    description: "Durable earth caster. Grinds the field with tremors and locks foes in place with petrify.",
+    base: { hp: 94, mp: 54, atk: 6, def: 9, mag: 13, res: 10, spd: 9, move: 4, jump: 2 },
+    growth: { hp: 9, mp: 6, atk: 0.5, def: 1.0, mag: 1.9, res: 1.1, spd: 0.8 },
+    skillIds: ["boulder", "quagmire", "tremor", "petrify"],
+    weaponIds: ["gaiaStaff"],
+    color: "#7a6040",
+  },
 };
 
 export function getClass(id: ClassId): ClassDef {

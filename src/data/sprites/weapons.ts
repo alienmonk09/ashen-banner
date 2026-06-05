@@ -230,4 +230,23 @@ export const WEAPON_SPRITES: Record<string, SpriteDef> = {
       "..............",
     ],
   },
+  gaiaStaff: {
+    palette: { A: "#1a0e05", B: "#5a3e20", C: "#8a6040", D: "#4a7a3a", E: "#7aaa5a", F: "#b0d880", G: "#c0c0b0", H: "#d4a870" },
+    rows: [
+      "....DEDD......",
+      "...DEFFE......",
+      "..DEFFED......",
+      "...DEFD.......",
+      "....BDB.......",
+      "....BCB.......",
+      "....BCB.......",
+      "...ABCBA......",
+      "..AABCBAA.....",
+      "..ABBCBBA.....",
+      "...ABCBA......",
+      "....BCB.......",
+      "....BCB.......",
+      "....BAB.......",
+    ],
+  },
 };

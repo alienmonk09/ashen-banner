@@ -97,6 +97,14 @@ export const WEAPONS: Record<string, WeaponDef> = {
     kind: "magical",
     classes: ["summoner"],
   },
+  gaiaStaff: {
+    id: "gaiaStaff",
+    name: "Gaia Staff",
+    power: 3,
+    range: 1,
+    kind: "magical",
+    classes: ["geomancer"],
+  },
 };
 
 export function getWeapon(id: string): WeaponDef {

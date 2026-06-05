@@ -68,13 +68,17 @@ The next push: grow the party, make the UI teach itself, and widen the campaign.
 - ✅ **Secondary job / ability pool** — equip a second class's skill set at the camp;
   its learned skills are usable alongside the primary's (FFT-style). Learn across both
   jobs with JP; the first sub-job skill is granted on equip.
-- 🚧 **More classes** — ✅ Time Mage (Comet + haste/slow/stop control), retrainable at
-  camp; ⏳ Lancer (jump), Summoner (big AoE), Geomancer still to come
+- 🚧 **More classes** — ✅ Time Mage (Comet + haste/slow/stop control) and ✅ Summoner
+  (Ifrit/Shiva/Ramuh/Titan — wide-AoE glass cannon), retrainable at camp; ⏳ Lancer
+  (jump), Geomancer still to come
 - ✅ **Elemental affinities** — races carry fire/bolt/nature weaknesses & resistances
   that scale spell damage (×1.5 / ×0.5); folded into the shared forecast, which flags
   *weak/resist*, so the AI aims spells at weaknesses too. *(Equipment/terrain affinities later.)*
-- ⏳ **Equipment slots** — armor & accessories (stat mods, status immunity, affinity)
-- 💭 Terrain hazards & special tiles (lava DoT, deep water, traps, destructible cover)
+- ✅ **Equipment slots** — armor & accessories with flat stat mods, folded into the unit
+  stat block so they survive level-up & class change; camp UI selects *(status immunity /
+  affinity later)*
+- 💭 Terrain hazards & special tiles (✅ lava DoT & healing springs via terrain effects;
+  deep water, traps, destructible cover still to come)
 
 ## v0.4 — Battlefield systems 🚧
 
@@ -87,8 +91,10 @@ Classic mechanics that change how a fight is played, not just its numbers.
 - ⏳ **Spell charge time** — powerful magic resolves a few CT ticks later (FFT casting),
   with a charging indicator and the option to interrupt
 - 🚧 **Objective variety** — ✅ rout, defeat-the-commander (the finale: kill Maldrath),
-  and survive-N-turns, shown in a HUD objective banner; ⏳ seize a point, escort, defend
-- ⏳ **Terrain effects** — healing tiles, slow mire, damage floors, height-gated cover
+  survive-N-turns, ✅ seize-a-point and ✅ defend-a-point (gold tile marker in the HUD);
+  ⏳ escort (needs an NPC unit concept)
+- 🚧 **Terrain effects** — ✅ lava damage floors & healing springs (end-of-turn HP deltas);
+  ⏳ slow mire, height-gated cover
 - 💭 **Fog of war / vision** — sight radius, scouting, ambush
 - 💭 **Weather & day/night** — accuracy/affinity shifts, timed events
 - 💭 **Large / multi-tile units & mounts** — cavalry move bonus, dragons
@@ -109,7 +115,8 @@ Put the [story](STORY.md) on screen.
 
 - ⏳ In-engine dialogue / cutscene system; per-chapter story beats
 - ⏳ Character portraits and named-enemy intros
-- ⏳ **Audio** — music per phase, combat SFX (WebAudio, code-synth — no asset pipeline)
+- 🚧 **Audio** — ✅ combat SFX (WebAudio code-synth: hit/crit/heal/magic/KO/select) + HUD
+  mute toggle; ⏳ music per phase
 - 💭 Light overworld / chapter-select map; branching paths (Tactics Ogre-style)
 
 ## v1.0 — Release polish 💭

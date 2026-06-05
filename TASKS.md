@@ -14,10 +14,18 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **499 passing across 21 files**.
-- Last commit: `dc7ec4a feat(v0.3): secondary job`. Working tree: only docs
-  (README short-roadmap line + this file) pending commit.
-- Commits so far: v0.2+v0.3 base → Counter → Time Mage → objective variety → secondary job.
+- Build: clean. Tests: **618 passing across 26 files**. Working tree: clean.
+- Last commit: `94b7c8f feat(v0.4): objective variety — seize & defend`.
+- Commits: v0.2+v0.3 base → Counter → Time Mage → objectives(rout/defeat/survive)
+  → secondary job → **audio → equipment slots → terrain effects → Summoner →
+  objective variety(seize/defend)**.
+- Working mode this session: code via subagents (Claude Sonnet for impl, Codex for
+  review). Sequential per feature when core files (`types/combat/battleScene`) overlap;
+  parallel only when file-sets are disjoint. Each feature: build+test+browser-verify+
+  codex-review then commit. ⚠ the Codex `codex:rescue` *agent forwarder* duplicated
+  jobs (2× per dispatch) — drove 4 concurrent writers into one tree; prefer Claude
+  agents for impl (clean completion signal) and Codex via direct `codex-companion`
+  calls for review.
 
 ## Done (verified: build + tests + browser)
 - **v0.2 Tactics depth** (multi-agent reviewed; 5 findings fixed): facing/back-attacks,
@@ -30,29 +38,31 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 - **v0.4 (partial)**: Counter reaction (Knight/Monk); objective variety (rout / defeat
   Maldrath / survive).
 
+## Done this session (build+test+browser+codex-review, all committed)
+- **Audio** (v0.6) — WebAudio code-synth SFX + HUD mute toggle. `90e8b12`.
+- **Equipment slots** (v0.3) — armor+accessory folded into `unit.stats` via single
+  `statsForUnit()` source of truth (survives level-up/class-change); camp selects. `ef9d12d`.
+- **Terrain effects** (v0.4) — `lava` (−15%/turn) & `spring` (+12%/turn) tiles,
+  `applyTerrainEffect` after status ticks. `70f27e0`.
+- **Summoner** (v0.3, 9th class) — wide-AoE glass-cannon caster, 4 summons + sprite/icons,
+  retrainable at camp (no roster change). `db6fdbd`.
+- **Objective variety** (v0.4) — `seize` (reach tile; routs also win → no soft-lock) &
+  `defend` (hold tile N turns) + gold tile overlay marker. `94b7c8f`.
+
 ## Next up (prioritized)
-1. **Equipment slots** (v0.3) — armor + accessory: flat stat mods (def/res/hp/spd),
-   maybe status immunity / elemental affinity. Touches `Unit`, the stat pipeline
-   (`statsForLevel`/recompute on level-up & class change & refreshForBattle), camp UI,
-   combat (armor def/res), data (armor/accessory defs + sprites), save/load validation.
-   Note the stat pipeline is fragile — equipment bonuses must survive level-up/class change.
-2. **More classes** (v0.3) — Lancer (Jump: leap-attack ignoring intervening units/height),
-   Summoner (big AoE nukes), Geomancer (terrain-themed). Each needs a 16×20 char sprite +
-   skills + skill icons; follow the Time Mage pattern. Update `ClassId` union + the two
-   `Record<ClassId,…>` (CLASSES, CHARACTER_SPRITES).
-3. **Terrain effects** (v0.4) — hazard/healing tiles applying end-of-turn HP deltas
-   (handle in battleScene endActiveTurn + battleSim, since `endTurn` has no grid). May add
-   a "lava" terrain type (TERRAIN style + defaultTerrain).
-4. **Reaction abilities — finish** (v0.4): auto-potion, cover-an-ally; later equippable
-   reactions (pairs with equipment).
-5. **Audio** (v0.6) — WebAudio code-synth SFX (hit/crit/heal/magic/KO/select) + mute
-   toggle; conservative/soft to avoid bad beeps. ⚠ can't verify sound headless — keep low
-   volume + muteable. Music loop later.
-6. **Objective variety — finish** (v0.4): seize-a-point, escort, defend; a survive map
-   to actually use the survive kind.
-7. **Skill charge time** (v0.4, FFT casting); **knockback / forced movement**;
-   **zone of control**.
-8. Later: shop/economy (gil), job mastery, recruitable enemies, difficulty modes,
+1. **Reaction abilities — finish** (v0.4): auto-potion (consume a potion when low HP),
+   cover-an-ally (intercept a hit for an adjacent ally); later equippable reactions
+   (pairs with equipment). Builds on the existing Counter pattern (combat.ts + `Reaction`
+   union + classes assignment + battleScene trigger).
+2. **More classes** (v0.3) — Lancer (Jump: leap-attack ignoring intervening units/height —
+   needs a movement/targeting mechanic, not just data), Geomancer (terrain-themed, now that
+   terrain exists). 16×20 char sprite + skills + icons; follow the Summoner/Time Mage pattern.
+3. **Skill charge time** (v0.4, FFT casting) — powerful magic resolves a few CT ticks later,
+   with a charging indicator + interrupt. Deeper turn-loop change (turnManager CT state).
+4. **Knockback / forced movement** — shoves/pulls/throws; fall damage off ledges.
+5. **Zone of control & engagement** — passing an enemy's reach has a cost.
+6. Escort objective (needs an NPC/escort-unit concept first — skipped for now).
+7. Later: shop/economy (gil), job mastery, recruitable enemies, difficulty modes,
    dialogue/cutscenes, fog of war. See `ROADMAP.md`.
 
 ## Known issues / cleanups

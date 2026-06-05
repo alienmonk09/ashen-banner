@@ -515,6 +515,26 @@ export const SKILL_SPRITES: Record<string, SpriteDef> = {
       "..............",
     ],
   },
+  // Black Mage charged ultimate
+  meteor: {
+    palette: { A: "#0a0a1a", B: "#3a2060", C: "#7040b0", D: "#b060e0", E: "#e090ff", F: "#ffffff", G: "#f0c040", H: "#ff8020" },
+    rows: [
+      ".......F......",
+      "......FEF.....",
+      ".....FEDFE....",
+      "....FEDDDFE...",
+      "...FEDCBCDFE..",
+      "..FEDCBBCDFE..",
+      ".FEDCBBBBCDF..",
+      "AABCBBBBBBCA..",
+      ".AABCBBBBCA...",
+      "..AABCBBCA....",
+      "...GHHHCA.....",
+      "..GHHHHA......",
+      ".GHHHA........",
+      "GHHA..........",
+    ],
+  },
   // Lancer skill icons
   jump: {
     palette: { A: "#1a0a00", B: "#8b4a10", C: "#c47a30", D: "#e8a860", E: "#f0f0ff", F: "#5a7a9a", G: "#ffffff" },

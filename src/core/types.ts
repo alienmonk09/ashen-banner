@@ -118,6 +118,9 @@ export interface SkillDef {
   knockback?: number;
   /** Leap skills: the caster jumps adjacent to the target before striking, ignoring line-of-sight. */
   leap?: boolean;
+  /** FFT-style charge delay: the skill is announced now but resolves on the caster's next turn.
+   *  Value is the number of turns to wait (1 = resolves next turn). */
+  chargeTime?: number;
 }
 
 export type EquipSlot = "armor" | "accessory";
@@ -209,6 +212,8 @@ export interface Unit {
   statuses: ActiveStatus[];
   /** false once HP hits 0; can be revived. */
   alive: boolean;
+  /** Per-battle volatile: set when a charged skill has been announced but not yet resolved. */
+  charging?: { skillId: string; target: Point; turnsLeft: number };
 }
 
 export interface Tile {

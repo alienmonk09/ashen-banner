@@ -435,6 +435,21 @@ export const SKILLS: Record<string, SkillDef> = {
     effect: "damage",
     scaling: "magical",
   },
+  // Black Mage — charged ultimate
+  meteor: {
+    id: "meteor",
+    name: "Meteor",
+    description: "Call down a crushing boulder of star-rock. Announced this turn; crashes down next turn.",
+    mpCost: 18,
+    jpCost: 400,
+    range: 4,
+    aoe: "square3",
+    power: 26,
+    element: "none",
+    effect: "damage",
+    scaling: "magical",
+    chargeTime: 1,
+  },
   // Lancer
   jump: {
     id: "jump",

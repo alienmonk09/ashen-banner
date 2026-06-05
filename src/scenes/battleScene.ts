@@ -251,6 +251,29 @@ export class BattleScene implements Scene {
       return;
     }
 
+    // Charged skill: tick the counter; resolve or keep waiting.
+    if (this.active.charging) {
+      this.active.charging.turnsLeft -= 1;
+      if (this.active.charging.turnsLeft <= 0) {
+        // Charge complete — resolve now.
+        const stored = this.active.charging;
+        this.active.charging = undefined;
+        const skill = getSkill(stored.skillId);
+        this.pushTextPopup(this.active.pos, `${skill.name}!`, POPUP_COLORS.damage);
+        this.pushLog(`${this.active.name}'s ${skill.name} crashes down!`);
+        this.phase = "resolving";
+        this.ui.hideCombatControls();
+        this.resolveCast(skill, this.active, stored.target, true);
+      } else {
+        // Still charging — show a reminder and skip the turn.
+        this.pushTextPopup(this.active.pos, "Charging…", POPUP_COLORS.status);
+        this.phase = "resolving";
+        this.ui.hideCombatControls();
+        void this.ctx.animator.wait(0.55).then(() => this.endActiveTurn());
+      }
+      return;
+    }
+
     if (this.active.team === "player") {
       this.phase = "menu";
       this.refreshMenu();
@@ -601,8 +624,44 @@ export class BattleScene implements Scene {
     // Leap skills: validate a real enemy victim + landing, then hop the caster
     // adjacent to it — all before any damage or cost is committed (no free teleport).
     if (skill.leap && isOffensive && !this.resolveLeapMove(skill, this.active, center)) return;
-    // All occupants of every affected tile (a fallen unit may share a tile with
-    // a living one); resolveSkillOnTarget null-guards inapplicable targets.
+
+    // Validate that the cast would actually hit something before committing any
+    // cost — required for both normal and charged casts.
+    const affected = aoeTiles(this.grid, center, skill.aoe).flatMap((t) =>
+      this.units.filter((u) => samePoint(u.pos, t)),
+    );
+    const hasValidTarget = affected.some((target) => {
+      if (isOffensive && target.team === this.active!.team) return false;
+      if (!isOffensive && target.team !== this.active!.team) return false;
+      return true;
+    });
+    if (!hasValidTarget) {
+      this.ui.toast("No valid target there.");
+      return;
+    }
+
+    // Charged skill: spend MP now, store the charge, and let it resolve next turn.
+    if (skill.chargeTime && skill.chargeTime > 0) {
+      this.active.stats.mp = Math.max(0, this.active.stats.mp - skill.mpCost);
+      this.active.charging = { skillId: skill.id, target: { ...center }, turnsLeft: skill.chargeTime };
+      this.pushTextPopup(this.active.pos, `Charging ${skill.name}…`, POPUP_COLORS.status);
+      this.pushLog(`${this.active.name} begins charging ${skill.name}!`);
+      this.afterAction();
+      return;
+    }
+
+    this.resolveCast(skill, this.active, center);
+  }
+
+  /**
+   * Perform the actual hit resolution for a skill cast. Called directly for
+   * instant skills, or from beginNextTurn when a charged skill's timer expires.
+   * Does NOT re-enter the charging path — always resolves immediately.
+   * `fromCharge` — when true, ends the active turn instead of opening a menu
+   *   (the charge resolution IS the full turn activation).
+   */
+  private resolveCast(skill: SkillDef, caster: Unit, center: Point, fromCharge = false): void {
+    const isOffensive = skill.effect === "damage" || skill.effect === "debuff";
     const affected = aoeTiles(this.grid, center, skill.aoe).flatMap((t) =>
       this.units.filter((u) => samePoint(u.pos, t)),
     );
@@ -612,14 +671,17 @@ export class BattleScene implements Scene {
     let support = false;
     for (const target of affected) {
       // Damage hits enemies; heal/buff/revive affect allies.
-      if (isOffensive && target.team === this.active.team) continue;
-      if (!isOffensive && target.team !== this.active.team) continue;
+      if (isOffensive && target.team === caster.team) continue;
+      if (!isOffensive && target.team !== caster.team) continue;
       // Cover intercepts single-target offensive hits only (not AoE, not heals/buffs/revives).
       // NOTE: the damage forecast preview still shows the original target — Cover is
       // a reactive interception (like Counter), not previewed before the hit resolves.
       const actual = (isOffensive && skill.aoe === "single") ? (coverFor(target, this.units) ?? target) : target;
       if (actual !== target) this.ui.toast(`${actual.name} covers ${target.name}!`);
-      const r = resolveSkillOnTarget(this.active, actual, skill, this.rng, this.posCtx(actual.pos));
+      const ctx: AttackContext = {
+        heightDelta: this.grid.heightAt(caster.pos.x, caster.pos.y) - this.grid.heightAt(actual.pos.x, actual.pos.y),
+      };
+      const r = resolveSkillOnTarget(caster, actual, skill, this.rng, ctx);
       if (r) {
         results.push(r);
         if (r.killed) anyKilled = true;
@@ -627,11 +689,14 @@ export class BattleScene implements Scene {
       }
     }
     if (results.length === 0) {
-      // Nothing valid hit — let the player pick again, no cost.
-      this.ui.toast("No valid target there.");
+      // Targets may have died or moved since the charge was set — silently fizzle.
+      if (fromCharge) this.endActiveTurn();
       return;
     }
-    this.active.stats.mp = Math.max(0, this.active.stats.mp - skill.mpCost);
+    // MP was already deducted at charge time for charged skills; deduct now for instant ones.
+    if (!(skill.chargeTime && skill.chargeTime > 0)) {
+      caster.stats.mp = Math.max(0, caster.stats.mp - skill.mpCost);
+    }
     const skillVfx = vfxKeyForSkill(skill);
     for (const r of results) {
       this.pushPopup(r);
@@ -646,8 +711,8 @@ export class BattleScene implements Scene {
       const damageResult = results.find((r) => r.kind === "damage");
       const victim = damageResult
         ? this.units.find((u) => u.alive && u.id === damageResult.unitId)
-        : this.units.find((u) => u.alive && u.team !== this.active!.team && samePoint(u.pos, center));
-      if (victim) this.tryCounter(victim, this.active);
+        : this.units.find((u) => u.alive && u.team !== caster.team && samePoint(u.pos, center));
+      if (victim) this.tryCounter(victim, caster);
     }
     this.awardGil(results.filter((r) => r.killed).length);
     // Apply knockback (single-target offensive skills only) before afterAction so
@@ -658,11 +723,16 @@ export class BattleScene implements Scene {
       const damagedTarget = results.find((r) => r.kind === "damage")
         ? this.units.find((u) => u.id === results.find((r) => r.kind === "damage")!.unitId)
         : undefined;
-      if (damagedTarget) fellKill = this.applyKnockback(skill, this.active, damagedTarget);
+      if (damagedTarget) fellKill = this.applyKnockback(skill, caster, damagedTarget);
     }
     if (fellKill) this.awardGil(1);
-    this.awardForAction(this.active, { offensive: skill.effect === "damage", killed: anyKilled || fellKill, support });
-    this.afterAction();
+    this.awardForAction(caster, { offensive: skill.effect === "damage", killed: anyKilled || fellKill, support });
+    if (fromCharge) {
+      // The charge resolution IS the full turn — end it directly (no menu re-open).
+      this.endActiveTurn();
+    } else {
+      this.afterAction();
+    }
   }
 
   private tryItem(tile: Point): void {

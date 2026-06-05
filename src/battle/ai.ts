@@ -142,7 +142,8 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
   const allies = units.filter((u) => u.alive && u.team === unit.team);
 
   const knownSkills = unit.learnedSkillIds.map(getSkill);
-  const damageSkills = knownSkills.filter((s) => s.effect === "damage" && s.mpCost <= unit.stats.mp);
+  // Exclude charged skills: the AI never enters the charging state (keeps the sim simple and convergent).
+  const damageSkills = knownSkills.filter((s) => s.effect === "damage" && s.mpCost <= unit.stats.mp && !(s.chargeTime && s.chargeTime > 0));
   const healSkills = knownSkills.filter((s) => s.effect === "heal" && s.mpCost <= unit.stats.mp);
   const reviveSkills = knownSkills.filter((s) => s.effect === "revive" && s.mpCost <= unit.stats.mp);
   const debuffSkills = knownSkills.filter((s) => s.effect === "debuff" && s.statusKind && s.mpCost <= unit.stats.mp);

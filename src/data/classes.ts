@@ -28,7 +28,7 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     description: "Offensive magic, including area spells. Fragile.",
     base: { hp: 70, mp: 60, atk: 5, def: 5, mag: 16, res: 10, spd: 10, move: 3, jump: 2 },
     growth: { hp: 7, mp: 7, atk: 0.4, def: 0.6, mag: 2.4, res: 1.2, spd: 0.8 },
-    skillIds: ["fire", "bolt", "fireball", "poison", "stop"],
+    skillIds: ["fire", "bolt", "fireball", "poison", "stop", "meteor"],
     weaponIds: ["rod"],
     color: "#a86fd6",
   },

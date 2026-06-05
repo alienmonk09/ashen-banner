@@ -14,9 +14,9 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **954 passing across 46 files**. Working tree: clean.
-- Last commit: `3841d23 feat(v0.4): skill charge time (FFT casting)`. Shipped since the sell commit:
-  battle log, undo move, save slots, settings menu, New Game+.
+- Build: clean. Tests: **1021 passing across 50 files**. Working tree: clean.
+- Last commit: `d468134 feat(v0.6): in-engine story dialogue`. Recently shipped: skill charge
+  time, weapon shop/ownership, recruitable units, job mastery, and per-phase story dialogue.
 - ~26 features this session. The Codex `codex-companion review` is INTERMITTENT — it
   alternates between producing verdicts and "Reviewer failed to output a response" (a
   transient runtime fault, not a code signal). Across its ~5 working `review --base main`
@@ -88,13 +88,17 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
   unitHasReaction = innate ∪ equipped. FFT reaction system complete. `88b598b`.
 - **Sell** (v0.5) — sell consumables & owned gear for half price; selling gear unequips it. `1f5ba27`.
 
-## Next up (prioritized — what actually remains)
-1. **Recruitable units** (v0.5) — turn a beaten foe into a party member (a capture action +
-   mid-battle team switch + persistent roster addition).
-2. **Weapon shop / ownership** — like the Gear Shop, but weapons are class-locked and a unit
-   is never unarmed, so the dropdown gating + starting-weapon migration is fiddlier.
-3. **Job mastery** (v0.5) — master a class (learn all its skills) for a carried passive; note
-   it would touch the fragile stat pipeline (statsForUnit).
+## Next up — the CONTENT / NICHE / POLISH tail
+The reliably code-deliverable roadmap is essentially DONE (~30 features this session). What
+remains needs human design/art/writing judgment or is niche:
+1. **Content (v0.6)** — character PORTRAITS (pixel art — high blind-art risk), named-enemy/boss
+   intros (could extend the new dialogue system — agent-deliverable), more/optional maps
+   (balance + design risk). The dialogue SYSTEM ships; portraits + cutscene polish are next.
+2. **Niche mechanics** — weather/day-night (accuracy/affinity shifts), fog of war/vision,
+   large/multi-tile units & mounts, bravery/faith traits, weapon triangle (NB: weapons are
+   only physical/magical today — a triangle needs weapon TYPES first). Each is a design call.
+3. **Polish (v1.0)** — accessibility (colorblind palette, text scaling, input remap),
+   performance pass, enemy-curve rebalance, full replay.
 5. **Content** (v0.6) — in-engine dialogue/cutscenes, character portraits, named-enemy intros,
    optional skirmish maps. (Agent-authored map balance/art is the risk here.)
 6. **Niche / later** — escort objective (needs an NPC unit concept), fog of war, weather/

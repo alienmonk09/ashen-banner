@@ -107,11 +107,13 @@ Classic mechanics that change how a fight is played, not just its numbers.
 
 ## v0.5 — Roster, economy & meta ⏳
 
-- ⏳ **Recruitable / capturable units** — turn beaten foes or story NPCs into party members
+- ✅ **Recruitable units** — a player unit adjacent to an enemy at ≤25% HP can recruit it; it
+  flips sides and, if it survives, joins the party permanently (up to the roster cap)
 - 🚧 **Shop & economy** — ✅ gil drops from defeats; ✅ camp shop for consumables AND
   equipment (own-before-equip ownership gate); ✅ selling back (half price; unequips sold
   gear); ⏳ weapon shop
-- ⏳ **Job mastery** — master a class to unlock the next; passives carried across jobs
+- 🚧 **Job mastery** — ✅ master a class (learn all its skills) for a permanent +HP/+SPD passive
+  carried across every class; ⏳ unlock-the-next gating later
 - ✅ **Difficulty modes & AI personalities** — Easy/Normal/Hard (scale enemy levels at New
   Game); per-enemy AI archetypes (aggressive/defensive/support/balanced) biasing AI scoring
 - 💭 **Casualty / permadeath option** — Fire-Emblem-style classic mode
@@ -122,7 +124,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 
 Put the [story](STORY.md) on screen.
 
-- ⏳ In-engine dialogue / cutscene system; per-chapter story beats
+- 🚧 In-engine dialogue — ✅ a per-chapter story scene (JRPG text box, adapted from STORY.md)
+  plays before each battle; ⏳ richer cutscenes + named-enemy intros
 - ⏳ Character portraits and named-enemy intros
 - ✅ **Audio** — combat SFX (WebAudio code-synth: hit/crit/heal/magic/KO/select) + HUD mute
   toggle, plus soft code-synth music (battle/camp/victory themes) sharing the same engine

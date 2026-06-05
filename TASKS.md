@@ -14,8 +14,8 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **769 passing across 33 files**. Working tree: clean.
-- Last commit: `d1ed01a fix: branch-review findings (Counter/gil/save)`.
+- Build: clean. Tests: **786 passing across 34 files**. Working tree: clean.
+- Last commit: `380c5a7 feat(v0.5): AI personalities + 3 review fixes`.
 - Commits: v0.2+v0.3 base → Counter → Time Mage → objectives(rout/defeat/survive)
   → secondary job → **audio → equipment slots → terrain effects → Summoner →
   objective variety(seize/defend)**.
@@ -64,12 +64,13 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
   fixed `applyLoaded` dropping difficulty/gil on Continue.
 - Combat smoke-tested in-browser 3× (Cinder Fields defend → Victory 7/7, with music; no errors).
 - A consolidated Codex branch review (vs main) caught the above before merge.
+- **AI personalities** (v0.5) — per-enemy aggressive/defensive/support/balanced archetypes
+  bias AI scoring (pure personalityWeight); sim still converges. `380c5a7` (+3 review fixes).
 
 ## Next up (prioritized — all that remain are higher-risk or need a design decision)
-1. **Shop & economy** (v0.5) — START with gil drops (per enemy defeat, level-scaled) + a
-   CONSUMABLES-only camp shop (low risk, self-contained; equipment/weapons stay free for now).
-   A real equipment/weapon shop needs an OWNERSHIP gate (own-before-equip), which reworks the
-   equip dropdowns — do that as a follow-up.
+1. **Equipment/weapon shop** (v0.5) — the gil economy + CONSUMABLES shop already shipped
+   (`4188faa`). Selling gear needs an OWNERSHIP gate (own-before-equip) that reworks the camp
+   equip dropdowns (currently any gear is freely equippable) — decide that model first.
 2. **Cover-ally reaction** — intercept a hit for an adjacent ally. Needs: `ClassDef.reaction`
    → `reactions[]` refactor (so a tank can have counter + cover), an attack target-redirect at
    resolution (weapon + single-skill, player + AI paths), and ideally honest forecast.

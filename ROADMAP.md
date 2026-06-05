@@ -106,8 +106,8 @@ Classic mechanics that change how a fight is played, not just its numbers.
 - ⏳ **Recruitable / capturable units** — turn beaten foes or story NPCs into party members
 - ⏳ **Shop & economy** — gil drops, buy/sell weapons, armor, items between chapters
 - ⏳ **Job mastery** — master a class to unlock the next; passives carried across jobs
-- 🚧 **Difficulty modes & AI personalities** — ✅ Easy/Normal/Hard (scale enemy levels at
-  New Game); ⏳ AI personalities (aggressive/defensive/support archetypes)
+- ✅ **Difficulty modes & AI personalities** — Easy/Normal/Hard (scale enemy levels at New
+  Game); per-enemy AI archetypes (aggressive/defensive/support/balanced) biasing AI scoring
 - 💭 **Casualty / permadeath option** — Fire-Emblem-style classic mode
 - 💭 **Bravery / Faith / morale** — unit traits that scale reactions and magic
 - 💭 **Weapon/class triangle** — rock-paper-scissors matchups for readable counters

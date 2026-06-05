@@ -9,6 +9,8 @@ function resetState(state: GameState): void {
   state.party = createStartingParty();
   state.inventory = startingInventory();
   state.phaseIndex = 0;
+  state.difficulty = "normal";
+  state.gil = 0;
 }
 
 function applyLoaded(state: GameState, loaded: GameState): void {

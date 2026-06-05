@@ -56,6 +56,7 @@ export class PartySelectScene implements Scene {
     this.ctx.state.inventory = startingInventory();
     this.ctx.state.phaseIndex = 0;
     this.ctx.state.difficulty = this.difficulty;
+    this.ctx.state.gil = 0;
     clearSave();
     this.ctx.nav.toBattle(0);
   }

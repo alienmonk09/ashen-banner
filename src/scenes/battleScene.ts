@@ -527,8 +527,9 @@ export class BattleScene implements Scene {
     this.pushEffect(target.pos, vfxKeyForWeapon(weapon));
     this.pushPopup(res);
     this.awardForAction(this.active, { offensive: true, killed: res.killed });
+    this.awardGil(res.killed ? 1 : 0);
     // A surviving melee-struck defender may strike back.
-    this.tryCounter(target, this.active, weapon.range);
+    this.tryCounter(target, this.active);
     this.afterAction();
   }
 
@@ -541,8 +542,10 @@ export class BattleScene implements Scene {
   }
 
   /** Resolve a counterattack from `defender` against `attacker` (melee only). */
-  private tryCounter(defender: Unit, attacker: Unit, incomingWeaponRange: number): void {
-    if (incomingWeaponRange !== 1 || !defender.alive) return;
+  private tryCounter(defender: Unit, attacker: Unit): void {
+    // Counter provokes on an ADJACENT (melee) hit — basic attack OR melee skill,
+    // any weapon range — so a range-2 spear striking point-blank still gets hit back.
+    if (!defender.alive || manhattan(defender.pos, attacker.pos) !== 1) return;
     const w = getWeapon(defender.weaponId);
     defender.facing = directionTo(defender.pos, attacker.pos);
     const ctx: AttackContext = {
@@ -602,6 +605,13 @@ export class BattleScene implements Scene {
       const u = this.units.find((x) => x.id === r.unitId);
       if (u) this.pushEffect(u.pos, skillVfx);
     }
+    // A single-target melee skill provokes the surviving victim's Counter, like a
+    // basic attack (tryCounter self-gates on adjacency, so ranged casts don't).
+    if (isOffensive && skill.aoe === "single") {
+      const victim = this.units.find((u) => u.alive && u.team !== this.active!.team && samePoint(u.pos, center));
+      if (victim) this.tryCounter(victim, this.active);
+    }
+    this.awardGil(results.filter((r) => r.killed).length);
     // Apply knockback (single-target offensive skills only) before afterAction so
     // the new position is evaluated for terrain effects and objective checks.
     if (skill.effect === "damage" && skill.knockback) {
@@ -697,6 +707,11 @@ export class BattleScene implements Scene {
 
   // --- Progression ---
 
+  /** Add gil to the party treasury for enemies the player just defeated. */
+  private awardGil(kills: number): void {
+    if (kills > 0 && this.active?.team === "player") this.ctx.state.gil += kills * GIL_PER_KILL;
+  }
+
   private awardForAction(unit: Unit, opts: { offensive?: boolean; killed?: boolean; support?: boolean }): void {
     if (unit.team !== "player") return;
     let xp = opts.offensive ? 12 : opts.support ? 10 : 8;
@@ -704,7 +719,6 @@ export class BattleScene implements Scene {
     if (opts.killed) {
       xp += 20;
       jp += 12;
-      this.ctx.state.gil += GIL_PER_KILL;
     }
     const levels = grantXp(unit, xp);
     grantJp(unit, jp);
@@ -740,7 +754,7 @@ export class BattleScene implements Scene {
         this.pushEffect(target.pos, vfxKeyForWeapon(weapon));
         this.pushPopup(res);
         // The struck player unit may counter the attacker.
-        this.tryCounter(target, unit, weapon.range);
+        this.tryCounter(target, unit);
         // A surviving low-HP player unit may auto-consume a potion.
         this.tryAutoPotion(target);
       }
@@ -778,6 +792,11 @@ export class BattleScene implements Scene {
       if (cast) {
         unit.stats.mp = Math.max(0, unit.stats.mp - skill.mpCost);
         if (knockbackTarget) this.applyKnockback(skill, unit, knockbackTarget);
+      }
+      // An adjacent single-target melee skill lets the struck player unit counter.
+      if (isOffensive && skill.aoe === "single") {
+        const victim = this.units.find((u) => u.alive && u.team !== unit.team && samePoint(u.pos, center));
+        if (victim) this.tryCounter(victim, unit);
       }
     }
 

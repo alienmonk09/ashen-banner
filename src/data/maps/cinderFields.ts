@@ -1,4 +1,4 @@
-import type { MapDef } from "../../core/types";
+import type { MapDef, TerrainType } from "../../core/types";
 
 // Cinder Fields — a wide, open stretch of burned farmland after the bridge.
 // Larger terrain than the early maps: scattered low rises and rubble mounds
@@ -23,6 +23,33 @@ blocked[1][3] = true;
 blocked[1][9] = true;
 blocked[5][6] = true;
 
+// Default every tile to "dirt" (burned farmland feel), then mark a lava lane
+// cutting across the mid-field (rows 3–4, columns 1–3 and 9–11). These tiles are
+// all walkable — stepping on them costs HP at end of turn.
+const G: TerrainType = "dirt";
+const L: TerrainType = "lava";
+const terrain: TerrainType[][] = [
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, L, L, L, G, G, G, G, G, L, L, L, G],
+  [G, L, G, G, G, G, G, G, G, G, G, L, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G, G, G, G, G],
+];
+
+// Keep the blocked rubble mounds reading as rocky cover — without this they'd
+// inherit "dirt" from the grid above and lose the visual distinction the intro
+// leans on ("use the rubble for cover").
+const R: TerrainType = "rock";
+terrain[1][3] = R;
+terrain[1][9] = R;
+terrain[5][6] = R;
+
 export const cinderFields: MapDef = {
   id: "cinderFields",
   name: "The Cinder Fields",
@@ -32,6 +59,7 @@ export const cinderFields: MapDef = {
   height: 11,
   heights,
   blocked,
+  terrain,
   playerSpawns: [
     { x: 2, y: 10 },
     { x: 4, y: 10 },

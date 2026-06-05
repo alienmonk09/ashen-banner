@@ -1,6 +1,24 @@
-import type { MapDef } from "../../core/types";
+import type { MapDef, TerrainType } from "../../core/types";
 
 // Phase 3 — The Bridge. A river (blocked band) split by a single-tile bridge.
+// Two healing springs flank the south riverbank (row 5, columns 1 and 7).
+// They're natural seeps fed by the river — a brief respite for a unit
+// sheltering on the wings before crossing the bridge.
+const W: TerrainType = "water";
+const G: TerrainType = "grass";
+const S: TerrainType = "spring";
+const terrain: TerrainType[][] = [
+  [G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G],
+  [W, W, W, W, G, W, W, W, W], // river row (blocked tiles read as water)
+  [G, S, G, G, G, G, G, S, G], // spring seeps on south bank flanks
+  [G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G],
+  [G, G, G, G, G, G, G, G, G],
+];
+
 export const phase3: MapDef = {
   id: "phase3",
   name: "The Bridge",
@@ -19,6 +37,7 @@ export const phase3: MapDef = {
     [1, 1, 1, 1, 2, 1, 1, 1, 1],
     [1, 1, 2, 1, 1, 1, 2, 1, 1],
   ],
+  terrain,
   blocked: [
     [false, false, false, false, false, false, false, false, false],
     [false, false, false, false, false, false, false, false, false],

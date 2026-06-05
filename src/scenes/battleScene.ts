@@ -6,6 +6,7 @@ import { Grid, moveBlockers, samePoint } from "../battle/grid";
 import { pathTo, reachable } from "../battle/pathfinding";
 import { aoeTiles, tilesInRange } from "../battle/targeting";
 import {
+  applyTerrainEffect,
   isStopped,
   resolveCounterAttack,
   resolveItem,
@@ -239,6 +240,12 @@ export class BattleScene implements Scene {
     if (this.active) {
       // Damage/heal-over-time (Poison, Regen) resolve as the turn ends.
       for (const r of endTurn(this.active)) this.pushPopup(r);
+      // Terrain effect (lava damage, spring heal) fires after status ticks.
+      if (this.active.alive) {
+        const terr = this.grid.terrainAt(this.active.pos.x, this.active.pos.y);
+        const r = applyTerrainEffect(this.active, terr);
+        if (r) this.pushPopup(r);
+      }
     }
     this.active = null;
     this.phase = "resolving";

@@ -91,7 +91,7 @@ export type Element = "none" | "fire" | "ice" | "bolt" | "holy" | "nature";
 export type AoeShape = "single" | "cross" | "square3";
 
 /** Visual terrain kind for a tile (cosmetic + derives default walkability tint). */
-export type TerrainType = "grass" | "dirt" | "rock" | "sand" | "water" | "wood";
+export type TerrainType = "grass" | "dirt" | "rock" | "sand" | "water" | "wood" | "lava" | "spring";
 
 export type SkillEffect = "damage" | "heal" | "buff" | "debuff" | "revive";
 

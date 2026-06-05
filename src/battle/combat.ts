@@ -1,8 +1,9 @@
-import type { ActiveStatus, Element, ItemEffect, SkillDef, StatusKind, Unit, WeaponDef, WeaponKind } from "../core/types";
+import type { ActiveStatus, Element, ItemEffect, SkillDef, StatusKind, TerrainType, Unit, WeaponDef, WeaponKind } from "../core/types";
 import { RNG } from "../core/rng";
 import { attackAngle, type AttackAngle } from "./facing";
 import { getRace } from "../data/races";
 import { getClass } from "../data/classes";
+import { terrainEffect } from "../data/terrain";
 
 export type HitKind = "damage" | "heal" | "mp" | "revive" | "status";
 
@@ -301,6 +302,29 @@ export function resolveSkillOnTarget(
       addStatus(target, { kind: skill.statusKind, turnsLeft: skill.statusDuration ?? 3 });
       return { unitId: target.id, kind: "status", amount: 0, crit: false, killed: false, revived: false, status: skill.statusKind };
     }
+  }
+}
+
+/**
+ * Apply the terrain's per-turn HP effect (lava damage, spring heal) to a unit
+ * that just ended its turn on that tile. Returns null if no effect applies
+ * (terrain is neutral, unit is dead, or healer is already at full HP).
+ * Called after tickStatuses so status ticks happen first.
+ */
+export function applyTerrainEffect(unit: Unit, terrain: TerrainType): HitResult | null {
+  if (!unit.alive) return null;
+  const eff = terrainEffect(terrain);
+  if (!eff) return null;
+  if (eff.kind === "damage") {
+    const dmg = Math.max(1, Math.round(unit.stats.maxHp * eff.fracMaxHp));
+    const { killed } = dealDamage(unit, dmg);
+    return { unitId: unit.id, kind: "damage", amount: dmg, crit: false, killed, revived: false };
+  } else {
+    // heal
+    if (unit.stats.hp >= unit.stats.maxHp) return null;
+    const before = unit.stats.hp;
+    healHp(unit, Math.max(1, Math.round(unit.stats.maxHp * eff.fracMaxHp)));
+    return { unitId: unit.id, kind: "heal", amount: unit.stats.hp - before, crit: false, killed: false, revived: false };
   }
 }
 

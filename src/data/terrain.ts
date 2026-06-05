@@ -20,6 +20,8 @@ export const TERRAIN: Record<TerrainType, TerrainStyle> = {
   sand: { h: 46, s: 44, l: 60 },
   water: { h: 205, s: 55, l: 40 },
   wood: { h: 28, s: 42, l: 36 },
+  lava: { h: 14, s: 85, l: 46 },
+  spring: { h: 168, s: 58, l: 52 },
 };
 
 /**
@@ -34,4 +36,15 @@ export function defaultTerrain(blocked: boolean, height: number): TerrainType {
   if (height >= 2) return "rock";
   if (height === 1) return "dirt";
   return "grass";
+}
+
+/**
+ * Per-turn HP effect a unit suffers when it ends its turn on this terrain.
+ * Returns null for terrain types with no hazard/benefit (the common case).
+ * `fracMaxHp` is the fraction of the unit's maxHp used to compute the delta.
+ */
+export function terrainEffect(t: TerrainType): { kind: "damage" | "heal"; fracMaxHp: number } | null {
+  if (t === "lava") return { kind: "damage", fracMaxHp: 0.15 };
+  if (t === "spring") return { kind: "heal", fracMaxHp: 0.12 };
+  return null;
 }

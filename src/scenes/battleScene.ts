@@ -26,7 +26,7 @@ import { planEnemyTurn } from "../battle/ai";
 import { forecastSkill, forecastWeapon } from "../battle/forecast";
 import { screenToTile, worldToScreen, rotateTile, type Rotation, type ScreenPoint } from "../engine/iso";
 import { sfx } from "../engine/audio";
-import { startMusic, stopMusic } from "../engine/music";
+import { startMusic, stopMusic, battleThemeForPhase } from "../engine/music";
 import { actionForKey, getBinding } from "../engine/keybindings";
 import type { ActiveEffect, BattleView, FloatingText, ForecastTag, OverlaySet } from "../engine/renderer";
 import { getWeapon } from "../data/weapons";
@@ -198,7 +198,7 @@ export class BattleScene implements Scene {
       buttonLabel: "Begin Battle",
       onClick: () => {
         this.ui.hideBanner();
-        startMusic("battle");
+        startMusic(battleThemeForPhase(this.phaseIndex));
         this.beginNextTurn();
       },
     });

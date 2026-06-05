@@ -112,12 +112,16 @@ function midiToHz(midi: number): number {
 }
 
 // MIDI note numbers for common pitches used in the themes.
-// A minor / C major — all consonant, no tritones.
+// A minor / C major / D minor family — all consonant, no tritones.
 const N = {
   A3: 57, C4: 60, E4: 64, G4: 67,
   A4: 69, C5: 72, E5: 76, G5: 79,
   D4: 62, F4: 65, B3: 59, B4: 71,
   F3: 53, D5: 74,
+  // Extra lows for THEME_BATTLE_DARK
+  D3: 50, F2: 41, A2: 45, C3: 48, E3: 52, G3: 55,
+  // For THEME_BATTLE_DRIVING
+  G2: 43,
 };
 
 /** Theme: "battle" — slow, slightly tense Am pad. 8 beats @ 44 BPM ≈ 10.9 s. */
@@ -134,6 +138,49 @@ export const THEME_BATTLE: ThemeDef = {
     { notes: [midiToHz(N.F3), midiToHz(N.C4), midiToHz(N.A4)], durBeats: 2 },
     // Em (v) — leads back to Am
     { notes: [midiToHz(N.E4), midiToHz(N.B3), midiToHz(N.G4)], durBeats: 2 },
+  ],
+};
+
+/**
+ * Theme: "battle_driving" — open-field mid-chapter battles.
+ * A touch more momentum: shorter beats, D-minor → F → C → Am cycle.
+ * 8 beats @ 52 BPM ≈ 9.2 s, looping.
+ */
+export const THEME_BATTLE_DRIVING: ThemeDef = {
+  id: "battle_driving",
+  bpm: 52,
+  loop: true,
+  groups: [
+    // Dm (i of D minor — open, slightly forward-leaning)
+    { notes: [midiToHz(N.D3), midiToHz(N.A3), midiToHz(N.D4)], durBeats: 2 },
+    // F (III — bright lift)
+    { notes: [midiToHz(N.F3), midiToHz(N.C4), midiToHz(N.F4)], durBeats: 2 },
+    // C (VII — momentum, consonant resolution)
+    { notes: [midiToHz(N.C3), midiToHz(N.G3), midiToHz(N.E4)], durBeats: 2 },
+    // Am (v — ties back to Dm via relative minor)
+    { notes: [midiToHz(N.A2), midiToHz(N.E3), midiToHz(N.A3)], durBeats: 2 },
+  ],
+};
+
+/**
+ * Theme: "battle_dark" — late / finale chapters (Outer Ramparts, Maldrath's keep).
+ * Lower register, slower, Dm → Bb → C → Dm — heavier and more foreboding,
+ * but still fully consonant and soft.
+ * 10 beats @ 38 BPM ≈ 15.8 s, looping.
+ */
+export const THEME_BATTLE_DARK: ThemeDef = {
+  id: "battle_dark",
+  bpm: 38,
+  loop: true,
+  groups: [
+    // Dm low (tonic — heavy, settled)
+    { notes: [midiToHz(N.D3), midiToHz(N.F3), midiToHz(N.A3)], durBeats: 3 },
+    // Bb (bVI — warm darkness)
+    { notes: [midiToHz(N.A2), midiToHz(N.D3), midiToHz(N.F3)], durBeats: 2 },
+    // C (bVII — tension without tritone)
+    { notes: [midiToHz(N.C3), midiToHz(N.E3), midiToHz(N.G3)], durBeats: 3 },
+    // Dm resolve (back to tonic)
+    { notes: [midiToHz(N.D3), midiToHz(N.A3), midiToHz(N.D4)], durBeats: 2 },
   ],
 };
 
@@ -173,11 +220,36 @@ export const THEME_VICTORY: ThemeDef = {
 
 const THEMES: Record<string, ThemeDef> = {
   battle: THEME_BATTLE,
+  battle_driving: THEME_BATTLE_DRIVING,
+  battle_dark: THEME_BATTLE_DARK,
   camp: THEME_CAMP,
   victory: THEME_VICTORY,
 };
 
-export type ThemeId = "battle" | "camp" | "victory";
+export type ThemeId = "battle" | "battle_driving" | "battle_dark" | "camp" | "victory";
+
+// ---------------------------------------------------------------------------
+// Chapter → battle theme resolver
+// ---------------------------------------------------------------------------
+
+/**
+ * Return the appropriate battle theme for a given phase index (0-based).
+ * Pure function — deterministic, no side effects.
+ *
+ * Phase order (from PHASES in src/data/maps/index.ts):
+ *   0 — phase1        (early skirmish)
+ *   1 — phase2        (early skirmish)
+ *   2 — phase3        (early skirmish)
+ *   3 — cinderFields  (open-field, high-stakes mid-campaign)
+ *   4 — phase4        (mid-campaign)
+ *   5 — outerRamparts (late — siege approach)
+ *   6 — phase5        (finale — Maldrath's keep)
+ */
+export function battleThemeForPhase(phaseIndex: number): ThemeId {
+  if (phaseIndex === 3) return "battle_driving";    // Cinder Fields — open, momentum
+  if (phaseIndex >= 5) return "battle_dark";        // Outer Ramparts + finale — dark/heavy
+  return "battle";                                  // phases 0–2, 4 (and any out-of-range default)
+}
 
 // ---------------------------------------------------------------------------
 // Module-level state

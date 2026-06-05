@@ -15,7 +15,7 @@ import {
   MASTERY_HP_BONUS,
   MASTERY_SPD_BONUS,
 } from "../core/unit";
-import { saveGame, buyItem, buyEquipment, ownsEquipment, sellItem, sellEquipment, ownsWeapon, buyWeapon, sellWeapon } from "../core/state";
+import { saveGame, buyItem, buyEquipment, ownsEquipment, sellItem, sellEquipment, ownsWeapon, buyWeapon, sellWeapon, partyAverageLevel } from "../core/state";
 import { PHASES } from "../data/maps";
 import {
   partyCapForPhase,
@@ -128,11 +128,10 @@ export class PartyScene implements Scene {
     return row;
   }
 
-  /** Average party level (floored at 3) — new recruits join at this level. */
+  /** New recruits join at the party's average level — the shared-XP flow keeps
+   *  the whole party uniform, so a recruit lands right on the team's curve. */
   private recruitLevel(): number {
-    const party = this.ctx.state.party;
-    if (party.length === 0) return 3;
-    return Math.max(3, Math.round(party.reduce((s, u) => s + u.level, 0) / party.length));
+    return partyAverageLevel(this.ctx.state.party);
   }
 
   private recruit(hero: HeroDef): void {

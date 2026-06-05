@@ -88,7 +88,8 @@ export function recruitableHeroes(party: Unit[]): HeroDef[] {
   return ROSTER.filter((h) => !have.has(h.id));
 }
 
-/** Build a reinforcement at the given level (floored at 3) to join the party. */
+/** Build a reinforcement at the given level (the party average, floored at 1 to
+ *  match the level-1 start) to join the party. */
 export function recruitHero(hero: HeroDef, level: number): Unit {
-  return buildHero(hero, Math.max(3, Math.round(level)));
+  return buildHero(hero, Math.max(1, Math.round(level)));
 }

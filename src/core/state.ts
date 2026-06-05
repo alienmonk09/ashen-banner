@@ -240,11 +240,13 @@ export function partyAverageLevel(party: { level: number }[]): number {
   return Math.max(1, Math.round(party.reduce((s, u) => s + u.level, 0) / party.length));
 }
 
-/** A map enemy's tier offset (0 = weakest), clamped to a tight band so the
- *  toughest foe sits only one tier above the grunts — i.e. at the party's level
- *  on Normal (grunts a level below). Keeps enemies reliably "slightly weaker". */
+/** A map enemy's tier offset (0 = weakest grunt). Derived from the authored
+ *  level spread so each map keeps its grunt→elite→boss hierarchy, clamped to +3
+ *  so a finale boss can still tower ~2 levels over the party on Normal while the
+ *  bulk (at/near the map's min level) stay a notch below it. The party is never
+ *  under-levelled now, so a spiking boss is a fair challenge, not a wall. */
 export function enemyTierOffset(authoredLevel: number, mapMinLevel: number): number {
-  return Math.min(1, Math.max(0, authoredLevel - mapMinLevel));
+  return Math.min(3, Math.max(0, authoredLevel - mapMinLevel));
 }
 
 /**

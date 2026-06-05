@@ -70,11 +70,11 @@ export const cinderFields: MapDef = {
     { x: 6, y: 9 },
   ],
   enemies: [
-    { name: "Cinder Marauder", classId: "knight", level: 7, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 1 }, personality: "aggressive", raceId: "orc" },
+    { name: "Cinder Marauder", classId: "knight", level: 6, weaponId: "greatsword", skillIds: ["powerStrike", "guard"], pos: { x: 4, y: 1 }, personality: "aggressive", raceId: "orc" },
     { name: "Ash Archer", classId: "archer", level: 7, weaponId: "longbow", skillIds: ["aimedShot", "cripple"], pos: { x: 10, y: 1 }, raceId: "halfling" },
     { name: "Scorch Mage", classId: "blackMage", level: 7, weaponId: "rod", skillIds: ["fire", "poison"], pos: { x: 6, y: 0 }, raceId: "elf" },
     { name: "Field Cleric", classId: "whiteMage", level: 6, weaponId: "staff", skillIds: ["cure", "protect"], pos: { x: 2, y: 2 }, personality: "support", raceId: "human" },
     { name: "Cinder Stalker", classId: "ninja", level: 7, weaponId: "katana", skillIds: ["shadowStrike", "throwFlame"], pos: { x: 10, y: 2 }, personality: "aggressive", raceId: "sylph" },
-    { name: "Brigand Lieutenant", classId: "thief", level: 7, weaponId: "dagger", skillIds: ["backstab", "hamstring"], pos: { x: 6, y: 2 }, raceId: "halfling" },
+    { name: "Brigand Lieutenant", classId: "thief", level: 6, weaponId: "dagger", skillIds: ["backstab", "hamstring"], pos: { x: 6, y: 2 }, raceId: "halfling" },
   ],
 };

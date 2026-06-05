@@ -48,7 +48,7 @@ describe("hero roster", () => {
     for (const r of recruits) expect(partyIds.has(r.id)).toBe(false);
   });
 
-  it("recruits a reinforcement at the requested level (floored at 3) with the right identity", () => {
+  it("recruits a reinforcement at the requested level (floored at 1) with the right identity", () => {
     const enzo = getHero("enzo")!;
     const unit = recruitHero(enzo, 6);
     expect(unit.id).toBe("enzo");
@@ -56,8 +56,8 @@ describe("hero roster", () => {
     expect(unit.level).toBe(6);
     expect(unit.team).toBe("player");
     expect(unit.learnedSkillIds.length).toBeGreaterThanOrEqual(1);
-    // Floors at level 3 even if asked for less.
-    expect(recruitHero(enzo, 1).level).toBe(3);
+    // Joins at the party average (floored at 1 to match the level-1 start).
+    expect(recruitHero(enzo, 1).level).toBe(1);
   });
 
   it("includes Enzo the Thief and Penelope the Druid", () => {

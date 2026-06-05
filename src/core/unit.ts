@@ -12,9 +12,9 @@ export function nextUnitId(prefix = "u"): string {
 
 /**
  * XP needed to reach the next level. Front-loaded: early levels are cheap (50 to
- * hit L2) so a fresh level-1 party climbs fast toward the unchanged enemy curve,
- * then the +30/level slope gradually slows things down. Pairs with the battle
- * `xpLevelMult`, which pays a premium for fighting higher-level foes.
+ * hit L2) so a fresh level-1 party climbs fast, then the +30/level slope gradually
+ * slows things down. Battle XP is pooled and split evenly across the party at
+ * victory (see BattleScene.distributeBattleXp), not earned per-action.
  */
 export function xpForLevel(level: number): number {
   return 50 + (level - 1) * 30;

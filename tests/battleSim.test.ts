@@ -30,6 +30,10 @@ function buildUnits(mapIndex: number): { grid: Grid; units: Unit[] } {
     u.ct = 0;
     units.push(u);
   });
+  // Uses each map's AUTHORED enemy levels (not the party-relative production
+  // scaling) on purpose: this sim proves the battle loop terminates without
+  // crashing/stalemating across every map. Production balance (enemies scaled
+  // to the party) is covered by tests/balanceScaling.test.ts.
   for (const e of map.enemies) {
     units.push(
       createUnit({

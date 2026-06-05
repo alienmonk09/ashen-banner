@@ -11,6 +11,7 @@ function resetState(state: GameState): void {
   state.phaseIndex = 0;
   state.difficulty = "normal";
   state.gil = 0;
+  state.ownedEquipment = [];
 }
 
 function applyLoaded(state: GameState, loaded: GameState): void {
@@ -19,6 +20,7 @@ function applyLoaded(state: GameState, loaded: GameState): void {
   state.phaseIndex = loaded.phaseIndex;
   state.difficulty = loaded.difficulty;
   state.gil = loaded.gil;
+  state.ownedEquipment = loaded.ownedEquipment;
 }
 
 /** A simple full-screen menu built from a banner card. */

@@ -2,7 +2,7 @@ import type { ClassId, EquipSlot, Unit } from "../core/types";
 import { CLASSES, getClass } from "../data/classes";
 import { getRace } from "../data/races";
 import { getWeapon } from "../data/weapons";
-import { equipmentForSlot } from "../data/equipment";
+import { equipmentForSlot, EQUIPMENT } from "../data/equipment";
 import { getSkill } from "../data/skills";
 import {
   statsForLevel,
@@ -12,7 +12,7 @@ import {
   learnSkillForClass,
   xpForLevel,
 } from "../core/unit";
-import { saveGame, buyItem } from "../core/state";
+import { saveGame, buyItem, buyEquipment, ownsEquipment } from "../core/state";
 import { PHASES } from "../data/maps";
 import {
   partyCapForPhase,
@@ -214,7 +214,7 @@ export class PartyScene implements Scene {
     wSel.addEventListener("change", () => this.equip(unit, wSel.value));
     card.appendChild(wSel);
 
-    // Armor slot.
+    // Armor slot — only list owned pieces (plus the currently-equipped one as a safe guard).
     card.appendChild(
       el("label", {
         className: "wlabel",
@@ -223,7 +223,9 @@ export class PartyScene implements Scene {
     );
     const armorSel = el("select");
     armorSel.appendChild(el("option", { text: "— none —", attrs: { value: "" } }));
-    for (const a of equipmentForSlot("armor")) {
+    for (const a of equipmentForSlot("armor").filter(
+      (e) => ownsEquipment(this.ctx.state, e.id) || e.id === unit.armorId,
+    )) {
       const modHint = Object.entries(a.mod)
         .map(([k, v]) => `${(v as number) >= 0 ? "+" : ""}${v as number} ${k.toUpperCase()}`)
         .join(", ");
@@ -234,7 +236,7 @@ export class PartyScene implements Scene {
     armorSel.addEventListener("change", () => this.equipItem(unit, "armor", armorSel.value || null));
     card.appendChild(armorSel);
 
-    // Accessory slot.
+    // Accessory slot — only list owned pieces (plus the currently-equipped one as a safe guard).
     card.appendChild(
       el("label", {
         className: "wlabel",
@@ -243,7 +245,9 @@ export class PartyScene implements Scene {
     );
     const accSel = el("select");
     accSel.appendChild(el("option", { text: "— none —", attrs: { value: "" } }));
-    for (const acc of equipmentForSlot("accessory")) {
+    for (const acc of equipmentForSlot("accessory").filter(
+      (e) => ownsEquipment(this.ctx.state, e.id) || e.id === unit.accessoryId,
+    )) {
       const modHint = Object.entries(acc.mod)
         .map(([k, v]) => `${(v as number) >= 0 ? "+" : ""}${v as number} ${k.toUpperCase()}`)
         .join(", ");
@@ -362,6 +366,62 @@ export class PartyScene implements Scene {
       shopGrid.appendChild(row);
     }
     screen.appendChild(shopGrid);
+
+    // Gear shop section.
+    screen.appendChild(el("div", { className: "section-title", text: "Gear Shop" }));
+    screen.appendChild(
+      el("div", { className: "inv-line", attrs: { style: "margin-bottom:10px" }, text: "Buy equipment once — any unit can equip it." }),
+    );
+    const gearGrid = el("div", { className: "shop-grid" });
+    for (const equip of Object.values(EQUIPMENT)) {
+      const owned = ownsEquipment(this.ctx.state, equip.id);
+      const canAfford = this.ctx.state.gil >= equip.price;
+      const modHint = Object.entries(equip.mod)
+        .map(([k, v]) => `${(v as number) >= 0 ? "+" : ""}${v as number} ${k.toUpperCase()}`)
+        .join(", ");
+      const row = el("div", { className: "shop-row" });
+      row.appendChild(
+        el("div", {
+          className: "shop-item-info",
+          children: [
+            el("span", {
+              className: "shop-item-name",
+              text: `${equip.name} (${equip.slot === "armor" ? "Armor" : "Accessory"})`,
+            }),
+            el("span", { className: "shop-item-desc", text: `${modHint} — ${equip.description}` }),
+          ],
+        }),
+      );
+      row.appendChild(
+        el("div", {
+          className: "shop-item-meta",
+          children: [
+            el("span", { className: "shop-item-price", text: `${equip.price} gil` }),
+            el("span", {
+              className: "shop-item-owned",
+              text: owned ? "owned" : "",
+              attrs: owned ? { style: "color:#5fbf72;font-size:12px" } : {},
+            }),
+            owned
+              ? el("span", { className: "shop-item-owned", text: "—" })
+              : el("button", {
+                  className: "btn small",
+                  text: "Buy",
+                  attrs: canAfford ? {} : { disabled: "true" },
+                  onClick: canAfford
+                    ? () => {
+                        buyEquipment(this.ctx.state, equip.id);
+                        saveGame(this.ctx.state);
+                        this.render();
+                      }
+                    : undefined,
+                }),
+          ],
+        }),
+      );
+      gearGrid.appendChild(row);
+    }
+    screen.appendChild(gearGrid);
 
     const footer = el("div", { className: "party-footer" });
     footer.appendChild(

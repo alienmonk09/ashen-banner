@@ -131,6 +131,8 @@ export interface EquipmentDef {
   slot: EquipSlot;
   description: string;
   mod: EquipMod;
+  /** Gil cost to purchase from the gear shop. */
+  price: number;
 }
 
 export type WeaponKind = "physical" | "magical";

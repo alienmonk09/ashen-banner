@@ -4,7 +4,7 @@ import { startingInventory, getItem } from "../data/items";
 import { CLASSES } from "../data/classes";
 import { RACES } from "../data/races";
 import { WEAPONS } from "../data/weapons";
-import { EQUIPMENT } from "../data/equipment";
+import { EQUIPMENT, getEquipment } from "../data/equipment";
 
 export interface GameState {
   /** Persistent player units carried across phases. */
@@ -17,6 +17,8 @@ export interface GameState {
   difficulty: Difficulty;
   /** Party treasury in gil. Earned by defeating enemies. */
   gil: number;
+  /** Equipment pieces the party has purchased; only owned gear may be equipped. */
+  ownedEquipment: string[];
 }
 
 export function createGameState(): GameState {
@@ -26,6 +28,7 @@ export function createGameState(): GameState {
     phaseIndex: 0,
     difficulty: "normal",
     gil: 0,
+    ownedEquipment: [],
   };
 }
 
@@ -47,6 +50,33 @@ export function buyItem(state: GameState, itemId: string): boolean {
   if (state.gil < item.price) return false;
   state.gil -= item.price;
   state.inventory[itemId] = (state.inventory[itemId] ?? 0) + 1;
+  return true;
+}
+
+/**
+ * Check whether the party owns a particular equipment piece.
+ */
+export function ownsEquipment(state: GameState, id: string): boolean {
+  return state.ownedEquipment.includes(id);
+}
+
+/**
+ * Attempt to purchase an equipment piece from the gear shop.
+ * Deducts the item's price from `state.gil` and adds its id to `ownedEquipment`.
+ * Returns true on success; false if the equipment is unknown, already owned,
+ * or gil is insufficient (no mutation occurs on false).
+ */
+export function buyEquipment(state: GameState, id: string): boolean {
+  let equipment;
+  try {
+    equipment = getEquipment(id);
+  } catch {
+    return false;
+  }
+  if (ownsEquipment(state, id)) return false;
+  if (state.gil < equipment.price) return false;
+  state.gil -= equipment.price;
+  state.ownedEquipment.push(id);
   return true;
 }
 
@@ -112,6 +142,16 @@ export function loadGame(): GameState | null {
     // Back-compat: old saves lack `gil`; normalise any missing/invalid value.
     if (typeof parsed.gil !== "number" || !isFinite(parsed.gil) || parsed.gil < 0) {
       parsed.gil = 0;
+    }
+    // Back-compat: old saves lack `ownedEquipment`; normalise to [].
+    if (!Array.isArray(parsed.ownedEquipment)) {
+      parsed.ownedEquipment = [] as string[];
+    }
+    // Migration: any gear a unit already has equipped should be in ownedEquipment.
+    const owned = parsed.ownedEquipment as string[];
+    for (const u of parsed.party as Unit[]) {
+      if (u.armorId && !owned.includes(u.armorId)) owned.push(u.armorId);
+      if (u.accessoryId && !owned.includes(u.accessoryId)) owned.push(u.accessoryId);
     }
     return parsed;
   } catch {

@@ -505,6 +505,10 @@ export class BattleScene implements Scene {
     if (path.length > 1) this.active.facing = directionTo(path[path.length - 2], path[path.length - 1]);
     this.active.pos = { ...tile };
     this.hasMoved = true;
+    // A move alone can satisfy a position objective (e.g. seize the marked tile),
+    // so end the battle at once rather than waiting for a follow-up action.
+    const winner = this.outcome();
+    if (winner) return this.endBattle(winner);
     this.refreshMenu();
   }
 

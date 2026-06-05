@@ -169,6 +169,7 @@ const CSS = `
 .rotate-ctl { right: 14px; top: 12px; display: flex; gap: 6px; align-items: center; padding: 6px 8px; }
 .rotate-ctl .rbtn { width: 32px; height: 32px; padding: 0; font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; }
 .rotate-ctl .rlabel { font-size: 12px; opacity: 0.75; min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; }
+.rotate-ctl .audio-btn { margin-left: 4px; border-color: rgba(210,220,240,0.45); }
 
 /* Party / intermission screen */
 .party-screen { inset: 0; background: rgba(8,10,18,0.96); overflow-y: auto; padding: 24px; }

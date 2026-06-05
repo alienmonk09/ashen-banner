@@ -20,6 +20,7 @@ import { advanceToNextActor, endTurn, evaluateOutcome, previewOrder } from "../b
 import { planEnemyTurn } from "../battle/ai";
 import { forecastSkill, forecastWeapon } from "../battle/forecast";
 import { screenToTile, worldToScreen, rotateTile, type Rotation, type ScreenPoint } from "../engine/iso";
+import { sfx } from "../engine/audio";
 import type { ActiveEffect, BattleView, FloatingText, ForecastTag, OverlaySet } from "../engine/renderer";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
@@ -285,6 +286,7 @@ export class BattleScene implements Scene {
 
   private refreshMenu(): void {
     if (!this.active) return;
+    sfx.playSelect();
     this.phase = "menu";
     this.selectedSkill = null;
     this.selectedItemId = null;
@@ -686,6 +688,9 @@ export class BattleScene implements Scene {
   private pushEffect(tile: Point, vfxKey: string): void {
     const anim = getVfx(vfxKey);
     if (!anim) return;
+    if (vfxKey !== "physical" && vfxKey !== "heal" && vfxKey !== "revive" && vfxKey !== "status") {
+      sfx.playMagic();
+    }
     this.effects.push({ tile: { ...tile }, anim, age: 0 });
   }
 
@@ -705,10 +710,13 @@ export class BattleScene implements Scene {
     let color: string;
     switch (res.kind) {
       case "damage":
+        if (res.crit) sfx.playCrit();
+        else sfx.playHit();
         text = res.crit ? `${res.amount}!` : `${res.amount}`;
         color = res.crit ? POPUP_COLORS.crit : POPUP_COLORS.damage;
         break;
       case "heal":
+        sfx.playHeal();
         text = `+${res.amount}`;
         color = POPUP_COLORS.heal;
         break;
@@ -725,6 +733,7 @@ export class BattleScene implements Scene {
         color = POPUP_COLORS.status;
         break;
     }
+    if (res.killed) sfx.playKO();
     this.popups.push({ tile: { ...target.pos }, text, color, age: 0, ttl: 1.1 });
   }
 

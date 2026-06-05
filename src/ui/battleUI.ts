@@ -3,6 +3,7 @@ import { getClass } from "../data/classes";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
 import { getCharacterSprite, getItemSprite, getSkillSprite, getWeaponSprite } from "../data/sprites";
+import { isMuted, toggleMuted } from "../engine/audio";
 import { el, clear } from "./dom";
 import { iconImg, portraitImg } from "./icons";
 
@@ -174,6 +175,7 @@ export class BattleUI {
   /** Show the always-on rotate-camera control (two buttons + a facing label). */
   showRotateControl(onLeft: () => void, onRight: () => void): void {
     clear(this.rotateCtl);
+    const muteBtn = this.audioButton();
     this.rotateCtl.appendChild(
       el("button", { className: "btn small rbtn", text: "⟲", attrs: { title: "Rotate view left (,)" }, onClick: onLeft }),
     );
@@ -181,7 +183,22 @@ export class BattleUI {
     this.rotateCtl.appendChild(
       el("button", { className: "btn small rbtn", text: "⟳", attrs: { title: "Rotate view right (.)" }, onClick: onRight }),
     );
+    this.rotateCtl.appendChild(muteBtn);
     this.rotateCtl.style.display = "flex";
+  }
+
+  private audioButton(): HTMLButtonElement {
+    const btn = el("button", { className: "btn small rbtn audio-btn", attrs: { title: "Toggle combat sound" } });
+    const sync = () => {
+      btn.textContent = isMuted() ? "🔇" : "🔊";
+      btn.setAttribute("aria-label", isMuted() ? "Unmute combat sound" : "Mute combat sound");
+    };
+    btn.addEventListener("click", () => {
+      toggleMuted();
+      sync();
+    });
+    sync();
+    return btn;
   }
 
   hideRotateControl(): void {

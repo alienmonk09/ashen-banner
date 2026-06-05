@@ -131,8 +131,9 @@ Put the [story](STORY.md) on screen.
 
 - 💭 New Game+ / post-campaign content & unlockables
 - 💭 Accessibility pass (color-blind palettes, input remap, text scaling)
-- 💭 Settings/options menu, multiple save slots, undo-move
-- 💭 Replay / battle log
+- ✅ Three save slots (per-slot Continue on the title; old saves load as slot 1) and
+  ✅ undo-move (take back a move before acting); 💭 settings/options menu still to come
+- ✅ Battle log (a scrolling record of turns + every hit/heal/KO/status); 💭 full replay later
 - 💭 Performance pass for large maps & big rosters
 - 💭 Rebalanced enemy curves across difficulties
 

@@ -69,7 +69,7 @@ describe("hero roster", () => {
 });
 
 describe("createParty", () => {
-  it("builds a level-3 unit per hero, with the first class skill and banked SP", () => {
+  it("builds a level-1 unit per hero, with the first class skill and banked SP", () => {
     const party = createParty(["enzo", "penelope"]);
     expect(party).toHaveLength(2);
     const enzo = party[0];
@@ -77,7 +77,7 @@ describe("createParty", () => {
     expect(enzo.classId).toBe("thief");
     expect(enzo.raceId).toBe("halfling");
     expect(enzo.team).toBe("player");
-    expect(enzo.level).toBe(3);
+    expect(enzo.level).toBe(1);
     expect(enzo.sp).toBe(100);
     expect(enzo.learnedSkillIds).toEqual([getClass("thief").skillIds[0]]);
     expect(enzo.alive).toBe(true);
@@ -101,7 +101,7 @@ describe("createStartingParty", () => {
     expect(party).toHaveLength(PARTY_SIZE);
     for (const u of party) {
       expect(u.team).toBe("player");
-      expect(u.level).toBe(3);
+      expect(u.level).toBe(1);
       expect(RACES[u.raceId]).toBeDefined();
     }
   });

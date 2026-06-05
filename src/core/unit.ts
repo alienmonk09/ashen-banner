@@ -16,7 +16,7 @@ export function nextUnitId(prefix = "u"): string {
  * front-loading early levels and then letting the party outpace the campaign.
  */
 export function xpForLevel(level: number): number {
-  return 100 + (level - 1) * 45;
+  return 50 + (level - 1) * 30;
 }
 
 /**

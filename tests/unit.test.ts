@@ -53,14 +53,14 @@ describe("secondary-job skill learning", () => {
 });
 
 describe("xpForLevel", () => {
-  it("returns 100 at level 1", () => {
-    expect(xpForLevel(1)).toBe(100);
+  it("returns 50 at level 1", () => {
+    expect(xpForLevel(1)).toBe(50);
   });
 
-  it("grows by 45 per level", () => {
-    expect(xpForLevel(2)).toBe(145);
-    expect(xpForLevel(3)).toBe(190);
-    expect(xpForLevel(10)).toBe(100 + 9 * 45);
+  it("grows by 30 per level", () => {
+    expect(xpForLevel(2)).toBe(80);
+    expect(xpForLevel(3)).toBe(110);
+    expect(xpForLevel(10)).toBe(50 + 9 * 30);
   });
 
   it("is strictly increasing across levels", () => {
@@ -276,24 +276,24 @@ describe("grantXp", () => {
 
   it("accumulates xp without leveling when below threshold", () => {
     const u = freshKnight();
-    const gained = grantXp(u, 50);
+    const gained = grantXp(u, 40); // threshold at lv1 is 50
     expect(gained).toBe(0);
     expect(u.level).toBe(1);
-    expect(u.xp).toBe(50);
+    expect(u.xp).toBe(40);
   });
 
   it("levels up exactly once at the threshold and carries remainder", () => {
     const u = freshKnight();
-    const gained = grantXp(u, 120); // threshold at lv1 is 100
+    const gained = grantXp(u, 60); // threshold at lv1 is 50
     expect(gained).toBe(1);
     expect(u.level).toBe(2);
-    expect(u.xp).toBe(20); // 120 - 100
+    expect(u.xp).toBe(10); // 60 - 50
   });
 
   it("returns the number of levels gained", () => {
     const u = freshKnight();
-    // lv1 needs 100, lv2 needs 145 -> 245 total reaches level 3 exactly
-    const gained = grantXp(u, 245);
+    // lv1 needs 50, lv2 needs 80 -> 130 total reaches level 3 exactly
+    const gained = grantXp(u, 130);
     expect(gained).toBe(2);
     expect(u.level).toBe(3);
     expect(u.xp).toBe(0);
@@ -301,11 +301,11 @@ describe("grantXp", () => {
 
   it("handles multiple level-ups in a single grant", () => {
     const u = freshKnight();
-    // 100 + 145 + 190 = 435 to reach level 4
-    const gained = grantXp(u, 500);
+    // 50 + 80 + 110 = 240 to reach level 4
+    const gained = grantXp(u, 300);
     expect(gained).toBe(3);
     expect(u.level).toBe(4);
-    expect(u.xp).toBe(65); // 500 - 435
+    expect(u.xp).toBe(60); // 300 - 240
   });
 
   it("raises max stats on level up", () => {

@@ -125,7 +125,7 @@ describe("resolveAutoPotion", () => {
     expect(inventory["hiPotion"]).toBe(1); // decremented
   });
 
-  it("heals the correct amount from a regular potion (30 HP)", () => {
+  it("heals the correct amount from a regular potion (18 HP)", () => {
     const unit = thief();
     unit.stats.maxHp = 100;
     unit.stats.hp = 20;
@@ -133,11 +133,11 @@ describe("resolveAutoPotion", () => {
 
     resolveAutoPotion(unit, inventory);
 
-    // potion heals 30 HP; 20 + 30 = 50 (well under maxHp, so full amount applied)
-    expect(unit.stats.hp).toBe(50);
+    // potion heals 18 HP; 20 + 18 = 38 (well under maxHp, so full amount applied)
+    expect(unit.stats.hp).toBe(38);
   });
 
-  it("heals the correct amount from a hi-potion (70 HP)", () => {
+  it("heals the correct amount from a hi-potion (42 HP)", () => {
     const unit = thief();
     unit.stats.maxHp = 100;
     unit.stats.hp = 20;
@@ -145,8 +145,8 @@ describe("resolveAutoPotion", () => {
 
     resolveAutoPotion(unit, inventory);
 
-    // hiPotion heals 70 HP; 20 + 70 = 90 (under maxHp)
-    expect(unit.stats.hp).toBe(90);
+    // hiPotion heals 42 HP; 20 + 42 = 62 (under maxHp)
+    expect(unit.stats.hp).toBe(62);
   });
 
   it("respects a custom threshold", () => {

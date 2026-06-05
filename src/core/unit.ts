@@ -11,9 +11,10 @@ export function nextUnitId(prefix = "u"): string {
 }
 
 /**
- * XP needed to reach the next level. A gently rising curve (each level costs a
- * little more than the last) so progression decelerates smoothly instead of
- * front-loading early levels and then letting the party outpace the campaign.
+ * XP needed to reach the next level. Front-loaded: early levels are cheap (50 to
+ * hit L2) so a fresh level-1 party climbs fast toward the unchanged enemy curve,
+ * then the +30/level slope gradually slows things down. Pairs with the battle
+ * `xpLevelMult`, which pays a premium for fighting higher-level foes.
  */
 export function xpForLevel(level: number): number {
   return 50 + (level - 1) * 30;

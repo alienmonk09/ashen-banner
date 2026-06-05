@@ -15,11 +15,13 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
 - Build: clean. Tests: **946 passing across 45 files**. Working tree: clean.
-- Last commit: `556e713 fix: recovered Codex branch review (3 findings)`. Shipped since the
-  sell commit: battle log, undo move, save slots, settings menu, New Game+.
+- Last commit: `bf6bab8 fix: AI leap LoS (review P3)`. Shipped since the sell commit:
+  battle log, undo move, save slots, settings menu, New Game+.
 - ~24 features this session. Codex reviewer went DOWN mid-session (6+ "failed to output")
-  then RECOVERED — its branch review caught 3 more real issues (fall-kill credit, instant
-  mute, leap forecast), all fixed in `556e713`. A fresh `review --base main` is running.
+  then RECOVERED. Its `review --base main` ran 3 convergent passes: P2s (fall-kill credit,
+  instant mute, leap forecast / forecast clamp, completed-turn counting, counter-kill rewards)
+  all fixed; round 3 was only P3 (AI leap LoS fixed; a rampart-water claim was a false positive).
+  ~12 real review findings total this session, all addressed.
 - NOTE: the Codex reviewer started returning "Reviewer failed to output a response" on
   EVERY scope (even small diffs) partway through this session — a transient runtime fault,
   not a code signal. It worked for ~10 earlier features (caught ~9 real P2s). Recent

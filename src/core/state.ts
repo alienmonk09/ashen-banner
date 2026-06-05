@@ -5,6 +5,7 @@ import { CLASSES } from "../data/classes";
 import { RACES } from "../data/races";
 import { WEAPONS } from "../data/weapons";
 import { EQUIPMENT, getEquipment } from "../data/equipment";
+import { equip } from "./unit";
 
 export interface GameState {
   /** Persistent player units carried across phases. */
@@ -77,6 +78,51 @@ export function buyEquipment(state: GameState, id: string): boolean {
   if (state.gil < equipment.price) return false;
   state.gil -= equipment.price;
   state.ownedEquipment.push(id);
+  return true;
+}
+
+/**
+ * Attempt to sell one unit of a consumable item back to the camp shop.
+ * Increments `state.gil` by half the item's price (floored) and decrements
+ * the inventory count. Returns true on success; false if the item is unknown
+ * or the party has none in stock (no mutation on false).
+ */
+export function sellItem(state: GameState, itemId: string): boolean {
+  let item;
+  try {
+    item = getItem(itemId);
+  } catch {
+    return false;
+  }
+  const count = state.inventory[itemId] ?? 0;
+  if (count <= 0) return false;
+  state.inventory[itemId] = count - 1;
+  state.gil += Math.floor(item.price / 2);
+  return true;
+}
+
+/**
+ * Attempt to sell an owned equipment piece back to the gear shop.
+ * Removes it from `ownedEquipment`, unequips it from any party unit currently
+ * wearing it (recomputing their stats), and increments `state.gil` by half the
+ * equipment's price (floored). Returns true on success; false if the equipment
+ * is unknown or not currently owned (no mutation on false).
+ */
+export function sellEquipment(state: GameState, id: string): boolean {
+  let equipment;
+  try {
+    equipment = getEquipment(id);
+  } catch {
+    return false;
+  }
+  if (!ownsEquipment(state, id)) return false;
+  state.ownedEquipment = state.ownedEquipment.filter((owned) => owned !== id);
+  // Unequip from any party member currently wearing this piece.
+  for (const unit of state.party) {
+    if (unit.armorId === id) equip(unit, "armor", null);
+    if (unit.accessoryId === id) equip(unit, "accessory", null);
+  }
+  state.gil += Math.floor(equipment.price / 2);
   return true;
 }
 

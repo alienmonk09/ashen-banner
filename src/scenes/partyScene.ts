@@ -12,7 +12,7 @@ import {
   learnSkillForClass,
   xpForLevel,
 } from "../core/unit";
-import { saveGame, buyItem, buyEquipment, ownsEquipment } from "../core/state";
+import { saveGame, buyItem, buyEquipment, ownsEquipment, sellItem, sellEquipment } from "../core/state";
 import { PHASES } from "../data/maps";
 import {
   partyCapForPhase,
@@ -379,6 +379,8 @@ export class PartyScene implements Scene {
           ],
         }),
       );
+      const sellValue = Math.floor(item.price / 2);
+      const canSell = owned > 0;
       row.appendChild(
         el("div", {
           className: "shop-item-meta",
@@ -392,6 +394,18 @@ export class PartyScene implements Scene {
               onClick: canAfford
                 ? () => {
                     buyItem(this.ctx.state, item.id);
+                    saveGame(this.ctx.state);
+                    this.render();
+                  }
+                : undefined,
+            }),
+            el("button", {
+              className: "btn small",
+              text: `Sell +${sellValue}`,
+              attrs: canSell ? {} : { disabled: "true" },
+              onClick: canSell
+                ? () => {
+                    sellItem(this.ctx.state, item.id);
                     saveGame(this.ctx.state);
                     this.render();
                   }
@@ -429,6 +443,7 @@ export class PartyScene implements Scene {
           ],
         }),
       );
+      const gearSellValue = Math.floor(equip.price / 2);
       row.appendChild(
         el("div", {
           className: "shop-item-meta",
@@ -440,7 +455,15 @@ export class PartyScene implements Scene {
               attrs: owned ? { style: "color:#5fbf72;font-size:12px" } : {},
             }),
             owned
-              ? el("span", { className: "shop-item-owned", text: "—" })
+              ? el("button", {
+                  className: "btn small",
+                  text: `Sell +${gearSellValue}`,
+                  onClick: () => {
+                    sellEquipment(this.ctx.state, equip.id);
+                    saveGame(this.ctx.state);
+                    this.render();
+                  },
+                })
               : el("button", {
                   className: "btn small",
                   text: "Buy",

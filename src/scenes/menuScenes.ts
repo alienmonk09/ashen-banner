@@ -24,6 +24,7 @@ function resetState(state: GameState): void {
   state.ownedWeapons = [];
   state.slot = 0;
   state.ngPlus = 0;
+  state.permadeath = false;
 }
 
 function applyLoaded(state: GameState, loaded: GameState): void {
@@ -36,6 +37,7 @@ function applyLoaded(state: GameState, loaded: GameState): void {
   state.ownedWeapons = loaded.ownedWeapons;
   state.slot = loaded.slot;
   state.ngPlus = loaded.ngPlus;
+  state.permadeath = loaded.permadeath;
 }
 
 /** A simple full-screen menu built from a banner card. */

@@ -27,6 +27,7 @@ export class PartySelectScene implements Scene {
   private root: HTMLDivElement;
   private selected = new Set<string>();
   private difficulty: Difficulty = "normal";
+  private permadeath = false;
   private slot = 0;
 
   constructor(private ctx: GameContext) {
@@ -50,6 +51,11 @@ export class PartySelectScene implements Scene {
     this.render();
   }
 
+  private setPermadeath(on: boolean): void {
+    this.permadeath = on;
+    this.render();
+  }
+
   private setSlot(s: number): void {
     this.slot = s;
     this.render();
@@ -68,6 +74,7 @@ export class PartySelectScene implements Scene {
     this.ctx.state.ownedWeapons = [...new Set(this.ctx.state.party.map((u) => u.weaponId))];
     this.ctx.state.slot = this.slot;
     this.ctx.state.ngPlus = 0;
+    this.ctx.state.permadeath = this.permadeath;
     clearSave(this.slot);
     this.ctx.nav.toBattle(0);
   }
@@ -145,6 +152,22 @@ export class PartySelectScene implements Scene {
     }
     footer.appendChild(diffRow);
     footer.appendChild(el("div", { className: "diff-desc", text: DIFFICULTY_DESCS[this.difficulty] }));
+
+    // Classic mode (permadeath) toggle
+    footer.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px;margin-top:10px" }, text: "Classic mode (permadeath)" }));
+    const permaRow = el("div", { className: "difficulty-row" });
+    for (const [label, on] of [["Off", false], ["On", true]] as [string, boolean][]) {
+      const active = this.permadeath === on;
+      permaRow.appendChild(
+        el("button", {
+          className: `diff-btn${active ? (on ? " active hard" : " active normal") : ""}`,
+          text: label,
+          onClick: () => this.setPermadeath(on),
+        }),
+      );
+    }
+    footer.appendChild(permaRow);
+    footer.appendChild(el("div", { className: "diff-desc", text: "Fallen heroes are lost for good." }));
 
     // Save slot selector
     footer.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px;margin-top:10px" }, text: "Save Slot" }));

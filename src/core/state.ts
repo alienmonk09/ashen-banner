@@ -26,6 +26,8 @@ export interface GameState {
   slot: number;
   /** Number of times the campaign has been cleared in New Game+ mode. */
   ngPlus: number;
+  /** Classic mode: a party member who falls in battle is lost permanently. */
+  permadeath: boolean;
 }
 
 export function createGameState(): GameState {
@@ -41,7 +43,18 @@ export function createGameState(): GameState {
     ownedWeapons: [...new Set(party.map((u) => u.weaponId))],
     slot: 0,
     ngPlus: 0,
+    permadeath: false,
   };
+}
+
+/**
+ * Classic mode survivor filter, applied after a victory. When permadeath is on,
+ * fallen heroes (alive === false at battle end) are dropped from the party for
+ * good; otherwise the party is returned unchanged. Pure — does not mutate input.
+ */
+export function survivorsAfterBattle(party: Unit[], permadeath: boolean): Unit[] {
+  if (!permadeath) return party;
+  return party.filter((u) => u.alive !== false);
 }
 
 /** Total number of save slots. */
@@ -298,6 +311,10 @@ export function loadGame(slot = 0): GameState | null {
     // Back-compat: old saves lack `ngPlus`; normalise any missing/invalid value.
     if (typeof parsed.ngPlus !== "number" || !isFinite(parsed.ngPlus) || parsed.ngPlus < 0) {
       parsed.ngPlus = 0;
+    }
+    // Back-compat: old saves lack `permadeath`; normalise any missing/invalid value.
+    if (typeof parsed.permadeath !== "boolean") {
+      parsed.permadeath = false;
     }
     // Migration: any gear a unit already has equipped should be in ownedEquipment.
     const owned = parsed.ownedEquipment as string[];

@@ -1,7 +1,7 @@
 import type { Direction, MapDef, Point, SkillDef, Unit } from "../core/types";
 import { RNG } from "../core/rng";
 import { grantJp, grantXp, createUnit } from "../core/unit";
-import { enemyLevelFor, refreshForBattle, GIL_PER_KILL } from "../core/state";
+import { enemyLevelFor, refreshForBattle, survivorsAfterBattle, GIL_PER_KILL } from "../core/state";
 import { Grid, manhattan, moveBlockers, samePoint, zoneOfControl } from "../battle/grid";
 import { pathTo, reachable } from "../battle/pathfinding";
 import { aoeTiles, knockbackTo, leapLanding, tilesInRange } from "../battle/targeting";
@@ -337,6 +337,11 @@ export class BattleScene implements Scene {
         u.id = `recruit-${u.id}`;
         this.ctx.state.party.push(u);
         this.pushLog(`${u.name} has joined the Ashen Banner permanently!`);
+      }
+      // Classic mode: fallen heroes are lost for good. Prune the dead after
+      // recruits have joined (a recruit that died was already excluded above).
+      if (this.ctx.state.permadeath) {
+        this.ctx.state.party = survivorsAfterBattle(this.ctx.state.party, true);
       }
       startMusic("victory");
       const last = this.phaseIndex >= PHASES.length - 1;

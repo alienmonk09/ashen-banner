@@ -356,6 +356,9 @@ export class PartyScene implements Scene {
     const idx = this.ctx.state.phaseIndex;
     const nextMap = PHASES[idx];
     screen.appendChild(el("h1", { text: "Party Camp" }));
+    if (this.ctx.state.permadeath) {
+      screen.appendChild(el("div", { className: "diff-desc", attrs: { style: "color:#ff9a9a;font-weight:700" }, text: "⚑ Classic mode — fallen heroes are lost for good." }));
+    }
     screen.appendChild(
       el("div", {
         className: "sub",

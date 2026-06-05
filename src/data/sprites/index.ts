@@ -5,6 +5,7 @@ import { HERO_SPRITES } from "./heroes";
 import { WEAPON_SPRITES } from "./weapons";
 import { ITEM_SPRITES } from "./items";
 import { SKILL_SPRITES } from "./skills";
+import { EQUIPMENT_SPRITES } from "./equipment";
 import { VFX } from "./vfx";
 
 export type VfxKey =
@@ -50,6 +51,9 @@ export function getItemSprite(id: string): SpriteDef {
 export function getSkillSprite(id: string): SpriteDef {
   return SKILL_SPRITES[id] ?? MISSING;
 }
+export function getEquipmentSprite(idOrSlot: string): SpriteDef {
+  return EQUIPMENT_SPRITES[idOrSlot] ?? MISSING;
+}
 export function getVfx(key: string): AnimDef | null {
   return VFX[key] ?? null;
 }
@@ -89,6 +93,7 @@ export {
   WEAPON_SPRITES,
   ITEM_SPRITES,
   SKILL_SPRITES,
+  EQUIPMENT_SPRITES,
   VFX,
 };
 export type { SpriteDef, AnimDef };

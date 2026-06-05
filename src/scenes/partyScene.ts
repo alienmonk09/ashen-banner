@@ -1,10 +1,13 @@
-import type { ClassId, Unit } from "../core/types";
+import type { ClassId, EquipSlot, Unit } from "../core/types";
 import { CLASSES, getClass } from "../data/classes";
 import { getRace } from "../data/races";
 import { getWeapon } from "../data/weapons";
+import { equipmentForSlot } from "../data/equipment";
 import { getSkill } from "../data/skills";
 import {
   statsForLevel,
+  statsForUnit,
+  equip as equipUnit,
   nextLearnableSkillForClass,
   learnSkillForClass,
   xpForLevel,
@@ -17,7 +20,7 @@ import {
   recruitHero,
   type HeroDef,
 } from "../data/party";
-import { getUnitSprite, getSkillSprite, getWeaponSprite, getCharacterSprite, getHeroSprite } from "../data/sprites";
+import { getUnitSprite, getSkillSprite, getWeaponSprite, getEquipmentSprite, getCharacterSprite, getHeroSprite } from "../data/sprites";
 import { el, clear } from "../ui/dom";
 import { iconImg } from "../ui/icons";
 import type { GameContext, Scene } from "./sceneManager";
@@ -39,8 +42,8 @@ export class PartyScene implements Scene {
     unit.classId = classId;
     const cls = getClass(classId);
     // Recompute stats for the new class at the unit's level (full HP/MP),
-    // keeping the unit's racial modifiers (they persist across class changes).
-    unit.stats = statsForLevel(classId, unit.level, unit.raceId);
+    // keeping racial modifiers and equipment bonuses (they persist across class changes).
+    unit.stats = statsForUnit(unit);
     // Re-equip a weapon this class can use.
     if (!cls.weaponIds.includes(unit.weaponId)) unit.weaponId = cls.weaponIds[0];
     // Ensure at least the first class skill is known so the class is usable.
@@ -64,6 +67,11 @@ export class PartyScene implements Scene {
 
   private equip(unit: Unit, weaponId: string): void {
     unit.weaponId = weaponId;
+    this.render();
+  }
+
+  private equipItem(unit: Unit, slot: EquipSlot, id: string | null): void {
+    equipUnit(unit, slot, id);
     this.render();
   }
 
@@ -202,6 +210,46 @@ export class PartyScene implements Scene {
     }
     wSel.addEventListener("change", () => this.equip(unit, wSel.value));
     card.appendChild(wSel);
+
+    // Armor slot.
+    card.appendChild(
+      el("label", {
+        className: "wlabel",
+        children: [el("span", { text: "Armor" }), iconImg(getEquipmentSprite("armor"), 18)],
+      }),
+    );
+    const armorSel = el("select");
+    armorSel.appendChild(el("option", { text: "— none —", attrs: { value: "" } }));
+    for (const a of equipmentForSlot("armor")) {
+      const modHint = Object.entries(a.mod)
+        .map(([k, v]) => `${(v as number) >= 0 ? "+" : ""}${v as number} ${k.toUpperCase()}`)
+        .join(", ");
+      const opt = el("option", { text: `${a.name} (${modHint})`, attrs: { value: a.id } });
+      if (a.id === unit.armorId) opt.selected = true;
+      armorSel.appendChild(opt);
+    }
+    armorSel.addEventListener("change", () => this.equipItem(unit, "armor", armorSel.value || null));
+    card.appendChild(armorSel);
+
+    // Accessory slot.
+    card.appendChild(
+      el("label", {
+        className: "wlabel",
+        children: [el("span", { text: "Accessory" }), iconImg(getEquipmentSprite("accessory"), 18)],
+      }),
+    );
+    const accSel = el("select");
+    accSel.appendChild(el("option", { text: "— none —", attrs: { value: "" } }));
+    for (const acc of equipmentForSlot("accessory")) {
+      const modHint = Object.entries(acc.mod)
+        .map(([k, v]) => `${(v as number) >= 0 ? "+" : ""}${v as number} ${k.toUpperCase()}`)
+        .join(", ");
+      const opt = el("option", { text: `${acc.name} (${modHint})`, attrs: { value: acc.id } });
+      if (acc.id === unit.accessoryId) opt.selected = true;
+      accSel.appendChild(opt);
+    }
+    accSel.addEventListener("change", () => this.equipItem(unit, "accessory", accSel.value || null));
+    card.appendChild(accSel);
 
     // Skills usable now = learned skills from the primary class + secondary job.
     const usable = new Set(cls.skillIds);

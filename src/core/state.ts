@@ -4,6 +4,7 @@ import { startingInventory } from "../data/items";
 import { CLASSES } from "../data/classes";
 import { RACES } from "../data/races";
 import { WEAPONS } from "../data/weapons";
+import { EQUIPMENT } from "../data/equipment";
 
 export interface GameState {
   /** Persistent player units carried across phases. */
@@ -45,6 +46,8 @@ function isValidSave(data: unknown): data is GameState {
     if (u.subClassId !== undefined && !CLASSES[u.subClassId as ClassId]) return false;
     if (!RACES[u.raceId as RaceId]) return false;
     if (!WEAPONS[u.weaponId]) return false;
+    if (u.armorId !== undefined && (!EQUIPMENT[u.armorId] || EQUIPMENT[u.armorId].slot !== "armor")) return false;
+    if (u.accessoryId !== undefined && (!EQUIPMENT[u.accessoryId] || EQUIPMENT[u.accessoryId].slot !== "accessory")) return false;
     if (!u.stats || typeof u.stats.maxHp !== "number") return false;
     if (typeof u.level !== "number" || !Array.isArray(u.learnedSkillIds)) return false;
     if (!u.pos || typeof u.pos.x !== "number" || typeof u.pos.y !== "number") return false;

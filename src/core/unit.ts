@@ -1,7 +1,8 @@
-import type { ClassId, Direction, Point, RaceId, Stats, Team, Unit } from "./types";
+import type { ClassId, Direction, EquipMod, EquipSlot, Point, RaceId, Stats, Team, Unit } from "./types";
 import { getClass } from "../data/classes";
 import { getRace } from "../data/races";
 import { getWeapon } from "../data/weapons";
+import { getEquipment } from "../data/equipment";
 
 let idCounter = 0;
 export function nextUnitId(prefix = "u"): string {
@@ -41,6 +42,81 @@ export function statsForLevel(classId: ClassId, level: number, raceId?: RaceId):
     move: f(c.base.move, m.move ?? 0),
     jump: f(c.base.jump, m.jump ?? 0),
   };
+}
+
+/** Sum the stat deltas from a unit's equipped armor and accessory (if any). */
+export function equipmentMod(unit: Unit): EquipMod {
+  const result: EquipMod = {};
+  const ids = [unit.armorId, unit.accessoryId].filter((id): id is string => id !== undefined);
+  for (const id of ids) {
+    const mod = getEquipment(id).mod;
+    for (const key of Object.keys(mod) as Array<keyof EquipMod>) {
+      result[key] = (result[key] ?? 0) + (mod[key] ?? 0);
+    }
+  }
+  return result;
+}
+
+/**
+ * Compute the full stat block for a unit, including class/level/race stats
+ * plus any equipment bonuses. This is the single source of truth for a unit's
+ * effective stat block.
+ *
+ * hp/mp deltas adjust both current AND max; every stat floors at 1.
+ */
+export function statsForUnit(unit: Unit): Stats {
+  const base = statsForLevel(unit.classId, unit.level, unit.raceId);
+  const mod = equipmentMod(unit);
+  const f = (value: number, delta = 0) => Math.max(1, value + delta);
+  const maxHp = f(base.maxHp, mod.hp ?? 0);
+  const maxMp = f(base.maxMp, mod.mp ?? 0);
+  return {
+    hp: maxHp,
+    maxHp,
+    mp: maxMp,
+    maxMp,
+    atk: f(base.atk, mod.atk ?? 0),
+    def: f(base.def, mod.def ?? 0),
+    mag: f(base.mag, mod.mag ?? 0),
+    res: f(base.res, mod.res ?? 0),
+    spd: f(base.spd, mod.spd ?? 0),
+    move: f(base.move, mod.move ?? 0),
+    jump: f(base.jump, mod.jump ?? 0),
+  };
+}
+
+/**
+ * Recompute a unit's stats from scratch (class + level + race + equipment).
+ * When preserveRatio is true, the current hp/mp fraction is kept so a wounded
+ * unit stays wounded after equipping/unequipping.
+ */
+export function recomputeStats(unit: Unit, preserveRatio = false): void {
+  const hpRatio = preserveRatio && unit.stats.maxHp > 0 ? unit.stats.hp / unit.stats.maxHp : 1;
+  const mpRatio = preserveRatio && unit.stats.maxMp > 0 ? unit.stats.mp / unit.stats.maxMp : 1;
+  const next = statsForUnit(unit);
+  unit.stats = next;
+  if (preserveRatio) {
+    unit.stats.hp = Math.max(1, Math.round(next.maxHp * hpRatio));
+    unit.stats.mp = Math.round(next.maxMp * mpRatio);
+  }
+}
+
+/**
+ * Equip an item to a unit's armor or accessory slot. Pass null to unequip.
+ * Throws if the item's slot doesn't match the target slot. Preserves the
+ * current hp/mp ratio so equipping doesn't suddenly fully restore a wounded unit.
+ */
+export function equip(unit: Unit, slot: EquipSlot, id: string | null): void {
+  if (id !== null) {
+    const def = getEquipment(id);
+    if (def.slot !== slot) throw new Error(`Equipment "${id}" is for slot "${def.slot}", not "${slot}"`);
+  }
+  if (slot === "armor") {
+    unit.armorId = id ?? undefined;
+  } else {
+    unit.accessoryId = id ?? undefined;
+  }
+  recomputeStats(unit, true);
 }
 
 export interface CreateUnitOpts {
@@ -100,7 +176,7 @@ export function grantXp(unit: Unit, amount: number): number {
     const hpRatio = unit.stats.maxHp > 0 ? unit.stats.hp / unit.stats.maxHp : 1;
     const mpRatio = unit.stats.maxMp > 0 ? unit.stats.mp / unit.stats.maxMp : 1;
     unit.level += 1;
-    const next = statsForLevel(unit.classId, unit.level, unit.raceId);
+    const next = statsForUnit(unit);
     unit.stats = next;
     unit.stats.hp = Math.max(1, Math.round(next.maxHp * hpRatio));
     unit.stats.mp = Math.round(next.maxMp * mpRatio);

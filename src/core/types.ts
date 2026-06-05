@@ -114,6 +114,19 @@ export interface SkillDef {
   statusDuration?: number;
 }
 
+export type EquipSlot = "armor" | "accessory";
+
+/** Flat stat deltas an equipment piece applies on top of class+race stats (omitted = 0). */
+export type EquipMod = Partial<Pick<Stats, "hp" | "mp" | "atk" | "def" | "mag" | "res" | "spd" | "move" | "jump">>;
+
+export interface EquipmentDef {
+  id: string;
+  name: string;
+  slot: EquipSlot;
+  description: string;
+  mod: EquipMod;
+}
+
 export type WeaponKind = "physical" | "magical";
 
 export interface WeaponDef {
@@ -172,6 +185,8 @@ export interface Unit {
   /** Optional secondary job: its learned skills are usable alongside the primary's. */
   subClassId?: ClassId;
   weaponId: string;
+  armorId?: string;
+  accessoryId?: string;
   pos: Point;
   /** Which way the unit faces; drives flank/rear attack bonuses. Per-battle volatile. */
   facing: Direction;

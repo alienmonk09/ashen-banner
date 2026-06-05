@@ -38,6 +38,8 @@ export class BattleUI {
   private bannerEl: HTMLDivElement;
   private rotateCtl: HTMLDivElement;
   private rotLabel: HTMLDivElement;
+  private battleLogPanel: HTMLDivElement;
+  private battleLogLines: HTMLDivElement;
   private toastTimer = 0;
   /** Screen point (CSS px) the action menu/submenu anchor to; null = docked. */
   private menuAnchor: { x: number; y: number } | null = null;
@@ -55,6 +57,10 @@ export class BattleUI {
     this.bannerEl = el("div", { className: "banner" });
     this.rotLabel = el("div", { className: "rlabel", text: "0°" });
     this.rotateCtl = el("div", { className: "panel rotate-ctl" });
+    this.battleLogLines = el("div", { className: "battle-log-lines" });
+    this.battleLogPanel = el("div", { className: "panel battle-log" });
+    this.battleLogPanel.appendChild(el("div", { className: "battle-log-title", text: "Battle Log" }));
+    this.battleLogPanel.appendChild(this.battleLogLines);
     for (const n of [
       this.turnBar,
       this.objectivePanel,
@@ -66,6 +72,7 @@ export class BattleUI {
       this.hintEl,
       this.bannerEl,
       this.rotateCtl,
+      this.battleLogPanel,
     ]) {
       n.style.display = "none";
       this.layer.appendChild(n);
@@ -168,6 +175,22 @@ export class BattleUI {
     }
     this.objectivePanel.textContent = text;
     this.objectivePanel.style.display = "block";
+  }
+
+  // --- Battle log ---
+
+  /** Render the battle log lines (newest at the bottom) and auto-scroll. */
+  setBattleLog(lines: string[]): void {
+    clear(this.battleLogLines);
+    for (const line of lines) {
+      const isTurnHeader = line.startsWith("—");
+      this.battleLogLines.appendChild(
+        el("div", { className: `log-line${isTurnHeader ? " log-turn" : ""}`, text: line }),
+      );
+    }
+    this.battleLogPanel.style.display = lines.length > 0 ? "flex" : "none";
+    // Scroll to the latest entry.
+    this.battleLogLines.scrollTop = this.battleLogLines.scrollHeight;
   }
 
   // --- Camera rotation control ---

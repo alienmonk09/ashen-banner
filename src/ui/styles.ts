@@ -212,7 +212,34 @@ const CSS = `
 .diff-btn.active.normal { border-color: #ffd34d; color: #ffd34d; box-shadow: 0 0 0 1px #ffd34d; }
 .diff-btn.active.hard { border-color: #e85a5a; color: #ff9a9a; box-shadow: 0 0 0 1px #e85a5a; }
 .diff-desc { text-align: center; font-size: 12px; opacity: 0.65; margin-bottom: 6px; min-height: 16px; }
+
+/* Battle log — scrollable history panel, bottom-right corner */
+.battle-log {
+  right: 14px; bottom: 14px;
+  width: 220px; max-height: 160px;
+  display: flex; flex-direction: column;
+  padding: 6px 8px;
+}
+.battle-log-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  opacity: 0.5; margin-bottom: 4px; flex: none;
+}
+.battle-log-lines {
+  overflow-y: auto; flex: 1;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.battle-log-lines::-webkit-scrollbar { width: 4px; }
+.battle-log-lines::-webkit-scrollbar-track { background: transparent; }
+.battle-log-lines::-webkit-scrollbar-thumb { background: rgba(140,160,220,0.3); border-radius: 2px; }
+.log-line {
+  font-size: 11px; line-height: 1.4; opacity: 0.88;
+  font-family: "Consolas", "Courier New", monospace;
+}
+.log-line.log-turn {
+  opacity: 0.55; font-style: italic; margin-top: 2px;
+}
 `;
+
 
 let injected = false;
 export function injectStyles(): void {

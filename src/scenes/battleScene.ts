@@ -34,6 +34,7 @@ import { getClass } from "../data/classes";
 import { getVfx, vfxKeyForSkill, vfxKeyForWeapon } from "../data/sprites";
 import { PHASES } from "../data/maps";
 import { BattleUI } from "../ui/battleUI";
+import { formatHit } from "../battle/log";
 import type { GameContext, Scene } from "./sceneManager";
 
 type Phase =
@@ -85,6 +86,9 @@ export class BattleScene implements Scene {
 
   private static readonly SHAKE_DUR = 0.22;
   private static readonly LUNGE_DUR = 0.18;
+  private static readonly LOG_CAP = 60;
+
+  private log: string[] = [];
 
   constructor(
     private ctx: GameContext,
@@ -239,6 +243,7 @@ export class BattleScene implements Scene {
     this.ui.setActiveUnit(this.active);
     this.ui.showRotateControl(() => this.rotateView(-1), () => this.rotateView(1));
     this.ui.setRotationLabel(this.rot);
+    this.pushLog(`— ${this.active.name}'s turn —`);
 
     // Frozen in time: the unit forfeits its turn (the Stop status still ticks).
     if (isStopped(this.active)) {
@@ -853,6 +858,12 @@ export class BattleScene implements Scene {
 
   // --- Popups ---
 
+  private pushLog(line: string): void {
+    this.log.push(line);
+    if (this.log.length > BattleScene.LOG_CAP) this.log.splice(0, this.log.length - BattleScene.LOG_CAP);
+    this.ui.setBattleLog(this.log);
+  }
+
   private pushEffect(tile: Point, vfxKey: string): void {
     const anim = getVfx(vfxKey);
     if (!anim) return;
@@ -903,6 +914,7 @@ export class BattleScene implements Scene {
     }
     if (res.killed) sfx.playKO();
     this.popups.push({ tile: { ...target.pos }, text, color, age: 0, ttl: 1.1 });
+    this.pushLog(formatHit(res, (id) => this.units.find((u) => u.id === id)?.name ?? "Someone"));
   }
 
   private refreshTurnBar(): void {

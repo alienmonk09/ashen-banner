@@ -309,7 +309,19 @@ const CSS = `
   opacity: 0.55; font-style: italic; margin-top: 2px;
 }
 
-/* Dev shortcut bar — top-left, only shown in dev builds (?dev / vite dev). */
+/* Reaction explanations under the Party Camp reaction picker. */
+.reaction-help {
+  display: flex; flex-direction: column; gap: 4px; margin-top: 5px;
+  padding: 6px 8px; border-radius: 5px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+}
+.reaction-help-row { display: flex; flex-direction: column; gap: 1px; }
+.reaction-help-name {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.02em; color: #ffe9a8;
+}
+.reaction-help-desc { font-size: 11px; line-height: 1.35; opacity: 0.75; }
+
+/* Dev shortcut bar — top-left, loaded only on the local Vite dev server. */
 .dev-bar {
   left: 14px; top: 14px;
   display: flex; flex-direction: column; gap: 4px; padding: 6px 7px;

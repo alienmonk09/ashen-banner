@@ -1,8 +1,9 @@
-import type { ItemDef, SkillDef, StatusKind, Unit } from "../core/types";
+import type { ItemDef, Reaction, SkillDef, StatusKind, Unit } from "../core/types";
 import type { DialogueLine } from "../data/dialogue";
 import { getClass } from "../data/classes";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
+import { REACTIONS } from "../data/reactions";
 import { getCharacterSprite, getItemSprite, getSkillSprite, getWeaponSprite, speakerSprite } from "../data/sprites";
 import { isMuted, toggleMuted } from "../engine/audio";
 import { el, clear } from "./dom";
@@ -136,7 +137,7 @@ export class BattleUI {
               .join(", ")
           : "",
       }),
-      el("div", { className: "skills-line", attrs: { style: "opacity:0.7" }, text: cls.reactions?.includes("counter") ? "Reaction: Counter (strikes back at melee)" : "" }),
+      reactionLine(unit, cls.reactions),
       statusChips(unit),
     ];
   }
@@ -534,6 +535,21 @@ function describeSkill(s: SkillDef): string {
   const verb =
     s.effect === "heal" ? "heal" : s.effect === "revive" ? "revive" : s.effect === "damage" ? "dmg" : s.effect;
   return `rng ${s.range}${shape} · ${verb}`;
+}
+
+/** A summary line of the unit's reaction abilities (class-innate + the one
+ *  equipped at camp): a short hint inline, the full explanation on hover. */
+function reactionLine(unit: Unit, classReactions: Reaction[] | undefined): HTMLElement {
+  const reactions = [...new Set([...(classReactions ?? []), ...(unit.reactionId ? [unit.reactionId] : [])])];
+  if (reactions.length === 0) return el("div", { className: "skills-line" });
+  return el("div", {
+    className: "skills-line",
+    attrs: {
+      style: "opacity:0.7",
+      title: reactions.map((r) => `${REACTIONS[r].name}: ${REACTIONS[r].description}`).join("\n"),
+    },
+    text: "Reactions: " + reactions.map((r) => `${REACTIONS[r].name} (${REACTIONS[r].short})`).join(", "),
+  });
 }
 
 const STATUS_INFO: Record<StatusKind, { label: string; tip: string; cls: string }> = {

@@ -28,19 +28,8 @@ import { getUnitSprite, getSkillSprite, getWeaponSprite, getEquipmentSprite, get
 import { el, clear } from "../ui/dom";
 import { iconImg } from "../ui/icons";
 import { startMusic, stopMusic } from "../engine/music";
+import { REACTIONS, reactionName, reactionOptions } from "../data/reactions";
 import type { GameContext, Scene } from "./sceneManager";
-
-const REACTION_LABELS: Record<string, string> = {
-  counter: "Counter",
-  autoPotion: "Auto-Potion",
-  cover: "Cover",
-};
-
-const REACTION_OPTIONS: [string, string][] = [
-  ["counter", "Counter"],
-  ["autoPotion", "Auto-Potion"],
-  ["cover", "Cover"],
-];
 
 /** Between-phase screen: class change, equipment, and spending SP on skills. */
 type CampTab = "party" | "reinforcements" | "shop";
@@ -250,10 +239,12 @@ export class PartyScene implements Scene {
     subSel.addEventListener("change", () => this.setSubJob(unit, subSel.value as ClassId | ""));
     card.appendChild(subSel);
 
-    // Equippable reaction — one extra reaction ability on top of class-innate reactions.
+    // Equippable reaction — one extra reaction ability on top of class-innate
+    // reactions. Reactions are passive triggers that fire automatically (no turn
+    // cost) in response to an enemy action.
     const innate = getClass(unit.classId).reactions ?? [];
     const innateNote = innate.length
-      ? `Innate: ${innate.map((r) => REACTION_LABELS[r]).join(", ")}`
+      ? `Innate: ${innate.map(reactionName).join(", ")}`
       : "No innate reactions";
     card.appendChild(
       el("label", { text: `Reaction (${innateNote})` }),
@@ -262,13 +253,33 @@ export class PartyScene implements Scene {
     const reactionNoneOpt = el("option", { text: "— none —", attrs: { value: "" } });
     if (!unit.reactionId) reactionNoneOpt.selected = true;
     reactionSel.appendChild(reactionNoneOpt);
-    for (const [id, label] of REACTION_OPTIONS) {
+    for (const [id, label] of reactionOptions()) {
       const opt = el("option", { text: label, attrs: { value: id } });
       if (unit.reactionId === id) opt.selected = true;
       reactionSel.appendChild(opt);
     }
     reactionSel.addEventListener("change", () => this.setReaction(unit, reactionSel.value));
     card.appendChild(reactionSel);
+
+    // Explain every reaction the unit actually has (innate + equipped), so the
+    // player knows what each one does rather than just its name.
+    const activeReactions = [...new Set([...innate, ...(unit.reactionId ? [unit.reactionId] : [])])];
+    if (activeReactions.length > 0) {
+      const help = el("div", { className: "reaction-help" });
+      for (const r of activeReactions) {
+        const info = REACTIONS[r];
+        help.appendChild(
+          el("div", {
+            className: "reaction-help-row",
+            children: [
+              el("span", { className: "reaction-help-name", text: info.name }),
+              el("span", { className: "reaction-help-desc", text: info.description }),
+            ],
+          }),
+        );
+      }
+      card.appendChild(help);
+    }
 
     // Equipment.
     card.appendChild(

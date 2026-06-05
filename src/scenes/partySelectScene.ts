@@ -116,29 +116,27 @@ export class PartySelectScene implements Scene {
   private render(): void {
     clear(this.root);
     const screen = el("div", { className: "party-screen" });
-    screen.appendChild(el("h1", { text: "Choose Your Party" }));
-    screen.appendChild(
+    const ready = this.selected.size === PARTY_SIZE;
+
+    // --- Header (fixed) ---
+    const head = el("div", { className: "party-head" });
+    head.appendChild(el("h1", { text: "Choose Your Party" }));
+    head.appendChild(
       el("div", {
         className: "sub",
         text: `Five kingdoms fell; these seven still carry the Ashen Banner. Pick ${PARTY_SIZE} to march.`,
       }),
     );
+    screen.appendChild(head);
 
+    // --- Body (scrolls): roster grid + campaign config ---
+    const body = el("div", { className: "party-body" });
     const grid = el("div", { className: "party-grid" });
     for (const h of ROSTER) grid.appendChild(this.heroCard(h));
-    screen.appendChild(grid);
-
-    const footer = el("div", { className: "party-footer" });
-    const ready = this.selected.size === PARTY_SIZE;
-    footer.appendChild(
-      el("div", {
-        attrs: { style: "font-size:14px;margin-bottom:10px;opacity:0.85" },
-        text: `Chosen ${this.selected.size}/${PARTY_SIZE}`,
-      }),
-    );
+    body.appendChild(grid);
 
     // Difficulty selector
-    footer.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px" }, text: "Difficulty" }));
+    body.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin:16px 0 6px;text-align:center" }, text: "Difficulty" }));
     const diffRow = el("div", { className: "difficulty-row" });
     for (const d of ["easy", "normal", "hard"] as Difficulty[]) {
       const active = this.difficulty === d;
@@ -150,11 +148,11 @@ export class PartySelectScene implements Scene {
         }),
       );
     }
-    footer.appendChild(diffRow);
-    footer.appendChild(el("div", { className: "diff-desc", text: DIFFICULTY_DESCS[this.difficulty] }));
+    body.appendChild(diffRow);
+    body.appendChild(el("div", { className: "diff-desc", text: DIFFICULTY_DESCS[this.difficulty] }));
 
     // Classic mode (permadeath) toggle
-    footer.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px;margin-top:10px" }, text: "Classic mode (permadeath)" }));
+    body.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px;margin-top:10px;text-align:center" }, text: "Classic mode (permadeath)" }));
     const permaRow = el("div", { className: "difficulty-row" });
     for (const [label, on] of [["Off", false], ["On", true]] as [string, boolean][]) {
       const active = this.permadeath === on;
@@ -166,11 +164,11 @@ export class PartySelectScene implements Scene {
         }),
       );
     }
-    footer.appendChild(permaRow);
-    footer.appendChild(el("div", { className: "diff-desc", text: "Fallen heroes are lost for good." }));
+    body.appendChild(permaRow);
+    body.appendChild(el("div", { className: "diff-desc", text: "Fallen heroes are lost for good." }));
 
     // Save slot selector
-    footer.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px;margin-top:10px" }, text: "Save Slot" }));
+    body.appendChild(el("div", { attrs: { style: "font-size:13px;font-weight:700;opacity:0.7;margin-bottom:6px;margin-top:10px;text-align:center" }, text: "Save Slot" }));
     const slotRow = el("div", { className: "difficulty-row" });
     for (let s = 0; s < SAVE_SLOTS; s++) {
       const active = this.slot === s;
@@ -182,8 +180,17 @@ export class PartySelectScene implements Scene {
         }),
       );
     }
-    footer.appendChild(slotRow);
+    body.appendChild(slotRow);
+    screen.appendChild(body);
 
+    // --- Footer (fixed): selection count + the Begin action, always reachable ---
+    const footer = el("div", { className: "party-footer" });
+    footer.appendChild(
+      el("div", {
+        attrs: { style: "font-size:14px;margin-bottom:8px;opacity:0.85" },
+        text: `Chosen ${this.selected.size}/${PARTY_SIZE}`,
+      }),
+    );
     footer.appendChild(
       el("button", {
         className: "btn",

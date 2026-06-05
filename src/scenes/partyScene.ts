@@ -43,8 +43,12 @@ const REACTION_OPTIONS: [string, string][] = [
 ];
 
 /** Between-phase screen: class change, equipment, and spending JP on skills. */
+type CampTab = "party" | "reinforcements" | "shop";
+
 export class PartyScene implements Scene {
   private root: HTMLDivElement;
+  /** Which camp section is on screen. Persists across re-renders (buy/equip/etc). */
+  private activeTab: CampTab = "party";
 
   constructor(private ctx: GameContext) {
     saveGame(ctx.state); // checkpoint progress
@@ -350,45 +354,110 @@ export class PartyScene implements Scene {
     return card;
   }
 
+  /** Open slots available for reinforcements at the current phase. */
+  private openSlots(): number {
+    return partyCapForPhase(this.ctx.state.phaseIndex) - this.ctx.state.party.length;
+  }
+
+  private hasReinforcements(): boolean {
+    return this.openSlots() > 0 && recruitableHeroes(this.ctx.state.party).length > 0;
+  }
+
+  private setTab(tab: CampTab): void {
+    this.activeTab = tab;
+    this.render();
+  }
+
   private render(): void {
     clear(this.root);
     const screen = el("div", { className: "party-screen" });
     const idx = this.ctx.state.phaseIndex;
     const nextMap = PHASES[idx];
-    screen.appendChild(el("h1", { text: "Party Camp" }));
+
+    // Reinforcements tab only exists while slots are open; fall back if it vanished.
+    const showReinforce = this.hasReinforcements();
+    if (this.activeTab === "reinforcements" && !showReinforce) this.activeTab = "party";
+
+    // --- Header: title, status, gil, and the section tab bar (all fixed). ---
+    const head = el("div", { className: "party-head" });
+    head.appendChild(el("h1", { text: "Party Camp" }));
     if (this.ctx.state.permadeath) {
-      screen.appendChild(el("div", { className: "diff-desc", attrs: { style: "color:#ff9a9a;font-weight:700" }, text: "⚑ Classic mode — fallen heroes are lost for good." }));
+      head.appendChild(el("div", { className: "diff-desc", attrs: { style: "color:#ff9a9a;font-weight:700;margin:0" }, text: "⚑ Classic mode — fallen heroes are lost for good." }));
     }
-    screen.appendChild(
+    head.appendChild(
       el("div", {
         className: "sub",
-        text: `Prepare your party. Next: Phase ${idx + 1} — ${nextMap.name}. Units are fully restored before each battle.`,
+        text: `Next: Phase ${idx + 1} — ${nextMap.name}. Units are fully restored before each battle.`,
       }),
     );
+    head.appendChild(el("div", { className: "camp-gil", text: `Gil: ${this.ctx.state.gil}` }));
 
+    const tabs = el("div", { className: "camp-tabs" });
+    const tabDef: { id: CampTab; label: string; badge?: string }[] = [
+      { id: "party", label: "Party" },
+      ...(showReinforce ? [{ id: "reinforcements" as CampTab, label: "Reinforcements", badge: String(this.openSlots()) }] : []),
+      { id: "shop", label: "Shop" },
+    ];
+    for (const t of tabDef) {
+      const btn = el("button", {
+        className: `camp-tab${this.activeTab === t.id ? " active" : ""}`,
+        onClick: () => this.setTab(t.id),
+      });
+      btn.appendChild(el("span", { text: t.label }));
+      if (t.badge) btn.appendChild(el("span", { className: "tab-badge", text: t.badge }));
+      tabs.appendChild(btn);
+    }
+    head.appendChild(tabs);
+    screen.appendChild(head);
+
+    // --- Body: the active section scrolls within the bounded viewport. ---
+    const body = el("div", { className: "party-body" });
+    if (this.activeTab === "party") this.renderPartySection(body);
+    else if (this.activeTab === "reinforcements") this.renderReinforcementsSection(body);
+    else this.renderShopSection(body);
+    screen.appendChild(body);
+
+    // --- Footer: March button, always reachable. ---
+    const footer = el("div", { className: "party-footer" });
+    footer.appendChild(
+      el("button", {
+        className: "btn",
+        text: `March to Phase ${idx + 1} →`,
+        onClick: () => this.ctx.nav.toBattle(idx),
+      }),
+    );
+    screen.appendChild(footer);
+    this.root.appendChild(screen);
+  }
+
+  /** Party section: the editable roster of unit cards. */
+  private renderPartySection(body: HTMLElement): void {
     const grid = el("div", { className: "party-grid" });
     for (const u of this.ctx.state.party) grid.appendChild(this.unitCard(u));
-    screen.appendChild(grid);
+    body.appendChild(grid);
+  }
 
-    // Reinforcements: fill open deployment slots from the rest of the roster.
-    const cap = partyCapForPhase(idx);
+  /** Reinforcements section: recruit heroes into open deployment slots. */
+  private renderReinforcementsSection(body: HTMLElement): void {
+    const open = this.openSlots();
     const recruits = recruitableHeroes(this.ctx.state.party);
-    const openSlots = cap - this.ctx.state.party.length;
-    if (openSlots > 0 && recruits.length > 0) {
-      screen.appendChild(
-        el("div", {
-          className: "section-title",
-          text: `Reinforcements — ${openSlots} slot${openSlots > 1 ? "s" : ""} open`,
-        }),
-      );
-      screen.appendChild(
-        el("div", { className: "sub", attrs: { style: "margin-bottom:14px" }, text: "Word of the banner spreads. Choose a hero to join your march." }),
-      );
-      const rgrid = el("div", { className: "party-grid" });
-      for (const h of recruits) rgrid.appendChild(this.recruitCard(h));
-      screen.appendChild(rgrid);
-    }
+    body.appendChild(
+      el("div", {
+        className: "section-title",
+        text: `Reinforcements — ${open} slot${open !== 1 ? "s" : ""} open`,
+      }),
+    );
+    body.appendChild(
+      el("div", { className: "sub", attrs: { style: "margin-bottom:14px" }, text: "Word of the banner spreads. Choose a hero to join your march." }),
+    );
+    const rgrid = el("div", { className: "party-grid" });
+    for (const h of recruits) rgrid.appendChild(this.recruitCard(h));
+    body.appendChild(rgrid);
+  }
 
+  /** Shop section: inventory plus the consumable, gear, and weapon shops. */
+  private renderShopSection(body: HTMLElement): void {
+    const screen = body;
     const inv = Object.entries(this.ctx.state.inventory)
       .filter(([, c]) => c > 0)
       .map(([id, c]) => `${id} ×${c}`)
@@ -397,9 +466,6 @@ export class PartyScene implements Scene {
 
     // Shop section.
     screen.appendChild(el("div", { className: "section-title", text: "Camp Supply" }));
-    screen.appendChild(
-      el("div", { className: "inv-line", text: `Gil: ${this.ctx.state.gil}` }),
-    );
     const shopGrid = el("div", { className: "shop-grid" });
     for (const item of Object.values(ITEMS)) {
       const owned = this.ctx.state.inventory[item.id] ?? 0;
@@ -583,17 +649,6 @@ export class PartyScene implements Scene {
       weaponGrid.appendChild(row);
     }
     screen.appendChild(weaponGrid);
-
-    const footer = el("div", { className: "party-footer" });
-    footer.appendChild(
-      el("button", {
-        className: "btn",
-        text: `March to Phase ${idx + 1} →`,
-        onClick: () => this.ctx.nav.toBattle(idx),
-      }),
-    );
-    screen.appendChild(footer);
-    this.root.appendChild(screen);
   }
 
   update(_dt: number): void {

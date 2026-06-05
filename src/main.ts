@@ -11,6 +11,8 @@ import { TitleScene, VictoryScene } from "./scenes/menuScenes";
 import { BattleScene } from "./scenes/battleScene";
 import { PartyScene } from "./scenes/partyScene";
 import { PartySelectScene } from "./scenes/partySelectScene";
+import { ROSTER, createParty } from "./data/party";
+import { startingInventory } from "./data/items";
 
 function boot(): void {
   const app = document.getElementById("app");
@@ -39,6 +41,23 @@ function boot(): void {
       toVictory: () => manager.change(new VictoryScene(ctx)),
     },
   };
+
+  // Dev-only affordance: jump straight to scenes (e.g. the Party Camp, which is
+  // otherwise only reachable between battles) for headless layout checks. Guarded
+  // by import.meta.env.DEV, so it's tree-shaken out of the production build.
+  if ((import.meta as { env?: { DEV?: boolean } }).env?.DEV) {
+    (window as unknown as { __game: Record<string, unknown> }).__game = {
+      nav: ctx.nav,
+      state,
+      toCamp: (phase = 1) => {
+        ctx.state.party = createParty(ROSTER.slice(0, Math.min(6, ROSTER.length)).map((h) => h.id));
+        ctx.state.inventory = startingInventory();
+        ctx.state.gil = 800;
+        ctx.state.phaseIndex = phase;
+        ctx.nav.toParty();
+      },
+    };
+  }
 
   const resize = () => {
     renderer.resize(app.clientWidth, app.clientHeight);

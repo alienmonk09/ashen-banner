@@ -150,14 +150,17 @@ const CSS = `
 .toast.show { opacity: 1; }
 
 .banner {
-  inset: 0; display: flex; align-items: center; justify-content: center;
-  background: rgba(6, 8, 16, 0.7);
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 8, 16, 0.7); padding: 16px;
 }
 .banner-card {
   background: rgba(20, 24, 40, 0.97);
   border: 1px solid rgba(140,160,220,0.5);
   border-radius: 14px; padding: 28px 36px; text-align: center; max-width: 520px;
   box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+  /* Never overflow the viewport: a tall card (save slots, phase jump, settings
+     with all rebinds) scrolls internally instead of clipping off-screen. */
+  max-height: calc(100vh - 32px); overflow-y: auto;
 }
 .banner-card h1 { font-size: 28px; margin-bottom: 10px; }
 .banner-card p { font-size: 15px; opacity: 0.88; line-height: 1.5; margin-bottom: 18px; white-space: pre-line; }
@@ -222,11 +225,25 @@ const CSS = `
 .rotate-ctl .rlabel { font-size: 12px; opacity: 0.75; min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; }
 .rotate-ctl .audio-btn { margin-left: 4px; border-color: rgba(210,220,240,0.45); }
 
-/* Party / intermission screen */
-.party-screen { inset: 0; background: rgba(8,10,18,0.96); overflow-y: auto; padding: 24px; }
-.party-screen h1 { text-align: center; font-size: 24px; margin-bottom: 6px; }
-.party-screen .sub { text-align: center; opacity: 0.7; margin-bottom: 20px; }
-.section-title { text-align: center; font-size: 18px; font-weight: 700; margin: 26px 0 4px; color: #9fe0a8; }
+/* Party / intermission screen — viewport-locked: header + tabs stay put, only
+   the body scrolls, the footer (March / Begin) is always reachable. */
+.party-screen { position: absolute; inset: 0; background: rgba(8,10,18,0.96); display: flex; flex-direction: column; }
+.party-head { flex: none; padding: 14px 24px 8px; text-align: center; }
+.party-head h1 { font-size: 22px; margin-bottom: 4px; }
+.party-screen h1 { text-align: center; font-size: 22px; margin-bottom: 4px; }
+.party-screen .sub { text-align: center; opacity: 0.7; font-size: 13px; margin-bottom: 0; }
+.party-body { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 24px 14px; }
+.party-body::-webkit-scrollbar { width: 7px; }
+.party-body::-webkit-scrollbar-thumb { background: rgba(140,160,220,0.3); border-radius: 3px; }
+/* Tab bar to page between camp sections (Party / Reinforcements / Shop). */
+.camp-tabs { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.camp-tab { background: rgba(30,36,58,0.9); border: 1px solid rgba(120,140,200,0.4); color: #c8c8e0; font-size: 13px; font-weight: 600; padding: 7px 18px; border-radius: 6px; cursor: pointer; transition: background 0.12s, border-color 0.12s; }
+.camp-tab:hover { background: rgba(60,74,120,0.95); border-color: rgba(160,180,230,0.7); }
+.camp-tab.active { border-color: #ffd34d; color: #ffd34d; box-shadow: 0 0 0 1px #ffd34d; }
+.camp-tab .tab-badge { display: inline-block; margin-left: 6px; background: #5fbf72; color: #0c140c; font-size: 11px; font-weight: 800; border-radius: 8px; padding: 0 6px; }
+.camp-gil { font-size: 13px; color: #ffd34d; font-weight: 600; margin-top: 6px; }
+.section-title { text-align: center; font-size: 18px; font-weight: 700; margin: 18px 0 4px; color: #9fe0a8; }
+.section-title:first-child { margin-top: 4px; }
 .party-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; max-width: 1100px; margin: 0 auto; }
 .unit-card { background: rgba(22,26,42,0.95); border: 1px solid rgba(120,140,200,0.3); border-radius: 10px; padding: 14px; }
 .unit-card.selectable { cursor: pointer; transition: border-color 0.12s, box-shadow 0.12s, transform 0.05s; }
@@ -243,7 +260,7 @@ const CSS = `
 .unit-card select { width: 100%; background: #1a1e30; color: #eee; border: 1px solid #455; border-radius: 5px; padding: 5px; }
 .unit-card .skills { font-size: 12px; opacity: 0.85; margin-top: 6px; }
 .unit-card .jpline { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-.party-footer { text-align: center; margin: 24px 0 8px; }
+.party-footer { flex: none; text-align: center; padding: 12px 24px; border-top: 1px solid rgba(120,140,200,0.22); background: rgba(12,15,26,0.96); }
 .inv-line { text-align:center; font-size: 13px; opacity: 0.85; margin-top: 10px; }
 .shop-grid { max-width: 640px; margin: 12px auto 0; display: flex; flex-direction: column; gap: 6px; }
 .shop-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(22,26,42,0.95); border: 1px solid rgba(120,140,200,0.3); border-radius: 8px; padding: 10px 14px; }

@@ -195,6 +195,8 @@ const VOICE_GAIN = 0.018;
 const LOOKAHEAD_S = 0.25;
 
 let musicGainNode: GainNode | null = null;
+/** Oscillators scheduled by the active loop, so stopMusic can hard-stop them. */
+let voices: OscillatorNode[] = [];
 let running = false;
 let currentTheme: ThemeDef | null = null;
 let loopTimer: ReturnType<typeof setTimeout> | null = null;
@@ -245,9 +247,11 @@ function scheduleIteration(c: AudioContext, theme: ThemeDef, startTime: number):
       vGain.connect(gain);
       osc.start(t);
       osc.stop(t + dur + 0.02);
+      voices.push(osc);
       osc.onended = () => {
         osc.disconnect();
         vGain.disconnect();
+        voices = voices.filter((v) => v !== osc);
       };
     }
 
@@ -353,15 +357,34 @@ export function stopMusic(): void {
   currentTheme = null;
   clearLoopTimer();
 
-  // Soft fade-out of musicGain so in-flight voices don't click.
+  // Take the currently-scheduled voices; the new theme (started after this) will
+  // push its own, so we only ever stop the OLD ones below.
+  const stopping = voices;
+  voices = [];
+  const stopVoices = () => {
+    for (const osc of stopping) {
+      try {
+        osc.stop();
+        osc.disconnect();
+      } catch {
+        /* already ended */
+      }
+    }
+  };
+
+  // Soft fade-out of musicGain so in-flight voices don't click, THEN hard-stop the
+  // pre-scheduled voices and restore the gain — otherwise queued oscillators ring
+  // back audibly when the gain is restored.
   const c = getAudioContext();
   if (c && musicGainNode) {
     musicGainNode.gain.cancelScheduledValues(c.currentTime);
     musicGainNode.gain.setValueAtTime(musicGainNode.gain.value, c.currentTime);
-    musicGainNode.gain.linearRampToValueAtTime(0.0001, c.currentTime + 0.3);
-    // Restore gain value for future startMusic calls after the fade.
+    musicGainNode.gain.linearRampToValueAtTime(0.0001, c.currentTime + 0.2);
     setTimeout(() => {
+      stopVoices();
       if (musicGainNode) musicGainNode.gain.value = MUSIC_GAIN;
-    }, 400);
+    }, 220);
+  } else {
+    stopVoices();
   }
 }

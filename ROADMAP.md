@@ -96,9 +96,9 @@ Classic mechanics that change how a fight is played, not just its numbers.
 - ✅ **Spell charge time** (FFT casting) — a charged skill (Black Mage's Meteor) is announced
   on the cast turn (MP spent, "Charging…") and resolves on the caster's next turn; a KO
   before then interrupts it. The AI sticks to instant skills, so the sim stays convergent.
-- 🚧 **Objective variety** — ✅ rout, defeat-the-commander (the finale: kill Maldrath),
-  survive-N-turns, ✅ seize-a-point and ✅ defend-a-point (gold tile marker in the HUD);
-  ⏳ escort (needs an NPC unit concept)
+- ✅ **Objective variety** — rout, defeat-the-commander (the finale: kill Maldrath),
+  survive-N-turns, seize-a-point, defend-a-point, and **escort** (deliver a map-provided
+  guest VIP to a goal tile — lose if it falls; phase 4 escorts Sable the Envoy)
 - 🚧 **Terrain effects** — ✅ lava damage floors, healing springs, and slow mire (end-of-turn
   HP deltas / Slow status); ⏳ height-gated cover
 - 💭 **Fog of war / vision** — sight radius, scouting, ambush

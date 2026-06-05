@@ -134,6 +134,23 @@ export class BattleScene implements Scene {
         }),
       );
     }
+    // Seat guest allies (e.g. an escort VIP) as player-team units. Not difficulty-
+    // scaled and not added to the persistent party roster.
+    for (const a of this.map.allies ?? []) {
+      this.units.push(
+        createUnit({
+          name: a.name,
+          team: "player",
+          classId: a.classId,
+          level: a.level,
+          pos: a.pos,
+          weaponId: a.weaponId,
+          learnedSkillIds: a.skillIds ?? [],
+          personality: a.personality,
+          raceId: a.raceId,
+        }),
+      );
+    }
     // Point everyone toward the enemy they're about to fight.
     for (const u of this.units) u.facing = this.facingTowardFoes(u);
   }
@@ -221,16 +238,21 @@ export class BattleScene implements Scene {
         return "Objective: seize the marked tile";
       case "defend":
         return `Objective: hold the marked tile — ${Math.min(this.turnCount, obj.turns)}/${obj.turns} turns`;
+      case "escort": {
+        const vip = this.units.find((u) => u.team === "player" && u.name === obj.vipName);
+        const hpStr = vip?.alive ? ` (${vip.stats.hp}/${vip.stats.maxHp} HP)` : "";
+        return `Objective: escort ${obj.vipName} to the marked tile${hpStr}`;
+      }
       default:
         return "Objective: defeat all enemies";
     }
   }
 
-  /** Target tiles to highlight permanently for seize/defend objectives. */
+  /** Target tiles to highlight permanently for seize/defend/escort objectives. */
   private objectiveTiles(): Point[] {
     const obj = this.map.objective;
     if (!obj) return [];
-    if (obj.kind === "seize" || obj.kind === "defend") return [{ x: obj.x, y: obj.y }];
+    if (obj.kind === "seize" || obj.kind === "defend" || obj.kind === "escort") return [{ x: obj.x, y: obj.y }];
     return [];
   }
 

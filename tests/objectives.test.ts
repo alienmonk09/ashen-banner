@@ -110,6 +110,121 @@ describe("evaluateOutcome — defend", () => {
   });
 });
 
+describe("evaluateOutcome — escort", () => {
+  const VIP = "Sable the Envoy";
+  const obj = { kind: "escort" as const, vipName: VIP, x: 5, y: 1 };
+
+  it("returns player when the vip reaches the goal tile alive", () => {
+    const vip = makeUnit({ id: VIP, team: "player", x: 5, y: 1 });
+    const ally = makeUnit({ id: "p2", team: "player", x: 0, y: 0 });
+    const e = makeUnit({ id: "e", team: "enemy", x: 3, y: 3 });
+    expect(evaluateOutcome([vip, ally, e], obj, 0)).toBe("player");
+  });
+
+  it("returns null when vip is alive but not at goal and enemies are alive", () => {
+    const vip = makeUnit({ id: VIP, team: "player", x: 3, y: 5 });
+    const e = makeUnit({ id: "e", team: "enemy", x: 3, y: 3 });
+    expect(evaluateOutcome([vip, e], obj, 0)).toBeNull();
+  });
+
+  it("returns enemy when the vip dies (even if other player units live)", () => {
+    const vip = makeUnit({ id: VIP, team: "player", x: 3, y: 5, alive: false });
+    const ally = makeUnit({ id: "p2", team: "player", x: 0, y: 0 });
+    const e = makeUnit({ id: "e", team: "enemy", x: 3, y: 3 });
+    expect(evaluateOutcome([vip, ally, e], obj, 0)).toBe("enemy");
+  });
+
+  it("returns enemy when the dead vip is on the goal tile", () => {
+    const vip = makeUnit({ id: VIP, team: "player", x: 5, y: 1, alive: false });
+    const ally = makeUnit({ id: "p2", team: "player", x: 0, y: 0 });
+    const e = makeUnit({ id: "e", team: "enemy", x: 3, y: 3 });
+    expect(evaluateOutcome([vip, ally, e], obj, 0)).toBe("enemy");
+  });
+
+  it("returns enemy when the player team is wiped (vip not present)", () => {
+    const p = makeUnit({ id: "p", team: "player", alive: false });
+    const e = makeUnit({ id: "e", team: "enemy" });
+    expect(evaluateOutcome([p, e], obj, 0)).toBe("enemy");
+  });
+
+  it("falls back to rout when vip is absent and enemies are alive (null)", () => {
+    const ally = makeUnit({ id: "p", team: "player", x: 0, y: 0 });
+    const e = makeUnit({ id: "e", team: "enemy", x: 3, y: 3 });
+    expect(evaluateOutcome([ally, e], obj, 0)).toBeNull();
+  });
+
+  it("falls back to rout when vip is absent and all enemies are dead (player wins)", () => {
+    const ally = makeUnit({ id: "p", team: "player", x: 0, y: 0 });
+    const e = makeUnit({ id: "e", team: "enemy", alive: false });
+    expect(evaluateOutcome([ally, e], obj, 0)).toBe("player");
+  });
+});
+
+describe("map objective sanity — escort (phase4)", () => {
+  const map = PHASES.find((m) => m.id === "phase4");
+
+  it("phase4 exists and has an escort objective", () => {
+    expect(map).toBeDefined();
+    expect(map!.objective).toBeDefined();
+    expect(map!.objective!.kind).toBe("escort");
+  });
+
+  it("goal tile is in-bounds", () => {
+    const obj = map!.objective as { kind: "escort"; vipName: string; x: number; y: number };
+    expect(obj.x).toBeGreaterThanOrEqual(0);
+    expect(obj.x).toBeLessThan(map!.width);
+    expect(obj.y).toBeGreaterThanOrEqual(0);
+    expect(obj.y).toBeLessThan(map!.height);
+  });
+
+  it("goal tile is not blocked", () => {
+    const obj = map!.objective as { kind: "escort"; vipName: string; x: number; y: number };
+    expect(map!.blocked?.[obj.y][obj.x] ?? false).toBe(false);
+  });
+
+  it("goal tile is not on a player spawn", () => {
+    const obj = map!.objective as { kind: "escort"; vipName: string; x: number; y: number };
+    const onSpawn = map!.playerSpawns.some((s) => s.x === obj.x && s.y === obj.y);
+    expect(onSpawn).toBe(false);
+  });
+
+  it("goal tile is not on an enemy spawn", () => {
+    const obj = map!.objective as { kind: "escort"; vipName: string; x: number; y: number };
+    const onEnemy = map!.enemies.some((e) => e.pos.x === obj.x && e.pos.y === obj.y);
+    expect(onEnemy).toBe(false);
+  });
+
+  it("goal tile is not on the guest's starting position", () => {
+    const obj = map!.objective as { kind: "escort"; vipName: string; x: number; y: number };
+    const onAlly = (map!.allies ?? []).some((a) => a.pos.x === obj.x && a.pos.y === obj.y);
+    expect(onAlly).toBe(false);
+  });
+
+  it("the named vip exists in map.allies", () => {
+    const obj = map!.objective as { kind: "escort"; vipName: string; x: number; y: number };
+    const vip = (map!.allies ?? []).find((a) => a.name === obj.vipName);
+    expect(vip).toBeDefined();
+  });
+
+  it("every ally spawn is in-bounds, unblocked, and does not collide with player/enemy spawns or other allies", () => {
+    const allies = map!.allies ?? [];
+    const seen = new Set<string>([
+      ...map!.playerSpawns.map((s) => `${s.x},${s.y}`),
+      ...map!.enemies.map((e) => `${e.pos.x},${e.pos.y}`),
+    ]);
+    for (const a of allies) {
+      expect(a.pos.x).toBeGreaterThanOrEqual(0);
+      expect(a.pos.y).toBeGreaterThanOrEqual(0);
+      expect(a.pos.x).toBeLessThan(map!.width);
+      expect(a.pos.y).toBeLessThan(map!.height);
+      expect(map!.blocked?.[a.pos.y][a.pos.x] ?? false).toBe(false);
+      const k = `${a.pos.x},${a.pos.y}`;
+      expect(seen.has(k)).toBe(false);
+      seen.add(k);
+    }
+  });
+});
+
 describe("map objective sanity — seize (outerRamparts)", () => {
   const map = PHASES.find((m) => m.id === "outerRamparts");
 

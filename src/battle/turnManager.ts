@@ -51,9 +51,10 @@ export function battleWinner(units: Unit[]): Team | null {
 
 /**
  * Decide a battle against its objective. The player always loses when wiped out;
- * otherwise the objective sets the win: rout all foes, defeat a named target, or
- * survive a number of turns (routing also wins a survival map). Returns the
- * winning team, or null if the fight continues.
+ * otherwise the objective sets the win: rout all foes, defeat a named target,
+ * survive a number of turns (routing also wins a survival map), seize a tile,
+ * hold a tile for N turns, or escort a VIP to its goal tile. Returns the winning
+ * team, or null if the fight continues.
  */
 export function evaluateOutcome(
   units: Unit[],
@@ -85,6 +86,12 @@ export function evaluateOutcome(
         return "enemy";
       if (!enemiesAlive) return "player";
       return turnsElapsed >= obj.turns ? "player" : null;
+    case "escort": {
+      const vip = units.find((u) => u.team === "player" && u.name === obj.vipName);
+      if (vip && !vip.alive) return "enemy";                        // the escortee fell → defeat
+      if (vip && vip.pos.x === obj.x && vip.pos.y === obj.y) return "player"; // delivered → win
+      return enemiesAlive ? null : "player";                        // rout fallback / vip absent
+    }
   }
 }
 

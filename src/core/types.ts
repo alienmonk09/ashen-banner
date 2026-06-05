@@ -242,7 +242,9 @@ export type Objective =
   | { kind: "defeat"; targetName: string }
   | { kind: "survive"; turns: number }
   | { kind: "seize"; x: number; y: number }
-  | { kind: "defend"; x: number; y: number; turns: number };
+  | { kind: "defend"; x: number; y: number; turns: number }
+  /** Protect the named guest unit and deliver it to the goal tile (x, y). */
+  | { kind: "escort"; vipName: string; x: number; y: number };
 
 export interface MapDef {
   id: string;
@@ -260,6 +262,9 @@ export interface MapDef {
   terrain?: TerrainType[][];
   playerSpawns: Point[];
   enemies: EnemySpawn[];
+  /** Extra player-team guest units seated by the map (e.g. an escort VIP).
+   *  Distinct from the party that fills playerSpawns; never persists to the roster. */
+  allies?: EnemySpawn[];
 }
 
 export interface EnemySpawn {

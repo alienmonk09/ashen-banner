@@ -259,7 +259,7 @@ const CSS = `
 .unit-card label { font-size: 12px; opacity: 0.8; display: block; margin: 6px 0 2px; }
 .unit-card select { width: 100%; background: #1a1e30; color: #eee; border: 1px solid #455; border-radius: 5px; padding: 4px; }
 .unit-card .skills { font-size: 12px; opacity: 0.85; margin-top: 6px; }
-.unit-card .jpline { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.unit-card .learn-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 .party-footer { flex: none; text-align: center; padding: 12px 24px; border-top: 1px solid rgba(120,140,200,0.22); background: rgba(12,15,26,0.96); }
 .inv-line { text-align:center; font-size: 13px; opacity: 0.85; margin-top: 10px; }
 .shop-grid { max-width: 640px; margin: 12px auto 0; display: flex; flex-direction: column; gap: 6px; }
@@ -321,22 +321,8 @@ const CSS = `
 }
 .reaction-help-desc { font-size: 11px; line-height: 1.35; opacity: 0.75; }
 
-/* Dev shortcut bar — top-left, loaded only on the local Vite dev server. */
-.dev-bar {
-  left: 14px; top: 14px;
-  display: flex; flex-direction: column; gap: 4px; padding: 6px 7px;
-  border-color: rgba(245,200,66,0.5); background: rgba(28,22,8,0.9);
-  max-width: 120px; z-index: 50;
-}
-.dev-bar-title {
-  font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
-  color: #f5c842; opacity: 0.85; text-align: center; margin-bottom: 1px;
-}
-.dev-btn {
-  padding: 4px 6px; font-size: 11px; font-weight: 700;
-  background: rgba(60,50,20,0.95); border-color: rgba(245,200,66,0.45); color: #ffe9a8;
-}
-.dev-btn:hover { background: rgba(110,90,30,1); }
+/* (Dev shortcut bar styles live in scenes/battleDevTools.ts — injected only on
+   the local dev server, so they never ship in the production bundle.) */
 
 /* Settings panel */
 .settings-body { display: flex; flex-direction: column; gap: 12px; margin: 6px 0 4px; }

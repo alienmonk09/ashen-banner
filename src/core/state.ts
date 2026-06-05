@@ -303,6 +303,13 @@ export function loadGame(slot = 0): GameState | null {
     if (parsed.gold === undefined && typeof legacyGil === "number") {
       parsed.gold = legacyGil;
     }
+    // Back-compat: pre-rename saves stored Job Points as `jp`; carry it over to
+    // `sp` and normalise, else SP spending would read undefined and NaN out.
+    for (const u of parsed.party as Unit[]) {
+      const legacyJp = (u as { jp?: unknown }).jp;
+      if (u.sp === undefined && typeof legacyJp === "number") u.sp = legacyJp;
+      if (typeof u.sp !== "number" || !isFinite(u.sp) || u.sp < 0) u.sp = 0;
+    }
     // Back-compat: old saves lack `gold`; normalise any missing/invalid value.
     if (typeof parsed.gold !== "number" || !isFinite(parsed.gold) || parsed.gold < 0) {
       parsed.gold = 0;

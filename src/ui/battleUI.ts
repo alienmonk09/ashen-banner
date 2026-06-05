@@ -47,7 +47,6 @@ export class BattleUI {
   private dialogueEl: HTMLDivElement;
   private battleLogPanel: HTMLDivElement;
   private battleLogLines: HTMLDivElement;
-  private devBar: HTMLDivElement;
   private toastTimer = 0;
   /** Screen point (CSS px) the action menu/submenu anchor to; null = docked. */
   private menuAnchor: { x: number; y: number } | null = null;
@@ -70,7 +69,6 @@ export class BattleUI {
     this.battleLogPanel = el("div", { className: "panel battle-log" });
     this.battleLogPanel.appendChild(el("div", { className: "battle-log-title", text: "Battle Log" }));
     this.battleLogPanel.appendChild(this.battleLogLines);
-    this.devBar = el("div", { className: "panel dev-bar" });
     for (const n of [
       this.turnBar,
       this.objectivePanel,
@@ -84,7 +82,6 @@ export class BattleUI {
       this.dialogueEl,
       this.rotateCtl,
       this.battleLogPanel,
-      this.devBar,
     ]) {
       n.style.display = "none";
       this.layer.appendChild(n);
@@ -203,21 +200,6 @@ export class BattleUI {
     this.battleLogPanel.style.display = lines.length > 0 ? "flex" : "none";
     // Scroll to the latest entry.
     this.battleLogLines.scrollTop = this.battleLogLines.scrollHeight;
-  }
-
-  // --- Dev tools ---
-
-  /** Show a developer shortcut bar (cheats for rapid playtesting). Only invoked
-   *  when a dev flag is set, so it never appears in a normal player build. */
-  showDevBar(buttons: Array<{ label: string; title?: string; onClick: () => void }>): void {
-    clear(this.devBar);
-    this.devBar.appendChild(el("div", { className: "dev-bar-title", text: "DEV" }));
-    for (const b of buttons) {
-      this.devBar.appendChild(
-        el("button", { className: "btn small dev-btn", text: b.label, attrs: b.title ? { title: b.title } : {}, onClick: b.onClick }),
-      );
-    }
-    this.devBar.style.display = "flex";
   }
 
   // --- Camera rotation control ---

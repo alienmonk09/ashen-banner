@@ -110,7 +110,7 @@ export class PartyScene implements Scene {
   /** A "SP / Learn next" row for a given class (primary or secondary job). */
   private learnRow(unit: Unit, classId: ClassId, labelPrefix: string): HTMLElement {
     const next = nextLearnableSkillForClass(unit, classId);
-    const row = el("div", { className: "jpline" });
+    const row = el("div", { className: "learn-row" });
     if (next) {
       const skill = getSkill(next);
       const affordable = unit.sp >= skill.spCost;

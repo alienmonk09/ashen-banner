@@ -13,9 +13,22 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 - Commit each finished feature on the branch with a clear message + Co-Authored-By.
 
 ## Current state (resume point)
-- Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **1150 passing across 54 files**. Working tree: clean.
-- Last commit: `b5816aa fix(ui): dock the pre-battle dialogue box at the bottom`.
+- Branch: **`feat/skill-points-devpanel-explanations`** (off `main`; not merged, not pushed).
+- Build: clean. Tests: **1160 passing across 54 files**. Working tree: clean.
+- Last session (terminology + hygiene + refactor pass, multi-agent reviewed):
+  - **JP → Skill Points (SP)** everywhere: field `jp`→`sp`, `jpCost`→`spCost`,
+    `grantJp`→`grantSp`, all UI copy + playable docs. Saves use a fresh field (pre-release).
+  - **Dev cheat bar is local-only / out of the dist**: extracted from `battleScene.ts`
+    into `src/scenes/battleDevTools.ts`, loaded via a `import.meta.env.DEV`-gated dynamic
+    `import()` so Vite tree-shakes it (verified: zero dev strings/chunk in `dist/`). The
+    `?dev` URL escape hatch was removed.
+  - **Reaction explanations**: new `src/data/reactions.ts` (name/short/description mirroring
+    `combat.ts`); Party Camp lists every reaction a unit has with plain-language text, and
+    the battle unit panel shows all reactions (was Counter-only) with hover details.
+  - **Smaller files**: `battleScene.ts` 1478→1218 (also `battleView.ts` render projection +
+    `battleDevTools.ts`); `battleUI.ts` 597→531 (`battleUiHelpers.ts` pure helpers).
+  - Browser-verified (Edge headless): camp reaction help renders, battle renders + camera
+    rotation re-renders, no page errors, UI shows "SP" not "JP".
 - **The committed roadmap is essentially COMPLETE.** v0.3 ✅ (11 classes), v0.4 ✅
   (reactions incl. equippable, knockback+fall, ZoC, charge time, terrain lava/spring/mire,
   **objective variety COMPLETE incl. escort** — guest-VIP via `MapDef.allies`, phase4),

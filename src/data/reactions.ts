@@ -21,17 +21,17 @@ export const REACTIONS: Record<Reaction, ReactionInfo> = {
     description:
       "When an enemy lands a melee hit on this unit, it immediately strikes back with its own weapon — as long as the attacker is within its weapon's reach.",
   },
-  cover: {
-    name: "Cover",
-    short: "shields a weaker adjacent ally",
-    description:
-      "Steps in front of an orthogonally-adjacent ally who has less HP, taking a single-target hit meant for them. The healthiest eligible guard intervenes.",
-  },
   autoPotion: {
     name: "Auto-Potion",
     short: "auto-heals when badly hurt",
     description:
       "The moment this unit drops below 30% HP from a hit, it automatically drinks a Potion (or Hi-Potion) from the party's shared supply — if any are in stock.",
+  },
+  cover: {
+    name: "Cover",
+    short: "shields a weaker adjacent ally",
+    description:
+      "Steps in front of an orthogonally-adjacent ally who has less HP, taking a single-target hit meant for them. The healthiest eligible guard intervenes.",
   },
 };
 

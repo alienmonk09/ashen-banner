@@ -14,12 +14,12 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/tactics-depth-and-progression`** (off `main`; not merged, not pushed).
-- Build: clean. Tests: **908 passing across 43 files**. Working tree: clean.
-- Last commit: `79f8e52 feat(v1.0): three save slots`. Shipped since the sell commit:
-  battle log (`83576bb`), undo move (`a8e257e`), save slots (`79f8e52`).
-- ~22 features this session. Codex reviewer is down (6+ "failed to output" across scopes);
-  recent features verified by build+test+browser+self-review — run Codex review on the
-  whole branch when it recovers (it caught ~9 real P2s earlier).
+- Build: clean. Tests: **946 passing across 45 files**. Working tree: clean.
+- Last commit: `556e713 fix: recovered Codex branch review (3 findings)`. Shipped since the
+  sell commit: battle log, undo move, save slots, settings menu, New Game+.
+- ~24 features this session. Codex reviewer went DOWN mid-session (6+ "failed to output")
+  then RECOVERED — its branch review caught 3 more real issues (fall-kill credit, instant
+  mute, leap forecast), all fixed in `556e713`. A fresh `review --base main` is running.
 - NOTE: the Codex reviewer started returning "Reviewer failed to output a response" on
   EVERY scope (even small diffs) partway through this session — a transient runtime fault,
   not a code signal. It worked for ~10 earlier features (caught ~9 real P2s). Recent

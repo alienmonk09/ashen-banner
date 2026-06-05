@@ -129,10 +129,12 @@ Put the [story](STORY.md) on screen.
 
 ## v1.0 — Release polish 💭
 
-- 💭 New Game+ / post-campaign content & unlockables
+- ✅ New Game+ — clear the campaign, restart from Phase 1 keeping your leveled party, gil
+  & gear; each cycle makes enemies tougher (+3 levels). 💭 more unlockables later
 - 💭 Accessibility pass (color-blind palettes, input remap, text scaling)
 - ✅ Three save slots (per-slot Continue on the title; old saves load as slot 1) and
-  ✅ undo-move (take back a move before acting); 💭 settings/options menu still to come
+  ✅ undo-move (take back a move before acting), and ✅ a settings menu (sound/music
+  toggles + master volume)
 - ✅ Battle log (a scrolling record of turns + every hit/heal/KO/status); 💭 full replay later
 - 💭 Performance pass for large maps & big rosters
 - 💭 Rebalanced enemy curves across difficulties

@@ -70,3 +70,64 @@ export const PHASE_DIALOGUE: Record<string, DialogueLine[]> = {
 export function dialogueFor(mapId: string): DialogueLine[] {
   return PHASE_DIALOGUE[mapId] ?? [];
 }
+
+/**
+ * A short story beat played after a player victory (1–3 lines), keyed by MAP ID.
+ * Reflects on the battle just won — the banner planted, the cost, the road still
+ * ahead — in STORY.md's grim/terse/underdog tone.
+ */
+export const PHASE_OUTRO: Record<string, DialogueLine[]> = {
+  // Chapter I — Tutorial Skirmish: first blood, banner raised on the border.
+  phase1: [
+    { speaker: "Garan", text: "Banner's up. First field of the war. They'll remember it." },
+    { speaker: "Lyra", text: "Thirty years' worth of nothing, and now they know we're here." },
+    { speaker: "—", text: "The Ashen Banner flies over Calenmark for the first time in a generation." },
+  ],
+
+  // Chapter II — Ambush in the Hills: height taken, the ridge mage dead.
+  phase2: [
+    { speaker: "Bron", text: "Uphill into a sorcerer. We survived it." },
+    { speaker: "Vex", text: "The hill sorcerer studied fire for years. It took him seconds to lose it." },
+    { speaker: "Lyra", text: "Keep moving. The hills are ours now." },
+  ],
+
+  // Chapter III — The Bridge: the span forced, the far bank crossed.
+  phase3: [
+    { speaker: "—", text: "The bridge holds. The far bank falls silent." },
+    { speaker: "Mira", text: "We crossed. That's more than they expected of us." },
+    { speaker: "Garan", text: "Past the river now. No going back." },
+  ],
+
+  // Chapter IV — The Cinder Fields: a roving company surrounded and broken.
+  cinderFields: [
+    { speaker: "—", text: "The cinder fields are quiet again — or as quiet as ash ever is." },
+    { speaker: "Vex", text: "They tried to envelop us on open ground. Should have known better." },
+    { speaker: "Garan", text: "Hold the line. The inner court is next." },
+  ],
+
+  // Chapter V — Sorcerer's Court: the cabal broken, the regime's spine cut.
+  phase4: [
+    { speaker: "—", text: "The court that propped up a tyrant's throne — dust and embers now." },
+    { speaker: "Mira", text: "Mirelle was a healer once. I wonder when she stopped." },
+    { speaker: "Vex", text: "The throne has nothing left to hide behind. We move at dawn." },
+  ],
+
+  // Chapter VI — The Outer Ramparts: the gate seized, the garrison routed.
+  outerRamparts: [
+    { speaker: "—", text: "The gatehouse falls. The keep's last wall is breached." },
+    { speaker: "Bron", text: "Took some hits getting over that stone. Worth it." },
+    { speaker: "Garan", text: "One door left. And Maldrath knows we're coming." },
+  ],
+
+  // Chapter VII — The Tyrant's Stand: Maldrath dead, the war over, the banner standing.
+  phase5: [
+    { speaker: "—", text: "Maldrath the Unbowed, Lord-Marshal of a burned kingdom — fallen at last." },
+    { speaker: "Garan", text: "Thirty years, and it ends here. The banner holds." },
+    { speaker: "—", text: "Five survivors crossed a broken country and refused to kneel. Calenmark remembers." },
+  ],
+};
+
+/** Lines for a map's post-victory scene, or `[]` if the map has none. */
+export function outroFor(mapId: string): DialogueLine[] {
+  return PHASE_OUTRO[mapId] ?? [];
+}

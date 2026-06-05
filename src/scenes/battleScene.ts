@@ -34,7 +34,7 @@ import { getItem } from "../data/items";
 import { getClass } from "../data/classes";
 import { getVfx, vfxKeyForSkill, vfxKeyForWeapon } from "../data/sprites";
 import { PHASES } from "../data/maps";
-import { dialogueFor } from "../data/dialogue";
+import { dialogueFor, outroFor } from "../data/dialogue";
 import { MAX_PARTY } from "../data/party";
 import { BattleUI } from "../ui/battleUI";
 import { formatHit } from "../battle/log";
@@ -352,10 +352,19 @@ export class BattleScene implements Scene {
           : `${this.map.name} cleared. Your party regroups and grows stronger.`,
         buttonLabel: last ? "See Results" : "Continue",
         onClick: () => {
-          if (last) this.ctx.nav.toVictory();
-          else {
-            this.ctx.state.phaseIndex = this.phaseIndex + 1;
-            this.ctx.nav.toParty();
+          this.ui.hideBanner();
+          const outroLines = outroFor(this.map.id);
+          const proceed = () => {
+            if (last) this.ctx.nav.toVictory();
+            else {
+              this.ctx.state.phaseIndex = this.phaseIndex + 1;
+              this.ctx.nav.toParty();
+            }
+          };
+          if (outroLines.length > 0) {
+            this.ui.showDialogue(outroLines, proceed);
+          } else {
+            proceed();
           }
         },
       });

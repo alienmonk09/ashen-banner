@@ -301,6 +301,13 @@ const CSS = `
 .settings-vol-label { font-size: 13px; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; opacity: 0.85; }
 .settings-scale-group { display: flex; gap: 5px; }
 
+/* Controls section in the Settings panel */
+.settings-controls-section { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(120,140,200,0.25); }
+.settings-section-title { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.55; margin-bottom: 0; }
+.settings-rebind-btn { min-width: 90px; font-variant-numeric: tabular-nums; }
+.settings-rebind-listening { border-color: rgba(255,211,77,0.8); color: #ffd34d; animation: rebind-pulse 0.8s ease-in-out infinite; }
+@keyframes rebind-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+
 /* Text-scale: key readable containers honour --ui-scale. */
 .banner-card h1 { font-size: calc(28px * var(--ui-scale)); margin-bottom: 10px; }
 .banner-card p  { font-size: calc(15px * var(--ui-scale)); opacity: 0.88; line-height: 1.5; margin-bottom: 18px; white-space: pre-line; }

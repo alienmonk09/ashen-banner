@@ -13,6 +13,14 @@ import {
   setHighContrast,
   type TextScale,
 } from "../engine/accessibility";
+import {
+  ACTIONS,
+  ACTION_LABELS,
+  getBinding,
+  setBinding,
+  resetBindings,
+  type Action,
+} from "../engine/keybindings";
 
 function resetState(state: GameState): void {
   state.party = createStartingParty();
@@ -73,6 +81,19 @@ class BannerScene implements Scene {
   dispose(): void {
     this.root.remove();
   }
+}
+
+/** Display a key name in a human-friendly format for the Controls section. */
+function formatKey(key: string): string {
+  if (key === "Escape") return "Esc";
+  if (key === "Enter") return "Enter";
+  if (key === " ") return "Space";
+  if (key === "ArrowLeft") return "←";
+  if (key === "ArrowRight") return "→";
+  if (key === "ArrowUp") return "↑";
+  if (key === "ArrowDown") return "↓";
+  if (key.length === 1) return key.toUpperCase();
+  return key;
 }
 
 /**
@@ -186,6 +207,81 @@ function buildSettingsPanel(onBack: () => void): HTMLElement {
   settingsBody.appendChild(hcRow);
 
   card.appendChild(settingsBody);
+
+  // --- Controls section ---
+  const controlsSection = el("div", { className: "settings-controls-section" });
+  controlsSection.appendChild(el("div", { className: "settings-section-title", text: "Controls" }));
+
+  /** Rebuild the controls section after a binding change. */
+  const rebuildControls = (): void => {
+    controlsSection.innerHTML = "";
+    controlsSection.appendChild(el("div", { className: "settings-section-title", text: "Controls" }));
+
+    let pendingAction: Action | null = null;
+    let pendingBtn: HTMLButtonElement | null = null;
+    let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
+    const cancelCapture = (): void => {
+      if (!pendingAction || !pendingBtn) return;
+      keydownHandler && window.removeEventListener("keydown", keydownHandler, true);
+      pendingBtn.textContent = formatKey(getBinding(pendingAction));
+      pendingBtn.className = "btn small settings-rebind-btn";
+      pendingAction = null;
+      pendingBtn = null;
+      keydownHandler = null;
+    };
+
+    for (const action of ACTIONS) {
+      const row = el("div", { className: "settings-row" });
+      row.appendChild(el("span", { className: "settings-label", text: ACTION_LABELS[action] }));
+
+      const rebindBtn = el("button", {
+        className: "btn small settings-rebind-btn",
+        text: formatKey(getBinding(action)),
+        onClick: () => {
+          if (pendingAction === action) {
+            // Second click cancels capture.
+            cancelCapture();
+            return;
+          }
+          cancelCapture();
+          pendingAction = action;
+          pendingBtn = rebindBtn as HTMLButtonElement;
+          rebindBtn.textContent = "…press a key";
+          rebindBtn.className = "btn small settings-rebind-btn settings-rebind-listening";
+
+          keydownHandler = (e: KeyboardEvent): void => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.removeEventListener("keydown", keydownHandler!, true);
+            keydownHandler = null;
+            const captured = e.key;
+            setBinding(action, captured);
+            pendingAction = null;
+            pendingBtn = null;
+            rebuildControls();
+          };
+          window.addEventListener("keydown", keydownHandler, true);
+        },
+      });
+      row.appendChild(rebindBtn);
+      controlsSection.appendChild(row);
+    }
+
+    const resetRow = el("div", { attrs: { style: "display:flex;justify-content:flex-end;margin-top:4px" } });
+    resetRow.appendChild(el("button", {
+      className: "btn small",
+      text: "Reset to defaults",
+      onClick: () => {
+        resetBindings();
+        rebuildControls();
+      },
+    }));
+    controlsSection.appendChild(resetRow);
+  };
+
+  rebuildControls();
+  card.appendChild(controlsSection);
 
   // --- Back button ---
   const backRow = el("div", { attrs: { style: "display:flex;gap:10px;justify-content:center;margin-top:18px" } });

@@ -27,6 +27,7 @@ import { forecastSkill, forecastWeapon } from "../battle/forecast";
 import { screenToTile, worldToScreen, rotateTile, type Rotation, type ScreenPoint } from "../engine/iso";
 import { sfx } from "../engine/audio";
 import { startMusic, stopMusic } from "../engine/music";
+import { actionForKey, getBinding } from "../engine/keybindings";
 import type { ActiveEffect, BattleView, FloatingText, ForecastTag, OverlaySet } from "../engine/renderer";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
@@ -404,7 +405,7 @@ export class BattleScene implements Scene {
       onUndo: () => this.undoMove(),
       onRecruit: () => this.enterRecruit(),
     });
-    this.ui.setHint("Left-click to act · Right-click to cancel · Enter to end turn · , / . to rotate view");
+    this.ui.setHint(`Left-click to act · Right-click to cancel · Enter/${getBinding("endTurn")} to end turn · ${getBinding("rotateLeft")}/${getBinding("rotateRight")} to rotate view`);
   }
 
   /**
@@ -583,15 +584,22 @@ export class BattleScene implements Scene {
   }
 
   private handleKey(key: string): void {
+    const action = actionForKey(key);
     // Camera rotation is a pure view operation (never mutates game state), so
     // it's allowed any time — even mid-animation or on the enemy's turn.
-    if (key === "," || key === "<") return this.rotateView(-1);
-    if (key === "." || key === ">") return this.rotateView(1);
+    if (action === "rotateLeft") return this.rotateView(-1);
+    if (action === "rotateRight") return this.rotateView(1);
+    // Enter always works as an end-turn shortcut regardless of bindings so
+    // players aren't locked out if they rebind the "e" key to something else.
+    if (key === "Enter") {
+      if (this.playerInControl) this.endActiveTurn();
+      return;
+    }
     // Everything below changes turn state: ignore unless the player is actively
     // in control (not mid-animation/resolve, not the enemy's turn).
     if (!this.playerInControl) return;
-    if (key === "Escape") return this.cancelToMenu();
-    if (key === "Enter" || key === "e" || key === "E") this.endActiveTurn();
+    if (action === "cancel") return this.cancelToMenu();
+    if (action === "endTurn") this.endActiveTurn();
   }
 
   private inRangeTiles(tile: Point): boolean {

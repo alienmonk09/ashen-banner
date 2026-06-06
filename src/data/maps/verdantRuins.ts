@@ -72,13 +72,13 @@ export const verdantRuins: MapDef = {
     { x: 11, y: 14 },
   ],
   enemies: [
+    { name: "Vine Stalker", classId: "thief", level: 6, weaponId: "assassinBlade", skillIds: ["backstab","hamstring"], pos: { x: 3, y: 9 }, personality: "aggressive", raceId: "halfling" },
+    { name: "Grove Druid", classId: "druid", level: 7, weaponId: "heartwood", skillIds: ["thornLash","regrowth"], pos: { x: 7, y: 2 }, personality: "support", raceId: "elf" },
+    { name: "Mossback Berserker", classId: "berserker", level: 6, weaponId: "warAxe", skillIds: ["rampage","cleave"], pos: { x: 11, y: 9 }, personality: "aggressive", raceId: "orc" },
+    { name: "Spring Acolyte", classId: "whiteMage", level: 7, weaponId: "staff", skillIds: ["cure","protect"], pos: { x: 3, y: 3 }, personality: "support", raceId: "human" },
     { name: "Temple Warden", classId: "knight", level: 8, weaponId: "runeBlade", skillIds: ["powerStrike","guard"], pos: { x: 7, y: 6 }, personality: "defensive", raceId: "human" },
     { name: "Canopy Sniper", classId: "archer", level: 8, weaponId: "longbow", skillIds: ["aimedShot","cripple"], pos: { x: 5, y: 6 }, personality: "defensive", raceId: "elf" },
     { name: "Ruin Geomancer", classId: "geomancer", level: 8, weaponId: "gaiaStaff", skillIds: ["boulder","quagmire"], pos: { x: 9, y: 6 }, personality: "balanced", raceId: "gnome" },
-    { name: "Grove Druid", classId: "druid", level: 7, weaponId: "heartwood", skillIds: ["thornLash","regrowth"], pos: { x: 7, y: 2 }, personality: "support", raceId: "elf" },
-    { name: "Vine Stalker", classId: "thief", level: 6, weaponId: "assassinBlade", skillIds: ["backstab","hamstring"], pos: { x: 3, y: 9 }, personality: "aggressive", raceId: "halfling" },
-    { name: "Mossback Berserker", classId: "berserker", level: 7, weaponId: "warAxe", skillIds: ["rampage","cleave"], pos: { x: 11, y: 9 }, personality: "aggressive", raceId: "orc" },
-    { name: "Spring Acolyte", classId: "whiteMage", level: 7, weaponId: "staff", skillIds: ["cure","protect"], pos: { x: 3, y: 3 }, personality: "support", raceId: "human" },
-    { name: "Saurian Lancer", classId: "lancer", level: 8, weaponId: "dragoonLance", skillIds: ["jump","lanceThrust"], pos: { x: 11, y: 3 }, personality: "balanced", raceId: "saurian" },
+    { name: "Saurian Lancer", classId: "lancer", level: 9, weaponId: "dragoonLance", skillIds: ["jump","lanceThrust"], pos: { x: 11, y: 3 }, personality: "balanced", raceId: "saurian" },
   ],
 };

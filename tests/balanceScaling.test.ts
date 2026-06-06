@@ -41,8 +41,8 @@ describe("enemyTierOffset", () => {
 describe("enemies scale to the party (slightly weaker, boss keeps bite)", () => {
   it("seats grunts below the party and lets a finale boss tower on Normal", () => {
     const partyAvg = 8;
-    // Phase 5 (finale): grunts authored at 11 (map min), boss at 14.
-    const map = PHASES[6];
+    // The finale (last phase): grunts authored at the map min, boss +3 above it.
+    const map = PHASES[PHASES.length - 1];
     const mapMin = Math.min(...map.enemies.map((e) => e.level));
     const levels = map.enemies.map((e) => enemyLevelFor(partyAvg, enemyTierOffset(e.level, mapMin), "normal", 0));
     const grunt = Math.min(...levels);

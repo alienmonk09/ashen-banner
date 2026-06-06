@@ -57,6 +57,76 @@ export const PHASE_DIALOGUE: Record<string, DialogueLine[]> = {
     { speaker: "Garan", text: "Seize the gatehouse and the garrison's hold breaks. Then it's only Maldrath." },
   ],
 
+  // The long march — Frostspire Pass (rout; iced ridges, archers, a frozen stream).
+  frostspirePass: [
+    { speaker: "Lyra", text: "Two ridges, archers on both crowns, a frozen stream between. Cross fast or freeze under their arrows." },
+    { speaker: "Bron", text: "Mind the black water. Ice'll hold a man; those deep pools won't." },
+    { speaker: "Garan", text: "Force the crossing, clear the crowns. Nobody lingers in the open." },
+  ],
+
+  // The long march — The Sunken Causeway (seize the shrine; one road through black mire).
+  sunkenCauseway: [
+    { speaker: "Garan", text: "One stone road through a black bog. Step off it and the mire takes you." },
+    { speaker: "Mira", text: "Their wardens hold the high stones and the shrine plateau beyond." },
+    { speaker: "Vex", text: "Then we push the causeway and seize the shrine before the bog swallows us." },
+  ],
+
+  // The long march — Emberfall Quarry (defend the upper landing; terraced pit, lava seams).
+  emberfallQuarry: [
+    { speaker: "Vex", text: "Stepped quarry, lava bleeding through the lower benches. They mean to throw us back into the fire." },
+    { speaker: "Bron", text: "So we climb, take the crown of the dig, and don't give it back." },
+    { speaker: "Garan", text: "Hold the upper landing. Seven turns. Let them spend themselves on the ramps." },
+  ],
+
+  // The long march — The Howling Steppe (survive; flat open ground, a horde from the north).
+  howlingSteppe: [
+    { speaker: "Lyra", text: "Flat ground to every horizon. A horde rolling in from the north, and nowhere to hide." },
+    { speaker: "Bron", text: "Then we make our own cover. Backs to the tors, hold the rises." },
+    { speaker: "Garan", text: "Weather it. Eight turns, and the storm breaks itself on us." },
+  ],
+
+  // The long march — Gravewatch Hollow (defeat Mortilex; a sunken graveyard, the dead rising).
+  gravewatchHollow: [
+    { speaker: "Mira", text: "A graveyard gone to mire — and that thing on the plateau, Mortilex, pulling the dead back out of it." },
+    { speaker: "Mortilex the Gravewatcher", text: "More flesh for the pile. Walk in, little banner. I have room." },
+    { speaker: "Garan", text: "Cut up the ramps. Put the necromancer back in the ground and the dead stay down." },
+  ],
+
+  // The long march — The Verdant Ruins (rout; a jungle temple, a sacred spring).
+  verdantRuins: [
+    { speaker: "Vex", text: "A whole temple swallowed by jungle. Maldrath's people hold the high terraces." },
+    { speaker: "Lyra", text: "There's a clean spring at its heart. Take it and we fight from strength." },
+    { speaker: "Garan", text: "Climb the steps, hold the spring, rout every last one out of the canopy." },
+  ],
+
+  // The long march — Ironhold Gate (seize the gate-control; twin towers, one gate-lane).
+  ironholdGate: [
+    { speaker: "Lyra", text: "Twin towers, a wall-walk full of archers, a battle-mage on the merlons. One gate-lane in." },
+    { speaker: "Bron", text: "A chokepoint. They funnel us — we funnel back." },
+    { speaker: "Garan", text: "Storm the lane, seize the gate-control before the garrison grinds us flat." },
+  ],
+
+  // The long march — Saltflat Mirage (rout; a white salt pan, fast skirmishers, heat-ghosts).
+  saltflatMirage: [
+    { speaker: "Vex", text: "Raiders, fast ones, scattering across the flats. The heat-ghosts make every count a lie." },
+    { speaker: "Lyra", text: "Run them down before they melt into the glare and circle behind us." },
+    { speaker: "Garan", text: "No line to hold out here. Hunt them. Don't let one slip the net." },
+  ],
+
+  // The long march — The Drowned Vault (defend the dais; a flooded vault, plank walkways).
+  drownedVault: [
+    { speaker: "Mira", text: "Flooded vault, chambers cut to islands. Reavers wading in for the core." },
+    { speaker: "Bron", text: "Slick planks between us and them. Good — they come single-file." },
+    { speaker: "Garan", text: "Hold the dais. Seven turns till the floodgates seal. Let no one set foot on it." },
+  ],
+
+  // The long march — Maldrath's Approach (defeat the Herald; basalt road, lava causeways).
+  maldrathsApproach: [
+    { speaker: "Garan", text: "The last ridge before the keep. Lava under every causeway, and the Herald waiting on the altar." },
+    { speaker: "Maldrath's Herald", text: "You crawled this far on a dead banner. The keep ends you here, on its threshold." },
+    { speaker: "Vex", text: "Cut across the moat, scale the perches. The Herald falls, the keep's door opens." },
+  ],
+
   // Chapter VII — The Tyrant's Stand (the shattered throne, two chasms, the killing floor).
   phase5: [
     { speaker: "—", text: "The shattered keep. Two chasms, one narrow approach, and the throne at the end of it." },
@@ -117,6 +187,67 @@ export const PHASE_OUTRO: Record<string, DialogueLine[]> = {
     { speaker: "—", text: "The gatehouse falls. The keep's last wall is breached." },
     { speaker: "Bron", text: "Took some hits getting over that stone. Worth it." },
     { speaker: "Garan", text: "One door left. And Maldrath knows we're coming." },
+  ],
+
+  // The long march — Frostspire Pass: crowns cleared, the crossing forced.
+  frostspirePass: [
+    { speaker: "Bron", text: "Pass is clear. Cold work." },
+    { speaker: "Lyra", text: "The crowns are ours. Move, before the wind finds us." },
+  ],
+
+  // The long march — The Sunken Causeway: the shrine seized, the bog left behind.
+  sunkenCauseway: [
+    { speaker: "Mira", text: "Shrine's taken. The bog can have the rest." },
+    { speaker: "Garan", text: "One more road behind us. Keep to the stone." },
+  ],
+
+  // The long march — Emberfall Quarry: the upper landing held, the wardens spent.
+  emberfallQuarry: [
+    { speaker: "Vex", text: "Held the landing. They burned themselves out on the ramps." },
+    { speaker: "Garan", text: "The crown of the dig is ours. On." },
+  ],
+
+  // The long march — The Howling Steppe: the horde weathered, the line unbroken.
+  howlingSteppe: [
+    { speaker: "Bron", text: "Eight turns. The storm broke on us, and we didn't." },
+    { speaker: "Lyra", text: "The Steppe's quiet now. Even the wind gave up." },
+  ],
+
+  // The long march — Gravewatch Hollow: Mortilex put down, the dead laid to rest.
+  gravewatchHollow: [
+    { speaker: "Mira", text: "Mortilex is down. The dead are just dead again." },
+    { speaker: "Garan", text: "Bury what he raised. We leave none of them standing." },
+  ],
+
+  // The long march — The Verdant Ruins: the canopy cleared, the spring taken.
+  verdantRuins: [
+    { speaker: "Vex", text: "Canopy's cleared. The spring runs clean for us now." },
+    { speaker: "Garan", text: "The ruins are ours. Drink, then we march." },
+  ],
+
+  // The long march — Ironhold Gate: the gate-control seized, the garrison broken.
+  ironholdGate: [
+    { speaker: "Bron", text: "Gate's open. Took the lane, and the towers with it." },
+    { speaker: "Garan", text: "Ironhold's broken. The road inward is ours." },
+  ],
+
+  // The long march — Saltflat Mirage: the raiders run down, the flats emptied.
+  saltflatMirage: [
+    { speaker: "Lyra", text: "Ran every last one down. No mirages left to chase." },
+    { speaker: "Vex", text: "The flats are empty. Out of this glare, fast." },
+  ],
+
+  // The long march — The Drowned Vault: the dais held, the floodgates sealed.
+  drownedVault: [
+    { speaker: "Mira", text: "Dais held. Floodgates sealed with us still on it." },
+    { speaker: "Garan", text: "The vault-core's ours. Let the water take the rest." },
+  ],
+
+  // The long march — Maldrath's Approach: the Herald cut down, the keep laid open.
+  maldrathsApproach: [
+    { speaker: "Garan", text: "The Herald's dead. The keep's door stands open." },
+    { speaker: "Vex", text: "Only Maldrath left now. The last door." },
+    { speaker: "—", text: "The Ashen Banner reaches the threshold of the dark keep. One stand remains." },
   ],
 
   // Chapter VII — The Tyrant's Stand: Maldrath dead, the war over, the banner standing.

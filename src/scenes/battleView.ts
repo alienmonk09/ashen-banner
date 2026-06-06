@@ -3,9 +3,11 @@ import { Grid, manhattan, moveBlockers, samePoint, zoneOfControl } from "../batt
 import { pathTo, reachable } from "../battle/pathfinding";
 import { aoeTiles, leapLanding } from "../battle/targeting";
 import { forecastSkill, forecastWeapon } from "../battle/forecast";
+import { attackAngle } from "../battle/facing";
 import type { AttackContext } from "../battle/combat";
 import { getWeapon } from "../data/weapons";
 import { getItem } from "../data/items";
+import { terrainEffect } from "../data/terrain";
 import type { Rotation, ScreenPoint } from "../engine/iso";
 import type { ActiveEffect, BattleView, FloatingText, ForecastTag, OverlaySet } from "../engine/renderer";
 import type { BattleScene } from "./battleScene";
@@ -67,6 +69,14 @@ export function buildView(scene: BattleScene, origin: ScreenPoint): BattleView {
   const overlays: OverlaySet = { move: [], attack: [], aoe: [], path: [], objective: objectiveTiles(s) };
   if (s.phase === "move") {
     overlays.move = s.rangeTiles;
+    // Flag reachable tiles whose terrain bites (lava), heals (spring), or snares
+    // (mire) so the player weighs the hazard before committing the move.
+    overlays.hazards = s.rangeTiles.flatMap((t) => {
+      const eff = terrainEffect(s.grid.terrainAt(t.x, t.y));
+      if (!eff) return [];
+      const kind = eff.kind === "status" ? "slow" : eff.kind;
+      return [{ tile: t, kind } as { tile: Point; kind: "damage" | "heal" | "slow" }];
+    });
     if (s.hoverTile && s.inRangeTiles(s.hoverTile) && s.active) {
       const { solid, passThrough } = moveBlockers(s.units, s.active);
       const zoc = zoneOfControl(s.units, s.active.team);
@@ -131,6 +141,25 @@ function computeUnitOffsets(s: ViewScene): Map<string, { dx: number; dy: number 
   return offsets;
 }
 
+/**
+ * Compact tokens describing the positional bonuses folded into a PHYSICAL hit,
+ * so the forecast explains WHY the number is what it is (flank/rear damage +
+ * crit edge, high/low ground). Magic ignores facing/elevation, so callers only
+ * append these for physical attacks. Front + level ground → no tokens (the
+ * baseline), keeping the common case uncluttered.
+ */
+function positionalMods(ctx: AttackContext, target: Unit): string[] {
+  const mods: string[] = [];
+  const from = ctx.fromPos ?? target.pos;
+  const angle = attackAngle(from, target.pos, target.facing);
+  if (angle === "rear") mods.push("rear");
+  else if (angle === "flank") mods.push("flank");
+  const hd = ctx.heightDelta ?? 0;
+  if (hd > 0) mods.push("high");
+  else if (hd < 0) mods.push("low");
+  return mods;
+}
+
 /** Damage/heal preview for the hovered target, given the current action. */
 function computeForecast(s: ViewScene, tile: Point): ForecastTag | null {
   if (!s.active) return null;
@@ -141,8 +170,13 @@ function computeForecast(s: ViewScene, tile: Point): ForecastTag | null {
 
   if (s.phase === "attackTarget") {
     if (!enemy) return null;
-    const f = forecastWeapon(s.active, enemy, getWeapon(s.active.weaponId), s.posCtx(enemy.pos));
-    return { tile, text: f.lethal ? `${f.amount} · KO` : `${f.amount}`, color: POPUP_COLORS.damage, strong: f.lethal };
+    const ctx = s.posCtx(enemy.pos);
+    const weapon = getWeapon(s.active.weaponId);
+    const f = forecastWeapon(s.active, enemy, weapon, ctx);
+    const parts = [`${f.amount}`];
+    if (weapon.kind === "physical") parts.push(...positionalMods(ctx, enemy));
+    if (f.lethal) parts.push("KO");
+    return { tile, text: parts.join(" · "), color: POPUP_COLORS.damage, strong: f.lethal };
   }
 
   if (s.phase === "skillTarget" && s.selectedSkill) {
@@ -166,10 +200,12 @@ function computeForecast(s: ViewScene, tile: Point): ForecastTag | null {
         }
       }
       const f = forecastSkill(s.active, enemy, sk, ctx);
-      let text = f.lethal ? `${f.amount} · KO` : `${f.amount}`;
-      if (f.affinity === "weak") text += " · weak";
-      else if (f.affinity === "resist") text += " · resist";
-      return { tile, text, color: POPUP_COLORS.damage, strong: f.lethal || f.affinity === "weak" };
+      const parts = [`${f.amount}`];
+      if (sk.scaling === "physical") parts.push(...positionalMods(ctx, enemy));
+      if (f.affinity === "weak") parts.push("weak");
+      else if (f.affinity === "resist") parts.push("resist");
+      if (f.lethal) parts.push("KO");
+      return { tile, text: parts.join(" · "), color: POPUP_COLORS.damage, strong: f.lethal || f.affinity === "weak" };
     }
     if (sk.effect === "heal") {
       if (!ally) return null;

@@ -48,6 +48,9 @@ export interface OverlaySet {
   aoe: Point[];
   path: Point[];
   objective?: Point[];
+  /** Reachable tiles whose terrain has a per-turn effect, so the player can see
+   *  the hazard (lava) / boon (spring) / snare (mire) BEFORE stepping onto it. */
+  hazards?: { tile: Point; kind: "damage" | "heal" | "slow" }[];
 }
 
 /** A transient spell/skill effect animation playing over a tile. */
@@ -99,6 +102,9 @@ const COLOR = {
   hover: "rgba(255,255,255,0.22)",
   gridLine: "rgba(0,0,0,0.18)",
   objective: "rgba(255,210,80,0.55)",
+  hazardDamage: "rgba(255,90,40,0.45)",
+  hazardHeal: "rgba(80,235,150,0.45)",
+  hazardSlow: "rgba(150,110,60,0.5)",
 };
 
 /** One-glyph badge + color per status, drawn as a pip over the unit's HP bar.
@@ -219,6 +225,11 @@ export class Renderer {
       else m.set(k, [color]);
     };
     for (const t of view.overlays.move) push(t, COLOR.move);
+    // Hazard tints sit on top of the move shade so a lava/spring/mire tile inside
+    // the move range reads as its hazard color, not plain "reachable" blue.
+    for (const hz of view.overlays.hazards ?? []) {
+      push(hz.tile, hz.kind === "damage" ? COLOR.hazardDamage : hz.kind === "heal" ? COLOR.hazardHeal : COLOR.hazardSlow);
+    }
     for (const t of view.overlays.attack) push(t, COLOR.attack);
     for (const t of view.overlays.path) push(t, COLOR.path);
     for (const t of view.overlays.aoe) push(t, COLOR.aoe);

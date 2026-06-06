@@ -1,6 +1,7 @@
 import type { SkillDef, Unit, WeaponDef } from "../core/types";
 import {
   effectiveDef,
+  effectiveRes,
   defenseDamageMult,
   elementAffinity,
   elementDamageMult,
@@ -40,7 +41,7 @@ export function forecastSkill(caster: Unit, target: Unit, skill: SkillDef, ctx?:
     case "damage": {
       // Clamp the raw base to 1 BEFORE the multipliers, exactly as resolveSkillOnTarget
       // does — otherwise a weak-element ×1.5 on a sub-1 base under-reports the real hit.
-      let base = Math.max(1, (power * skill.power) / 10 - (skill.scaling === "magical" ? target.stats.res : effectiveDef(target)));
+      let base = Math.max(1, (power * skill.power) / 10 - (skill.scaling === "magical" ? effectiveRes(target) : effectiveDef(target)));
       base *= positionalDamageMult(caster, target, skill.scaling, ctx);
       base *= defenseDamageMult(target, skill.scaling);
       base *= elementDamageMult(target, skill.element);

@@ -73,6 +73,20 @@ export function effectiveDef(unit: Unit): number {
   return def;
 }
 
+/**
+ * Magic resistance after status modifiers (Guard). Guard is a turn-ending
+ * defensive stance, so it braces against BOTH attack types — without this it did
+ * nothing against mages (magical damage reads RES directly), making it a coin
+ * flip whether bracing helped at all. Mirrors effectiveDef.
+ */
+export function effectiveRes(unit: Unit): number {
+  let res = unit.stats.res;
+  if (hasStatus(unit, "guard")) {
+    res = Math.round(res * (1 + GUARD_DEF_BONUS));
+  }
+  return res;
+}
+
 /** Speed after status modifiers (Slow/Haste) — used by the turn manager. */
 export function effectiveSpd(unit: Unit): number {
   let spd = unit.stats.spd;
@@ -167,6 +181,9 @@ function dealDamage(target: Unit, amount: number): { killed: boolean } {
   if (target.stats.hp === 0 && target.alive) {
     target.alive = false;
     target.statuses = [];
+    // Drop any half-charged skill: a felled caster must not resurrect and then
+    // resolve a stale charge at a now-meaningless target tile.
+    target.charging = undefined;
     return { killed: true };
   }
   return { killed: false };
@@ -341,7 +358,7 @@ export function resolveSkillOnTarget(
   switch (skill.effect) {
     case "damage": {
       if (!target.alive) return null;
-      let base = Math.max(1, (power * skill.power) / 10 - (skill.scaling === "magical" ? target.stats.res : effectiveDef(target)));
+      let base = Math.max(1, (power * skill.power) / 10 - (skill.scaling === "magical" ? effectiveRes(target) : effectiveDef(target)));
       base *= positionalDamageMult(caster, target, skill.scaling, ctx);
       base *= defenseDamageMult(target, skill.scaling);
       base *= elementDamageMult(target, skill.element);
@@ -364,6 +381,7 @@ export function resolveSkillOnTarget(
     case "revive": {
       if (target.alive) return null;
       target.alive = true;
+      target.charging = undefined; // a revived unit starts clean — never inherits a pre-death charge
       const value = Math.max(1, Math.round((power * skill.power) / 20));
       target.stats.hp = Math.min(target.stats.maxHp, value);
       return { unitId: target.id, kind: "revive", amount: value, crit: false, killed: false, revived: true };
@@ -465,6 +483,7 @@ export function resolveItem(
     case "revive":
       if (target.alive) return null;
       target.alive = true;
+      target.charging = undefined; // a revived unit starts clean — never inherits a pre-death charge
       target.stats.hp = Math.min(target.stats.maxHp, amount);
       return { unitId: target.id, kind: "revive", amount, crit: false, killed: false, revived: true };
     case "buff": {

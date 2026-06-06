@@ -13,9 +13,23 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 - Commit each finished feature on the branch with a clear message + Co-Authored-By.
 
 ## Current state (resume point)
-- Branch: **`feat/balance-and-terrain`** (off the prior `feat/skill-points-devpanel-explanations`,
-  which is off `main`; neither merged nor pushed). Build: clean. Tests: **1292 passing**.
-- Latest session (20 improvements + content + a11y/UX, multi-agent designed, all browser-verified):
+- Branch: **`feat/progression-rewards`** (off `main`; not merged/pushed). Build: clean.
+  Tests: **1333 passing**. Audio WIP for `feat/audio` is parked in `git stash`
+  (restore with `git checkout feat/audio && git stash pop`).
+- Latest session — **Progression, rewards & treasure** (spec
+  `docs/superpowers/specs/2026-06-06-progression-rewards-treasure-design.md`, multi-agent +
+  adversarial review, all browser-verified):
+  - **Live XP economy** (`core/progression.ts`): kill-participation XP (participants Map;
+    finisher +50%), small action XP (offensive + ally buffs/heals), fixed equal battle-clear
+    bonus. XP is now granted DURING battle; old pooled `distributeBattleXp` replaced.
+  - **In-battle level-up card** (`battleUI.showLevelUp`), queued + drained between actions.
+  - **Treasure chests** (`MapDef.chests[]`, 8 maps), opened by ending a move on the tile;
+    code-art chest in the renderer; spoils-screen + per-battle ledgers.
+  - **Rewards screen** (`battleUI.showRewards`): gold + items (chest/enemy/victory) + per-hero
+    XP/level + MVP. **Dialogue disabled** via `core/config.ts` `DIALOGUE_ENABLED`.
+  - **Richer character sheet** (camp) + in-battle XP bar; gold popups, XP log lines, animated
+    gold tally, a11y on overlays. Dev bar gained `+Lvl` card preview, `Loot`, `Win→spoils`.
+- Prior session (20 improvements + content + a11y/UX, multi-agent designed, all browser-verified):
   - **Wave 1 — battle core**: `effectiveRes` (Guard +50% RES, mirrors DEF); death/revive clear
     `charging`; magical skills use `effectiveRes`. Forecast shows positional mods (flank/rear/
     high/low) + terrain hazard overlays on move tiles.

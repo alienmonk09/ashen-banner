@@ -179,33 +179,36 @@ out across independent files (and independent agents).
   ideally one extraction per PR.
 - 💭 Split `classes.ts` / `weapons.ts` per-class next if they start to contend.
 
-## v0.5.6 — Progression, rewards & treasure 🚧 *(current focus)*
+## v0.5.6 — Progression, rewards & treasure ✅ *(this pass)*
 
 Make growth *felt*: XP earned by fighting (not just handed out at the bell), a
 level-up moment mid-battle, chests to find, and a proper spoils screen. Full design
 in [`docs/superpowers/specs/2026-06-06-progression-rewards-treasure-design.md`](docs/superpowers/specs/2026-06-06-progression-rewards-treasure-design.md).
+All browser-verified (dialogue skipped, level-up card + resume, chest loot, spoils screen).
 
 Core (the goal):
-- ⏳ **Live XP economy** — XP is granted *during* battle, not only at victory. Three
+- ✅ **Live XP economy** — XP is granted *during* battle, not only at victory. Three
   channels: **kill-participation** (every unit that damaged/​debuffed a foe shares its
   XP; the finisher gets +50%), small **action XP** (offensive hits *and* buffs/heals on
   allies pay the actor), and a **fixed battle-clear bonus** split equally to the whole
-  party (present, fallen, or benched) so no one falls off the curve.
-- ⏳ **In-battle level-up screen** — a card pops the moment a unit levels up mid-combat:
+  party (present, fallen, or benched) so no one falls off the curve. (`core/progression.ts`.)
+- ✅ **In-battle level-up screen** — a card pops the moment a unit levels up mid-combat:
   Lv↑, stat deltas, "new skill available"; queues multi-level/multi-unit; reduced-motion aware.
-- ⏳ **Treasure chests** — `MapDef.chests[]` of `{ pos, loot }`; a hero ending its move
-  on a chest opens it (gold + items), with a glint when in range, a jingle, and a popup.
-- ⏳ **End-of-battle rewards + screen** — gold, items (chests + drops), and per-hero XP
-  with level-up badges on a dedicated spoils screen; MVP line; save checkpoint after.
-- ⏳ **Dialogues disabled** — one call-site flag mutes intro/outro on every level
-  (data + helpers kept intact; flip to re-enable later).
-- ⏳ **Richer character sheets** — XP bar, elemental affinities, derived combat values,
-  growth-rate bars, mastery progress, learned-vs-locked skills; reusable in-battle inspect.
+- ✅ **Treasure chests** — `MapDef.chests[]` of `{ pos, loot }`; a hero ending its move
+  on a chest opens it (gold + items), drawn as code-art on the field, with a jingle + popup.
+- ✅ **End-of-battle rewards + screen** — gold, items (chests + enemy drops + a victory
+  roll), and per-hero XP with level badges on a dedicated spoils screen; MVP callout.
+- ✅ **Dialogues disabled** — one call-site flag (`DIALOGUE_ENABLED`) mutes intro/outro on
+  every level (data + helpers kept intact; flip to re-enable later).
+- ✅ **Richer character sheets** — XP bar, elemental affinities, growth-rate bars, mastery
+  progress, learned-vs-locked skills (camp); in-battle unit panel gains an XP bar too.
 
-Polish & the +20 (see spec §9): floating gold popups, XP/level-up log lines, chest VFX,
-a11y/keyboard on new overlays, MVP badge, enemy item drops, difficulty/chapter-scaled
-loot, "collect all chests" bonus, in-battle XP panel, "new skill" indicators, animated
-gold tally, dev-tools shortcuts (open chests / grant XP / show rewards).
+Polish landed: ✅ floating gold popups on kills, ✅ XP/level-up log lines, ✅ chest VFX +
+jingle, ✅ a11y (role=dialog/aria on overlays, reduced-motion), ✅ MVP callout, ✅ enemy
+item drops, ✅ difficulty/chapter-scaled loot, ✅ in-battle XP panel + "new skill" cue,
+✅ animated gold tally, ✅ dev-tools previews (level-up card / open chest / win→spoils).
+Still 💭 (roadmapped, not built): "collect all chests" bonus, guarded/locked chests,
+adjacent "Open" action, branching reward picks, chest-in-range glint.
 
 ## v0.6 — Narrative & presentation ⏳
 

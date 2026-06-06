@@ -14,8 +14,28 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 
 ## Current state (resume point)
 - Branch: **`feat/balance-and-terrain`** (off the prior `feat/skill-points-devpanel-explanations`,
-  which is off `main`; neither merged nor pushed). Build: clean. Tests: **1173 passing**.
-- Latest session (combat balance overhaul, multi-agent diagnosed + reviewed) — fixes the
+  which is off `main`; neither merged nor pushed). Build: clean. Tests: **1292 passing**.
+- Latest session (20 improvements + content + a11y/UX, multi-agent designed, all browser-verified):
+  - **Wave 1 — battle core**: `effectiveRes` (Guard +50% RES, mirrors DEF); death/revive clear
+    `charging`; magical skills use `effectiveRes`. Forecast shows positional mods (flank/rear/
+    high/low) + terrain hazard overlays on move tiles.
+  - **Wave 2 — smarter AI**: `counterRisk` discounts provoking a counter; per-personality heal
+    thresholds; AoE cluster bonus rewards multi-hits/kills.
+  - **Wave 3 — juice**: crit screen-shake + pop-scaled popup + 3-voice sting; dedicated death
+    sting + thud; counter riposte sting + jolt; elevation-aware movement (bilinear height interp).
+  - **Wave 4 — accessibility**: reduced-motion setting (OS-default, gates hit-shake + screen-shake
+    + CSS animations); colorblind-safe turn chips (⛨/⚔ glyph + dashed disabled cue); ARIA across
+    settings + turn bar.
+  - **Wave 5 — camp overhaul**: full stat grid w/ boosted/lowered tinting, gear deltas (±pow/rng,
+    [Δ] vs equipped), class/sub-job preview, SP "N left / need X" on learn rows.
+  - **Wave 6 — party customizer**: New Game "Choose Your Party" re-classes + re-races chosen heroes
+    (`createCustomParty`); verified in-browser (Garan→Black Mage/elf persisted into battle).
+  - **Wave 7 — 10 bigger maps**: frostspire→Maldrath's-approach (14×14–16×16), inserted before
+    phase5 (17 phases total); BFS-reachable, party-relative levels (mapMin 6, +3 boss), intro+outro
+    dialogue each.
+  - **Wave 8 — battle UX**: turn-chip status/charge-duration badge + full hover tooltip; recruit
+    hint on hovered enemies; Skills menu shows MP pool + "need X more MP" on unaffordable skills.
+- Earlier session (combat balance overhaul, multi-agent diagnosed + reviewed) — fixes the
   reported wall (L1 party met L3 enemies in phase 2 and fell further behind every chapter):
   - **Enemy levels are now PARTY-RELATIVE** (`enemyLevelFor(partyAvg, offset, difficulty, ngPlus)`
     in state.ts; `partyAverageLevel`/`enemyTierOffset` helpers). Foes sit a notch below the party

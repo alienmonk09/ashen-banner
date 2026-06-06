@@ -40,6 +40,8 @@ export interface FloatingText {
   /** seconds elapsed. */
   age: number;
   ttl: number;
+  /** Critical hit — drawn larger with a brief pop-in scale for emphasis. */
+  crit?: boolean;
 }
 
 export interface OverlaySet {
@@ -92,6 +94,8 @@ export interface BattleView {
   forecast: ForecastTag | null;
   /** Bob phase for the active-unit indicator (seconds accumulator). */
   time: number;
+  /** Whole-scene pixel offset for impact shake (crits, deaths, counters). */
+  screenShake?: { dx: number; dy: number };
 }
 
 const COLOR = {
@@ -172,12 +176,44 @@ export class Renderer {
     return worldToScreen(v.x, v.y, z, view.origin);
   }
 
+  /**
+   * Interpolated tile height for a unit at a possibly-fractional position, so a
+   * unit visually climbs/descends as it steps across tiles of differing height
+   * instead of popping to the next tile's z. Bilinear over the four surrounding
+   * integer tiles — for the axis-aligned, one-tile-at-a-time movement the animator
+   * produces, the off-axis weights fall to zero, giving a clean per-step ramp.
+   */
+  private interpHeight(grid: Grid, ap: Point): number {
+    const x0 = Math.floor(ap.x);
+    const y0 = Math.floor(ap.y);
+    const fx = ap.x - x0;
+    const fy = ap.y - y0;
+    const h00 = grid.heightAt(x0, y0);
+    const h10 = grid.heightAt(x0 + 1, y0);
+    const h01 = grid.heightAt(x0, y0 + 1);
+    const h11 = grid.heightAt(x0 + 1, y0 + 1);
+    return (
+      h00 * (1 - fx) * (1 - fy) +
+      h10 * fx * (1 - fy) +
+      h01 * (1 - fx) * fy +
+      h11 * fx * fy
+    );
+  }
+
   render(view: BattleView): void {
     this.clear();
+    // Impact shake: nudge the whole scene a few pixels. Save/restore so the DPR
+    // transform set in resize() is preserved across frames.
+    const shake = view.screenShake;
+    if (shake) {
+      this.ctx.save();
+      this.ctx.translate(shake.dx, shake.dy);
+    }
     this.drawScene(view);
     this.drawEffects(view);
     this.drawPopups(view);
     this.drawForecast(view);
+    if (shake) this.ctx.restore();
   }
 
   private drawForecast(view: BattleView): void {
@@ -263,7 +299,9 @@ export class Renderer {
     }
     for (const unit of view.units) {
       const ap = view.animPos.get(unit.id) ?? unit.pos;
-      const z = grid.heightAt(Math.round(ap.x), Math.round(ap.y));
+      // Interpolated height so a mid-step unit climbs/descends smoothly (and sorts
+      // at its true in-between elevation rather than snapping to a tile's z).
+      const z = this.interpHeight(grid, ap);
       items.push({ kind: "unit", depth: depthKey(ap.x, ap.y, z, rot, w, h) + 0.5, unit, dx: ap.x, dy: ap.y });
     }
     items.sort((a, b) => a.depth - b.depth);
@@ -278,7 +316,7 @@ export class Renderer {
         const cols = overlays.get(`${it.x},${it.y}`);
         if (cols) for (const c of cols) this.paintDiamond(center, c);
       } else {
-        const z = grid.heightAt(Math.round(it.dx), Math.round(it.dy));
+        const z = this.interpHeight(grid, { x: it.dx, y: it.dy });
         const center = this.project(view, it.dx, it.dy, z);
         // Screen-space facing vector: project one tile ahead and normalize, so the
         // marker rotates correctly with the camera.
@@ -510,12 +548,30 @@ export class Renderer {
       const t = p.age / p.ttl;
       const yOff = -40 - t * 24;
       ctx.globalAlpha = Math.max(0, 1 - t);
-      ctx.font = "bold 16px system-ui";
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "rgba(0,0,0,0.8)";
-      ctx.strokeText(p.text, center.sx, center.sy + yOff);
-      ctx.fillStyle = p.color;
-      ctx.fillText(p.text, center.sx, center.sy + yOff);
+      if (p.crit) {
+        // Crit popups read bigger and "pop": a brief overshoot scale at spawn that
+        // settles to a still-larger-than-normal size, drawn from the popup's center.
+        const pop = 1.5 + Math.max(0, 0.6 - t * 6);
+        const px = center.sx;
+        const py = center.sy + yOff;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.scale(pop, pop);
+        ctx.font = "bold 16px system-ui";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,0.8)";
+        ctx.strokeText(p.text, 0, 0);
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, 0, 0);
+        ctx.restore();
+      } else {
+        ctx.font = "bold 16px system-ui";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,0.8)";
+        ctx.strokeText(p.text, center.sx, center.sy + yOff);
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, center.sx, center.sy + yOff);
+      }
       ctx.globalAlpha = 1;
     }
   }

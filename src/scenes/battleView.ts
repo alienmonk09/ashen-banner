@@ -25,6 +25,10 @@ export const POPUP_COLORS = {
 /** Seconds a hit-shake / attack-lunge animation lasts. */
 export const SHAKE_DUR = 0.22;
 export const LUNGE_DUR = 0.18;
+/** Seconds a whole-scene impact shake (crit / death / counter) lasts. */
+export const SCREEN_SHAKE_DUR = 0.3;
+/** Peak screen-shake amplitude in pixels at full strength. */
+const SCREEN_SHAKE_AMP = 6;
 
 /**
  * The slice of BattleScene state the per-frame view builder reads. These
@@ -47,6 +51,8 @@ interface ViewScene {
   deaths: Map<string, number>;
   hitShake: Map<string, number>;
   lunge: { id: string; tx: number; ty: number; age: number } | null;
+  /** Seconds of whole-scene impact shake remaining (0 = none). */
+  screenShake: number;
   time: number;
   map: MapDef;
   ctx: { animator: { animPos: BattleView["animPos"] } };
@@ -111,7 +117,15 @@ export function buildView(scene: BattleScene, origin: ScreenPoint): BattleView {
     deathFade: s.deaths,
     forecast,
     time: s.time,
+    screenShake: computeScreenShake(s),
   };
+}
+
+/** Whole-scene impact shake offset that decays as the timer runs out. */
+function computeScreenShake(s: ViewScene): { dx: number; dy: number } | undefined {
+  if (s.screenShake <= 0) return undefined;
+  const amp = (s.screenShake / SCREEN_SHAKE_DUR) * SCREEN_SHAKE_AMP;
+  return { dx: Math.sin(s.time * 90) * amp, dy: Math.cos(s.time * 78) * amp * 0.6 };
 }
 
 /** Per-unit pixel offsets for hit shake and attack lunge. */

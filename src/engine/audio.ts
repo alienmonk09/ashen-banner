@@ -196,8 +196,17 @@ function playHit(): void {
 }
 
 function playCrit(): void {
-  tone({ freq: noteToFreq("G4"), slideTo: noteToFreq("B4"), dur: 0.08, type: "triangle", gain: 0.03 });
-  tone({ freq: noteToFreq("D5"), slideTo: noteToFreq("G5"), dur: 0.1, type: "triangle", gain: 0.026, delay: 0.055 });
+  // A little louder + a third rising voice so a crit lands harder than a normal hit.
+  tone({ freq: noteToFreq("G4"), slideTo: noteToFreq("B4"), dur: 0.08, type: "triangle", gain: 0.04 });
+  tone({ freq: noteToFreq("D5"), slideTo: noteToFreq("G5"), dur: 0.1, type: "triangle", gain: 0.034, delay: 0.05 });
+  tone({ freq: noteToFreq("G5"), slideTo: noteToFreq("D6"), dur: 0.11, type: "triangle", gain: 0.024, delay: 0.1 });
+}
+
+function playCounter(): void {
+  // A quick metallic riposte — two sharp rising voices so a reaction reads as
+  // distinct from the provoking hit, not just a second normal swing.
+  tone({ freq: noteToFreq("E4"), slideTo: noteToFreq("A4"), dur: 0.06, type: "square", gain: 0.03 });
+  tone({ freq: noteToFreq("B4"), slideTo: noteToFreq("E5"), dur: 0.09, type: "triangle", gain: 0.026, delay: 0.045 });
 }
 
 function playHeal(): void {
@@ -214,6 +223,13 @@ function playKO(): void {
   tone({ freq: noteToFreq("D3"), slideTo: noteToFreq("D2"), dur: 0.22, type: "sine", gain: 0.04 });
 }
 
+function playDeath(): void {
+  // A heavier, two-stage descending sting for a unit falling — more final than the
+  // generic KO blip: a low body that sags, plus a softer sub a beat later.
+  tone({ freq: noteToFreq("A3"), slideTo: noteToFreq("D3"), dur: 0.26, type: "triangle", gain: 0.045 });
+  tone({ freq: noteToFreq("D3"), slideTo: noteToFreq("A2"), dur: 0.34, type: "sine", gain: 0.05, delay: 0.12 });
+}
+
 function playSelect(): void {
   tone({ freq: noteToFreq("C5"), slideTo: noteToFreq("E5"), dur: 0.045, type: "sine", gain: 0.018 });
 }
@@ -221,8 +237,10 @@ function playSelect(): void {
 export const sfx = {
   playHit,
   playCrit,
+  playCounter,
   playHeal,
   playMagic,
   playKO,
+  playDeath,
   playSelect,
 };

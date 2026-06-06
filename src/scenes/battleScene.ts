@@ -39,7 +39,7 @@ import { MAX_PARTY } from "../data/party";
 import { BattleUI } from "../ui/battleUI";
 import { formatHit } from "../battle/log";
 import type { GameContext, Scene } from "./sceneManager";
-import { POPUP_COLORS, SHAKE_DUR, LUNGE_DUR, buildView } from "./battleView";
+import { POPUP_COLORS, SHAKE_DUR, LUNGE_DUR, SCREEN_SHAKE_DUR, buildView } from "./battleView";
 
 type Phase =
   | "intro"
@@ -79,6 +79,7 @@ export class BattleScene implements Scene {
   private hitShake = new Map<string, number>(); // unitId -> seconds of shake remaining
   private deaths = new Map<string, number>(); // unitId -> seconds since death (fade-out)
   private lunge: { id: string; tx: number; ty: number; age: number } | null = null;
+  private screenShake = 0; // seconds of whole-scene impact shake remaining
   private time = 0;
 
   private static readonly LOG_CAP = 60;
@@ -703,6 +704,11 @@ export class BattleScene implements Scene {
     const res = resolveCounterAttack(defender, attacker, w, this.rng, ctx);
     if (!res) return;
     this.lunge = { id: defender.id, tx: attacker.pos.x, ty: attacker.pos.y, age: 0 };
+    // Reaction flourish: a distinct riposte sting + a light jolt so the counter
+    // reads as a deliberate strike-back, not just a second swing. (pushPopup still
+    // layers the normal hit/crit/death cues for the counter's own damage.)
+    sfx.playCounter();
+    this.shakeScreen(0.5);
     this.pushEffect(attacker.pos, vfxKeyForWeapon(w));
     this.pushPopup(res);
     // Counter damage can drop a player attacker low enough to auto-potion.
@@ -1098,6 +1104,12 @@ export class BattleScene implements Scene {
     this.ui.setBattleLog(this.log);
   }
 
+  /** Kick off (or refresh) the whole-scene impact shake. `strength` 0..1 scales
+   *  how long it rings; full strength for the most emphatic hits. */
+  private shakeScreen(strength = 1): void {
+    this.screenShake = Math.max(this.screenShake, SCREEN_SHAKE_DUR * strength);
+  }
+
   private pushEffect(tile: Point, vfxKey: string): void {
     const anim = getVfx(vfxKey);
     if (!anim) return;
@@ -1121,10 +1133,15 @@ export class BattleScene implements Scene {
     if (res.revived) this.deaths.delete(res.unitId);
     let text: string;
     let color: string;
+    let crit = false;
     switch (res.kind) {
       case "damage":
-        if (res.crit) sfx.playCrit();
-        else sfx.playHit();
+        if (res.crit) {
+          sfx.playCrit();
+          // Crits punch: jolt the screen and tag the popup for emphatic rendering.
+          this.shakeScreen(1);
+          crit = true;
+        } else sfx.playHit();
         text = res.crit ? `${res.amount}!` : `${res.amount}`;
         color = res.crit ? POPUP_COLORS.crit : POPUP_COLORS.damage;
         break;
@@ -1146,8 +1163,11 @@ export class BattleScene implements Scene {
         color = POPUP_COLORS.status;
         break;
     }
-    if (res.killed) sfx.playKO();
-    this.popups.push({ tile: { ...target.pos }, text, color, age: 0, ttl: 1.1 });
+    if (res.killed) {
+      sfx.playDeath();
+      this.shakeScreen(0.85); // a unit falling thuds — slightly softer than a crit
+    }
+    this.popups.push({ tile: { ...target.pos }, text, color, age: 0, ttl: 1.1, crit });
     this.pushLog(formatHit(res, (id) => this.units.find((u) => u.id === id)?.name ?? "Someone"));
   }
 
@@ -1196,6 +1216,7 @@ export class BattleScene implements Scene {
       this.lunge.age += dt;
       if (this.lunge.age >= LUNGE_DUR) this.lunge = null;
     }
+    if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - dt);
 
     // Hover + target info.
     const origin = this.origin;

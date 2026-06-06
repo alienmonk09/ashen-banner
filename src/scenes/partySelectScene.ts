@@ -1,9 +1,9 @@
-import { ROSTER, PARTY_SIZE, createParty, type HeroDef } from "../data/party";
+import { ROSTER, PARTY_SIZE, createCustomParty, type HeroDef } from "../data/party";
 import { startingInventory } from "../data/items";
 import { clearSave, SAVE_SLOTS } from "../core/state";
-import type { Difficulty } from "../core/types";
-import { getClass } from "../data/classes";
-import { getRace } from "../data/races";
+import type { ClassId, Difficulty, RaceId } from "../core/types";
+import { CLASSES, getClass } from "../data/classes";
+import { RACES, getRace } from "../data/races";
 import { statsForLevel } from "../core/unit";
 import { getCharacterSprite, getHeroSprite } from "../data/sprites";
 import { el, clear } from "../ui/dom";
@@ -26,9 +26,29 @@ const DIFFICULTY_DESCS: Record<Difficulty, string> = {
 export class PartySelectScene implements Scene {
   private root: HTMLDivElement;
   private selected = new Set<string>();
+  /** Per-hero class/race overrides for the optional party customizer. Absent =
+   *  the roster default. Only the selected heroes' picks matter at Begin. */
+  private custom = new Map<string, { classId: ClassId; raceId: RaceId }>();
   private difficulty: Difficulty = "normal";
   private permadeath = false;
   private slot = 0;
+
+  /** The hero's current class/race choice (override if customized, else roster). */
+  private pickFor(hero: HeroDef): { classId: ClassId; raceId: RaceId } {
+    return this.custom.get(hero.id) ?? { classId: hero.classId, raceId: hero.raceId };
+  }
+
+  private setHeroClass(hero: HeroDef, classId: ClassId): void {
+    const cur = this.pickFor(hero);
+    this.custom.set(hero.id, { ...cur, classId });
+    this.render();
+  }
+
+  private setHeroRace(hero: HeroDef, raceId: RaceId): void {
+    const cur = this.pickFor(hero);
+    this.custom.set(hero.id, { ...cur, raceId });
+    this.render();
+  }
 
   constructor(private ctx: GameContext) {
     this.ctx.renderer.clear();
@@ -63,8 +83,11 @@ export class PartySelectScene implements Scene {
 
   private begin(): void {
     if (this.selected.size !== PARTY_SIZE) return;
-    const order = ROSTER.filter((h) => this.selected.has(h.id)).map((h) => h.id);
-    this.ctx.state.party = createParty(order);
+    const picks = ROSTER.filter((h) => this.selected.has(h.id)).map((h) => {
+      const p = this.pickFor(h);
+      return { id: h.id, classId: p.classId, raceId: p.raceId };
+    });
+    this.ctx.state.party = createCustomParty(picks);
     this.ctx.state.inventory = startingInventory();
     this.ctx.state.phaseIndex = 0;
     this.ctx.state.difficulty = this.difficulty;
@@ -80,9 +103,11 @@ export class PartySelectScene implements Scene {
   }
 
   private heroCard(hero: HeroDef): HTMLElement {
-    const cls = getClass(hero.classId);
-    const race = getRace(hero.raceId);
-    const s = statsForLevel(hero.classId, 3, hero.raceId);
+    const pick = this.pickFor(hero);
+    const customized = this.custom.has(hero.id) && (pick.classId !== hero.classId || pick.raceId !== hero.raceId);
+    const cls = getClass(pick.classId);
+    const race = getRace(pick.raceId);
+    const s = statsForLevel(pick.classId, 3, pick.raceId);
     const chosen = this.selected.has(hero.id);
     const card = el("div", {
       className: `unit-card selectable${chosen ? " selected" : ""}`,
@@ -90,10 +115,10 @@ export class PartySelectScene implements Scene {
     });
 
     const head = el("div", { className: "card-head" });
-    head.appendChild(iconImg(getHeroSprite(hero.id) ?? getCharacterSprite(hero.classId), 44));
+    head.appendChild(iconImg(getHeroSprite(hero.id) ?? getCharacterSprite(pick.classId), 44));
     const headText = el("div");
     headText.appendChild(el("h3", { text: hero.name }));
-    headText.appendChild(el("div", { className: "role", text: `${cls.name} · ${race.name}` }));
+    headText.appendChild(el("div", { className: "role", text: `${cls.name} · ${race.name}${customized ? " ·" : ""}` }));
     head.appendChild(headText);
     if (chosen) head.appendChild(el("div", { className: "pick-badge", text: "✓" }));
     card.appendChild(head);
@@ -110,6 +135,35 @@ export class PartySelectScene implements Scene {
         text: `HP ${s.maxHp} · MP ${s.maxMp} · ATK ${s.atk} · DEF ${s.def} · MAG ${s.mag} · RES ${s.res} · SPD ${s.spd} · MOV ${s.move}`,
       }),
     );
+
+    // Customizer: re-class / re-race a chosen hero. Only shown once the hero is
+    // picked, to keep the roster grid scannable. Interacting with the selects must
+    // not toggle the card's selection, so the controls swallow their own clicks.
+    if (chosen) {
+      const controls = el("div", { attrs: { style: "display:flex;gap:6px;margin-top:8px" } });
+      controls.addEventListener("click", (e) => e.stopPropagation());
+      controls.addEventListener("mousedown", (e) => e.stopPropagation());
+
+      const classSel = el("select", { attrs: { style: "flex:1;min-width:0" } }) as HTMLSelectElement;
+      for (const c of Object.values(CLASSES)) {
+        const opt = el("option", { text: c.name, attrs: { value: c.id } });
+        if (c.id === pick.classId) opt.selected = true;
+        classSel.appendChild(opt);
+      }
+      classSel.addEventListener("change", () => this.setHeroClass(hero, classSel.value as ClassId));
+
+      const raceSel = el("select", { attrs: { style: "flex:1;min-width:0" } }) as HTMLSelectElement;
+      for (const r of Object.values(RACES)) {
+        const opt = el("option", { text: r.name, attrs: { value: r.id } });
+        if (r.id === pick.raceId) opt.selected = true;
+        raceSel.appendChild(opt);
+      }
+      raceSel.addEventListener("change", () => this.setHeroRace(hero, raceSel.value as RaceId));
+
+      controls.appendChild(classSel);
+      controls.appendChild(raceSel);
+      card.appendChild(controls);
+    }
     return card;
   }
 
@@ -124,7 +178,7 @@ export class PartySelectScene implements Scene {
     head.appendChild(
       el("div", {
         className: "sub",
-        text: `Five kingdoms fell; these ten still carry the Ashen Banner. Pick ${PARTY_SIZE} to march — your company grows as the campaign wears on.`,
+        text: `Five kingdoms fell; these ten still carry the Ashen Banner. Pick ${PARTY_SIZE} to march — and re-class or re-race any you choose. Your company grows as the campaign wears on.`,
       }),
     );
     screen.appendChild(head);

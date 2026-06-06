@@ -77,6 +77,22 @@ export function createParty(heroIds: string[]): Unit[] {
   return heroIds.map(getHero).filter((h): h is HeroDef => Boolean(h)).map((h) => buildHero(h));
 }
 
+/**
+ * Build a party from per-hero customizations: the player may re-class and
+ * re-race any starting hero (keeping their name + identity/sprite via the roster
+ * id). Falls back to the roster defaults for anything omitted. Used by the
+ * New Game screen's party customizer.
+ */
+export function createCustomParty(picks: { id: string; classId?: ClassId; raceId?: RaceId }[]): Unit[] {
+  return picks
+    .map((p) => {
+      const base = getHero(p.id);
+      if (!base) return null;
+      return buildHero({ ...base, classId: p.classId ?? base.classId, raceId: p.raceId ?? base.raceId });
+    })
+    .filter((u): u is Unit => u !== null);
+}
+
 /** Default party: the first PARTY_SIZE heroes of the roster, at level 1. */
 export function createStartingParty(): Unit[] {
   return createParty(ROSTER.slice(0, PARTY_SIZE).map((h) => h.id));

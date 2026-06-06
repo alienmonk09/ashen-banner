@@ -246,6 +246,21 @@ export type Objective =
   /** Protect the named guest unit and deliver it to the goal tile (x, y). */
   | { kind: "escort"; vipName: string; x: number; y: number };
 
+/** Contents of a treasure chest: gold and/or item ids granted to the party. */
+export interface Loot {
+  /** Gold added to the treasury when opened. */
+  gold?: number;
+  /** Item ids added (one each) to the shared consumable inventory when opened. */
+  items?: string[];
+}
+
+/** A treasure chest seated on a map tile, holding loot. Opened by a player unit
+ *  that ends its move on the chest's tile. */
+export interface ChestSpawn {
+  pos: Point;
+  loot: Loot;
+}
+
 export interface MapDef {
   id: string;
   name: string;
@@ -265,6 +280,9 @@ export interface MapDef {
   /** Extra player-team guest units seated by the map (e.g. an escort VIP).
    *  Distinct from the party that fills playerSpawns; never persists to the roster. */
   allies?: EnemySpawn[];
+  /** Optional treasure chests placed on the map. Each must sit on a walkable,
+   *  reachable tile (validated in tests). */
+  chests?: ChestSpawn[];
 }
 
 export interface EnemySpawn {
@@ -284,3 +302,43 @@ export interface EnemySpawn {
 export const CT_THRESHOLD = 100;
 
 export type Difficulty = "easy" | "normal" | "hard";
+
+/**
+ * A single level-up event, captured at the moment a unit crosses one or more
+ * level thresholds mid-battle. Drives the in-battle level-up card.
+ */
+export interface LevelUpInfo {
+  unitId: string;
+  unitName: string;
+  classId: ClassId;
+  fromLevel: number;
+  toLevel: number;
+  /** Effective stat block before the level-up (snapshot copy). */
+  statsBefore: Stats;
+  /** Effective stat block after the level-up (snapshot copy). */
+  statsAfter: Stats;
+  /** Name of a class skill the unit can now afford to learn, if any. */
+  newSkillName?: string;
+}
+
+/** Per-hero XP outcome accumulated over a battle, shown on the rewards screen. */
+export interface HeroXpResult {
+  unitId: string;
+  name: string;
+  classId: ClassId;
+  xpGained: number;
+  fromLevel: number;
+  toLevel: number;
+}
+
+/** End-of-battle spoils presented on the rewards screen. */
+export interface BattleRewards {
+  /** Gold earned this battle (kill bounties + chest gold). */
+  gold: number;
+  /** Item ids found this battle (chests + enemy drops). */
+  items: string[];
+  /** Per-hero XP + level results, in party order. */
+  heroes: HeroXpResult[];
+  /** Optional "most valuable" callout from the per-battle stat tally. */
+  mvp?: { unitId: string; name: string; reason: string };
+}

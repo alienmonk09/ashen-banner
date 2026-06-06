@@ -77,4 +77,9 @@ export const cinderFields: MapDef = {
     { name: "Cinder Stalker", classId: "ninja", level: 7, weaponId: "katana", skillIds: ["shadowStrike", "throwFlame"], pos: { x: 10, y: 2 }, personality: "aggressive", raceId: "sylph" },
     { name: "Brigand Lieutenant", classId: "thief", level: 6, weaponId: "dagger", skillIds: ["backstab", "hamstring"], pos: { x: 6, y: 2 }, raceId: "halfling" },
   ],
+  // Dropped supplies on the open flanks, clear of the lava lanes and the rally point.
+  chests: [
+    { pos: { x: 2, y: 6 }, loot: { gold: 55, items: ["hiPotion"] } },
+    { pos: { x: 10, y: 6 }, loot: { gold: 50, items: ["phoenixDown"] } },
+  ],
 };

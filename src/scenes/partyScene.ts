@@ -251,26 +251,8 @@ export class PartyScene implements Scene {
       );
     }
 
-    card.appendChild(
-      el("div", {
-        attrs: { style: "font-size:12px;opacity:0.7;margin-top:4px" },
-        text: `XP ${unit.xp}/${xpForLevel(unit.level)}`,
-      }),
-    );
-
-    // Job mastery passive: show mastered classes if any.
-    const mastered = masteredClasses(unit);
-    if (mastered.length > 0) {
-      const names = mastered.map((id) => getClass(id).name).join(", ");
-      const hpGain = mastered.length * MASTERY_HP_BONUS;
-      const spdGain = mastered.length * MASTERY_SPD_BONUS;
-      card.appendChild(
-        el("div", {
-          attrs: { style: "font-size:12px;color:#f0c060;margin-top:2px" },
-          text: `Mastered: ${names} (+${hpGain} HP, +${spdGain} SPD)`,
-        }),
-      );
-    }
+    // Richer character read-outs: XP progress, affinities, growth, mastery.
+    card.appendChild(this.characterSheet(unit));
 
     // Class change. Each option previews that class's stats AT THIS LEVEL so the
     // player can compare loadouts before committing (the swap is reversible, but
@@ -454,9 +436,128 @@ export class PartyScene implements Scene {
         text: `◆ ${unit.sp} Skill Points`,
       }),
     );
+    // Learned-vs-locked breakdown for the primary class (and sub-job), so the
+    // player sees the full unlock order and which skill SP buys next.
+    card.appendChild(this.skillSheet(unit, unit.classId, "Skills"));
+    if (unit.subClassId) card.appendChild(this.skillSheet(unit, unit.subClassId, `Sub: ${getClass(unit.subClassId).name}`));
+
     card.appendChild(this.learnRow(unit, unit.classId, ""));
     if (unit.subClassId) card.appendChild(this.learnRow(unit, unit.subClassId, `${getClass(unit.subClassId).name}: `));
     return card;
+  }
+
+  /** Read-only character read-outs (design §4.9): XP progress bar, elemental
+   *  affinities, class growth-rate bars, and per-job mastery progress. Grouped
+   *  compactly so the card stays readable. */
+  private characterSheet(unit: Unit): HTMLElement {
+    const wrap = el("div");
+
+    // 1. XP progress toward the next level.
+    const need = xpForLevel(unit.level);
+    const pct = need > 0 ? Math.min(100, Math.round((unit.xp / need) * 100)) : 0;
+    const xpSec = el("div", { className: "cs-section" });
+    xpSec.appendChild(el("div", { className: "cs-label", text: "Experience" }));
+    const xpRow = el("div", { className: "cs-xp-row" });
+    const xpTrack = el("div", { className: "cs-xp-track" });
+    xpTrack.appendChild(el("span", { className: "cs-xp-fill", attrs: { style: `width:${pct}%` } }));
+    xpRow.appendChild(xpTrack);
+    xpRow.appendChild(el("span", { className: "cs-xp-count", text: `${unit.xp} / ${need}` }));
+    xpSec.appendChild(xpRow);
+    wrap.appendChild(xpSec);
+
+    // 2. Elemental affinities from the unit's race (weak ×1.5, resist ×0.5).
+    const race = getRace(unit.raceId);
+    const weak = race.weak ?? [];
+    const resist = race.resist ?? [];
+    if (weak.length || resist.length) {
+      const affSec = el("div", { className: "cs-section" });
+      affSec.appendChild(el("div", { className: "cs-label", text: "Affinities" }));
+      const chips = el("div", { className: "cs-chips" });
+      for (const e of weak) chips.appendChild(el("span", { className: "cs-chip weak", text: `${e} ×1.5` }));
+      for (const e of resist) chips.appendChild(el("span", { className: "cs-chip resist", text: `${e} ×0.5` }));
+      affSec.appendChild(chips);
+      wrap.appendChild(affSec);
+    }
+
+    // 3. Growth-rate bars — how fast this class lifts each stat per level,
+    //    normalized against its own fastest-growing stat.
+    const growth = getClass(unit.classId).growth;
+    const growthOrder: (keyof typeof growth)[] = ["hp", "mp", "atk", "def", "mag", "res", "spd"];
+    const maxGrowth = Math.max(...growthOrder.map((k) => growth[k]), 0.0001);
+    const grSec = el("div", { className: "cs-section" });
+    grSec.appendChild(el("div", { className: "cs-label", text: "Growth / level" }));
+    const grGrid = el("div", { className: "cs-growth" });
+    for (const k of growthOrder) {
+      const v = growth[k];
+      const w = Math.round((v / maxGrowth) * 100);
+      grGrid.appendChild(el("span", { className: "cs-growth-name", text: STAT_LABEL[k === "hp" ? "maxHp" : k === "mp" ? "maxMp" : k] }));
+      const track = el("div", { className: "cs-growth-track" });
+      track.appendChild(el("span", { className: "cs-growth-fill", attrs: { style: `width:${w}%` } }));
+      grGrid.appendChild(track);
+      grGrid.appendChild(el("span", { className: "cs-growth-val", text: v.toFixed(1) }));
+    }
+    grSec.appendChild(grGrid);
+    wrap.appendChild(grSec);
+
+    // 4. Mastery progress — learned/total per active job, plus the current
+    //    party-wide mastery passive (each mastered class adds +HP/+SPD).
+    const mastSec = el("div", { className: "cs-section" });
+    mastSec.appendChild(el("div", { className: "cs-label", text: "Mastery" }));
+    mastSec.appendChild(this.masteryRow(unit, unit.classId, getClass(unit.classId).name));
+    if (unit.subClassId) mastSec.appendChild(this.masteryRow(unit, unit.subClassId, getClass(unit.subClassId).name));
+    const masteredCount = masteredClasses(unit).length;
+    if (masteredCount > 0) {
+      mastSec.appendChild(
+        el("div", {
+          className: "cs-mastery-bonus",
+          text: `${masteredCount} mastered → +${masteredCount * MASTERY_HP_BONUS} HP, +${masteredCount * MASTERY_SPD_BONUS} SPD`,
+        }),
+      );
+    }
+    wrap.appendChild(mastSec);
+
+    return wrap;
+  }
+
+  /** A single "learned / total" mastery bar for one class. */
+  private masteryRow(unit: Unit, classId: ClassId, name: string): HTMLElement {
+    const ids = getClass(classId).skillIds;
+    const learned = ids.filter((id) => unit.learnedSkillIds.includes(id)).length;
+    const pct = ids.length > 0 ? Math.round((learned / ids.length) * 100) : 0;
+    const row = el("div", { className: "cs-mastery-row" });
+    row.appendChild(el("span", { className: "cs-mastery-name", text: name }));
+    const track = el("div", { className: "cs-mastery-track" });
+    track.appendChild(el("span", { className: "cs-mastery-fill", attrs: { style: `width:${pct}%` } }));
+    row.appendChild(track);
+    row.appendChild(el("span", { className: "cs-mastery-count", text: `${learned}/${ids.length}` }));
+    return row;
+  }
+
+  /** Learned-vs-locked skill list for a class (design §4.9): each skill name +
+   *  SP cost, learned ones marked, the next learnable flagged "affordable" when
+   *  the unit has enough SP. Skills unlock strictly in order, so the first locked
+   *  one is the only learnable one. */
+  private skillSheet(unit: Unit, classId: ClassId, label: string): HTMLElement {
+    const ids = getClass(classId).skillIds;
+    const sec = el("div", { className: "cs-section" });
+    sec.appendChild(el("div", { className: "cs-label", text: label }));
+    const list = el("div", { className: "cs-skill-list" });
+    let nextLocked = true; // the first not-yet-learned skill is the next unlock
+    for (const id of ids) {
+      const skill = getSkill(id);
+      const learned = unit.learnedSkillIds.includes(id);
+      const isNext = !learned && nextLocked;
+      if (!learned) nextLocked = false; // only the first locked skill is "next"
+      const affordable = isNext && unit.sp >= skill.spCost;
+      const cls = learned ? "cs-skill learned" : affordable ? "cs-skill locked affordable" : "cs-skill locked";
+      const row = el("div", { className: cls });
+      row.appendChild(el("span", { className: "cs-skill-mark", text: learned ? "✓" : affordable ? "◆" : "·" }));
+      row.appendChild(el("span", { className: "cs-skill-name", text: skill.name }));
+      row.appendChild(el("span", { className: "cs-skill-cost", text: learned ? "—" : `${skill.spCost} SP` }));
+      list.appendChild(row);
+    }
+    sec.appendChild(list);
+    return sec;
   }
 
   /** Open slots available for reinforcements at the current phase. */

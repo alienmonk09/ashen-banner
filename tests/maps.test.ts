@@ -3,7 +3,9 @@ import { PHASES } from "../src/data/maps";
 import { CLASSES } from "../src/data/classes";
 import { WEAPONS } from "../src/data/weapons";
 import { SKILLS } from "../src/data/skills";
+import { ITEMS } from "../src/data/items";
 import { partyCapForPhase } from "../src/data/party";
+import { Grid } from "../src/battle/grid";
 
 describe("map data invariants", () => {
   PHASES.forEach((map, index) => {
@@ -57,6 +59,42 @@ describe("map data invariants", () => {
           expect(e.pos.y).toBeLessThan(map.height);
           expect(map.blocked?.[e.pos.y][e.pos.x] ?? false).toBe(false);
           const k = `${e.pos.x},${e.pos.y}`;
+          expect(seen.has(k)).toBe(false);
+          seen.add(k);
+        }
+      });
+
+      it("places treasure chests on valid, walkable, unoccupied tiles", () => {
+        if (!map.chests) return;
+        const grid = new Grid(map);
+        // Every tile already taken by a spawn, foe, ally, or objective.
+        const taken = new Set<string>();
+        for (const s of map.playerSpawns) taken.add(`${s.x},${s.y}`);
+        for (const e of map.enemies) taken.add(`${e.pos.x},${e.pos.y}`);
+        for (const a of map.allies ?? []) taken.add(`${a.pos.x},${a.pos.y}`);
+        const o = map.objective;
+        if (o && (o.kind === "seize" || o.kind === "defend" || o.kind === "escort")) {
+          taken.add(`${o.x},${o.y}`);
+        }
+        const seen = new Set<string>();
+        for (const c of map.chests) {
+          // In bounds.
+          expect(c.pos.x).toBeGreaterThanOrEqual(0);
+          expect(c.pos.y).toBeGreaterThanOrEqual(0);
+          expect(c.pos.x).toBeLessThan(map.width);
+          expect(c.pos.y).toBeLessThan(map.height);
+          // Walkable: not blocked, and (if terrain is defined) not water/lava.
+          expect(grid.isBlocked(c.pos.x, c.pos.y)).toBe(false);
+          if (map.terrain) {
+            const t = grid.terrainAt(c.pos.x, c.pos.y);
+            expect(t).not.toBe("water");
+            expect(t).not.toBe("lava");
+          }
+          // Loot references only real items.
+          for (const id of c.loot.items ?? []) expect(ITEMS[id]).toBeDefined();
+          // No overlap with units/objective, and no two chests on the same tile.
+          const k = `${c.pos.x},${c.pos.y}`;
+          expect(taken.has(k)).toBe(false);
           expect(seen.has(k)).toBe(false);
           seen.add(k);
         }

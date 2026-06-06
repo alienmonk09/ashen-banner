@@ -449,6 +449,56 @@ const CSS = `
 }
 .reaction-help-desc { font-size: 11px; line-height: 1.35; opacity: 0.75; }
 
+/* Character-sheet read-outs on the Party Camp unit card. Each sub-section is a
+   compact, labeled block in the ashen/ember language — no generic blue. */
+.cs-section { margin-top: 8px; }
+.cs-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 3px;
+}
+/* XP bar — ember fill on an ashen track, with a "have / need" count. */
+.cs-xp-row { display: flex; align-items: center; gap: 8px; }
+.cs-xp-track {
+  flex: 1; height: 7px; border-radius: 4px; overflow: hidden;
+  background: rgba(0,0,0,0.5); border: 1px solid var(--ash-edge);
+}
+.cs-xp-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--ember), var(--ember-bright)); }
+.cs-xp-count { font-size: 11px; color: var(--ink-dim); font-variant-numeric: tabular-nums; flex: none; }
+/* Affinity chips — weak = scorch tint, resist = ember/gold tint. */
+.cs-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.cs-chip {
+  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px; text-transform: capitalize;
+}
+.cs-chip.weak { color: #ffb3ab; background: rgba(192,70,58,0.18); border: 1px solid rgba(192,70,58,0.55); }
+.cs-chip.resist { color: var(--ember-bright); background: rgba(232,151,60,0.16); border: 1px solid rgba(232,151,60,0.5); }
+.cs-none { font-size: 11px; opacity: 0.5; }
+/* Growth-rate bars — one row per stat, ember fill normalized to the class max. */
+.cs-growth { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 7px; align-items: center; }
+.cs-growth-name { font-size: 10px; opacity: 0.6; }
+.cs-growth-track { height: 5px; border-radius: 3px; background: rgba(0,0,0,0.45); overflow: hidden; }
+.cs-growth-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--ember), var(--gold)); }
+.cs-growth-val { font-size: 10px; opacity: 0.7; font-variant-numeric: tabular-nums; text-align: right; }
+/* Mastery progress — per-job learned/total with a slim gold fill. */
+.cs-mastery-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.cs-mastery-name { font-size: 11px; opacity: 0.8; min-width: 76px; }
+.cs-mastery-track { flex: 1; height: 5px; border-radius: 3px; background: rgba(0,0,0,0.45); overflow: hidden; }
+.cs-mastery-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--ember-bright), var(--gold)); }
+.cs-mastery-count { font-size: 10px; color: var(--ink-dim); font-variant-numeric: tabular-nums; flex: none; }
+.cs-mastery-bonus { font-size: 11px; color: var(--gold); margin-top: 2px; }
+/* Skill list — learned vs locked, with an affordable cue (gold) on the next one. */
+.cs-skill-list { display: flex; flex-direction: column; gap: 2px; }
+.cs-skill { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.cs-skill-mark { width: 12px; flex: none; text-align: center; }
+.cs-skill-name { flex: 1; min-width: 0; }
+.cs-skill-cost { opacity: 0.6; font-variant-numeric: tabular-nums; flex: none; }
+.cs-skill.learned .cs-skill-mark { color: #8fe39a; }
+.cs-skill.learned .cs-skill-name { color: var(--ink); }
+.cs-skill.locked { opacity: 0.55; }
+.cs-skill.affordable { opacity: 1; }
+.cs-skill.affordable .cs-skill-mark,
+.cs-skill.affordable .cs-skill-name,
+.cs-skill.affordable .cs-skill-cost { color: var(--gold); font-weight: 700; }
+
 /* (Dev shortcut bar styles live in scenes/battleDevTools.ts — injected only on
    the local dev server, so they never ship in the production bundle.) */
 
@@ -529,6 +579,11 @@ const CSS = `
 .high-contrast .settings-toggle-off {
   border-color: #ff6060;
   color: #ffcccc;
+}
+.high-contrast .cs-xp-track,
+.high-contrast .cs-growth-track,
+.high-contrast .cs-mastery-track {
+  border: 1px solid #c8d0ff;
 }
 
 /* Reduced-motion: when set (in Settings or via the OS prefers-reduced-motion),

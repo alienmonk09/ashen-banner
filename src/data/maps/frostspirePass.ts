@@ -79,4 +79,9 @@ export const frostspirePass: MapDef = {
     { name: "Frostspire Adept", classId: "blackMage", level: 8, weaponId: "rod", skillIds: ["fire","bolt","stop"], pos: { x: 2, y: 2 }, personality: "balanced", raceId: "gnome" },
     { name: "Pass Warden", classId: "knight", level: 9, weaponId: "greatsword", skillIds: ["powerStrike","guard"], pos: { x: 6, y: 1 }, personality: "balanced", raceId: "dwarf" },
   ],
+  // Buried in the snow on the lower ridges, clear of the frozen-stream pools.
+  chests: [
+    { pos: { x: 2, y: 11 }, loot: { gold: 85, items: ["hiPotion"] } },
+    { pos: { x: 11, y: 11 }, loot: { gold: 95, items: ["hourglass"] } },
+  ],
 };

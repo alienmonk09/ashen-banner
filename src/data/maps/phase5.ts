@@ -52,4 +52,9 @@ export const phase5: MapDef = {
     { name: "Bastion Monk Garr", classId: "monk", level: 11, weaponId: "knuckles", skillIds: ["palmStrike", "chakra"], pos: { x: 5, y: 4 }, raceId: "orc" },
     { name: "Throne Archer Vael", classId: "archer", level: 11, weaponId: "longbow", skillIds: ["aimedShot"], pos: { x: 3, y: 3 }, raceId: "halfling" },
   ],
+  // The tyrant's hoard, flanking the killing floor on either side of the chasms.
+  chests: [
+    { pos: { x: 1, y: 5 }, loot: { gold: 150, items: ["xPotion"] } },
+    { pos: { x: 8, y: 5 }, loot: { gold: 180, items: ["megaPhoenix"] } },
+  ],
 };

@@ -81,4 +81,9 @@ export const verdantRuins: MapDef = {
     { name: "Ruin Geomancer", classId: "geomancer", level: 8, weaponId: "gaiaStaff", skillIds: ["boulder","quagmire"], pos: { x: 9, y: 6 }, personality: "balanced", raceId: "gnome" },
     { name: "Saurian Lancer", classId: "lancer", level: 9, weaponId: "dragoonLance", skillIds: ["jump","lanceThrust"], pos: { x: 11, y: 3 }, personality: "balanced", raceId: "saurian" },
   ],
+  // Offerings left at the terrace foot, off the central climb toward the spring.
+  chests: [
+    { pos: { x: 2, y: 8 }, loot: { gold: 90, items: ["hiPotion"] } },
+    { pos: { x: 12, y: 8 }, loot: { gold: 110, items: ["hourglass"] } },
+  ],
 };

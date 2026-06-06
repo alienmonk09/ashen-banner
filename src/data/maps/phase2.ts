@@ -44,4 +44,9 @@ export const phase2: MapDef = {
     { name: "Crag Sentry", classId: "knight", level: 3, weaponId: "sword", skillIds: ["guard"], pos: { x: 6, y: 6 }, raceId: "orc" },
     { name: "Pass Brawler", classId: "monk", level: 3, weaponId: "knuckles", skillIds: ["palmStrike"], pos: { x: 4, y: 4 }, raceId: "orc" },
   ],
+  // Tucked on the hill flanks, a step off the direct push up the valley.
+  chests: [
+    { pos: { x: 3, y: 1 }, loot: { gold: 30, items: ["potion"] } },
+    { pos: { x: 3, y: 7 }, loot: { gold: 20, items: ["ether"] } },
+  ],
 };

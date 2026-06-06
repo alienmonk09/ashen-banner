@@ -30,4 +30,9 @@ export const phase1: MapDef = {
     { name: "Camp Lookout", classId: "archer", level: 1, weaponId: "bow", skillIds: [], pos: { x: 2, y: 2 }, raceId: "halfling" },
     { name: "Wandering Brawler", classId: "monk", level: 1, weaponId: "knuckles", skillIds: [], pos: { x: 5, y: 1 }, raceId: "orc" },
   ],
+  // A small detour off the spawn→camp line rewards a scouting move.
+  chests: [
+    { pos: { x: 1, y: 4 }, loot: { gold: 25, items: ["potion"] } },
+    { pos: { x: 6, y: 4 }, loot: { gold: 20, items: ["ether"] } },
+  ],
 };

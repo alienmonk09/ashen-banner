@@ -67,4 +67,9 @@ export const phase3: MapDef = {
     { name: "Cliffside Mage", classId: "blackMage", level: 6, weaponId: "rod", skillIds: ["fire", "bolt"], pos: { x: 6, y: 2 }, raceId: "elf" },
     { name: "Wandering Monk", classId: "monk", level: 5, weaponId: "knuckles", skillIds: ["palmStrike", "chakra"], pos: { x: 6, y: 0 }, raceId: "orc" },
   ],
+  // Cached on the south bank corners — grab them before committing to the span.
+  chests: [
+    { pos: { x: 2, y: 8 }, loot: { gold: 30, items: ["potion"] } },
+    { pos: { x: 6, y: 8 }, loot: { gold: 25, items: ["ether"] } },
+  ],
 };

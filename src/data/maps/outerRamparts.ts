@@ -52,4 +52,9 @@ export const outerRamparts: MapDef = {
     { name: "Gate Cleric", classId: "whiteMage", level: 9, weaponId: "staff", skillIds: ["cure", "protect", "haste"], pos: { x: 6, y: 2 }, personality: "support", raceId: "human" },
     { name: "Gate Breaker", classId: "berserker", level: 10, weaponId: "warAxe", skillIds: ["rampage", "cleave"], pos: { x: 5, y: 3 }, personality: "aggressive", raceId: "saurian" },
   ],
+  // Stashed near the wall ends, rewarding a flank rather than a straight gate rush.
+  chests: [
+    { pos: { x: 2, y: 5 }, loot: { gold: 60, items: ["hiPotion"] } },
+    { pos: { x: 9, y: 5 }, loot: { gold: 70, items: ["phoenixDown"] } },
+  ],
 };

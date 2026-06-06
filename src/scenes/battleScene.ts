@@ -347,13 +347,20 @@ export class BattleScene implements Scene {
     // top of a finished battle.
     if (this.phase === "over") return;
     if (this.active) {
-      // Damage/heal-over-time (Poison, Regen) resolve as the turn ends.
-      for (const r of endTurn(this.active)) this.pushPopup(r);
+      // Damage/heal-over-time (Poison, Regen) resolve as the turn ends. A poison
+      // tick can finish off an enemy — credit that kill to whoever damaged/​debuffed it.
+      for (const r of endTurn(this.active)) {
+        this.pushPopup(r);
+        if (r.killed) this.creditEnvironmentalKill(this.active);
+      }
       // Terrain effect (lava damage, spring heal) fires after status ticks.
       if (this.active.alive) {
         const terr = this.grid.terrainAt(this.active.pos.x, this.active.pos.y);
         const r = applyTerrainEffect(this.active, terr);
-        if (r) this.pushPopup(r);
+        if (r) {
+          this.pushPopup(r);
+          if (r.killed) this.creditEnvironmentalKill(this.active);
+        }
       }
       // Count a COMPLETED turn (drives survive/defend objectives). The next
       // beginNextTurn's outcome check ends the battle if the count is now met,
@@ -384,12 +391,8 @@ export class BattleScene implements Scene {
     this.ui.setTargetInfo(null);
     stopMusic();
     if (winner === "player") {
-      // Grant the fixed battle-clear XP equally to the whole party (present,
-      // fallen, or benched) and roll the victory item drops, before recruits join
-      // / the dead are pruned, so every hero on the roster gets their cut.
-      this.awardBattleClearXp();
-      this.rollVictoryDrops();
-      // Surviving recruited units join the persistent party (up to MAX_PARTY).
+      // Surviving recruited units join the persistent party FIRST, so the fixed
+      // battle-clear XP and the spoils screen cover them too (up to MAX_PARTY).
       for (const u of this.units) {
         if (!u.recruited || !u.alive) continue;
         if (this.ctx.state.party.some((p) => p.id === u.id)) continue;
@@ -397,10 +400,17 @@ export class BattleScene implements Scene {
         // Re-id so the recruit can't collide with fresh enemy ids ("eN") in a
         // later battle (createUnit's counter resets on reload). Safe here — the
         // battle is over, so no in-flight animation references this unit's id.
+        // Carry its battle ledgers (earned XP, tally) onto the new id.
+        const oldId = u.id;
         u.id = `recruit-${u.id}`;
+        this.remapLedgers(oldId, u.id);
         this.ctx.state.party.push(u);
         this.pushLog(`${u.name} has joined the Ashen Banner permanently!`);
       }
+      // Fixed battle-clear XP equally to the whole roster (present, fallen, or
+      // benched — and now any fresh recruits), then the victory item drops.
+      this.awardBattleClearXp();
+      this.rollVictoryDrops();
       // Classic mode: fallen heroes are lost for good. Prune the dead after
       // recruits have joined (a recruit that died was already excluded above).
       if (this.ctx.state.permadeath) {
@@ -1101,15 +1111,48 @@ export class BattleScene implements Scene {
     this.participants.delete(enemy.id);
   }
 
+  /** Credit a kill with no direct finisher (poison tick, lava/terrain): the
+   *  participants who softened the foe still share the kill XP + drop, and the
+   *  bounty gold is banked. No-op unless the dying unit is an enemy. */
+  private creditEnvironmentalKill(victim: Unit): void {
+    if (victim.team !== "enemy") return;
+    this.awardKill(victim, null);
+    const g = goldForKill(this.ctx.state.phaseIndex);
+    this.ctx.state.gold += g;
+    this.goldEarned += g;
+    this.pushTextPopup(victim.pos, `+${g}g`, POPUP_COLORS.crit);
+  }
+
+  /** Move this battle's per-unit ledger entries from one unit id to another
+   *  (used when a recruit is re-id'd at victory, so the spoils screen still
+   *  finds its earned XP). */
+  private remapLedgers(oldId: string, newId: string): void {
+    if (this.xpEarned.has(oldId)) {
+      this.xpEarned.set(newId, this.xpEarned.get(oldId)!);
+      this.xpEarned.delete(oldId);
+    }
+    if (this.startLevels.has(oldId)) {
+      this.startLevels.set(newId, this.startLevels.get(oldId)!);
+      this.startLevels.delete(oldId);
+    }
+    if (this.tally.has(oldId)) {
+      this.tally.set(newId, this.tally.get(oldId)!);
+      this.tally.delete(oldId);
+    }
+  }
+
   /** Show any queued level-up cards, then run `then`. Skipped on a battle-ending
    *  blow (the spoils screen summarizes the growth instead). */
   private drainLevelUps(then: () => void): void {
-    if (this.levelUps.length === 0) {
+    // Drop cards for units that died before the card surfaces (e.g. a hero that
+    // killed a foe, queued a level, then got counter-killed) — no celebrating a
+    // corpse. The XP/level itself was already applied to the unit.
+    const cards = this.levelUps.filter((c) => this.units.find((u) => u.id === c.unitId)?.alive);
+    this.levelUps = [];
+    if (cards.length === 0) {
       then();
       return;
     }
-    const cards = this.levelUps;
-    this.levelUps = [];
     this.phase = "resolving";
     this.ui.hideCombatControls();
     this.ui.showLevelUp(cards, then);

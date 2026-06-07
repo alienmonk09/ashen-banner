@@ -45,16 +45,16 @@ green (`tsc` + `npm test` + `npm run build`), committed incrementally.
 | R28 | Author SP1 props as cover on bare maps | data | H/L | screenshot | ✅ `7406544` (3 maps, browser-verified) |
 | R29 | Convert frostspirePass rout→seize | data | M/L | unit | ✅ `4a12fc0` |
 | R30 | Stretch partyCapForPhase to 17 phases | data | M/M | unit | ✅ `eda9a57` |
-| R31 | Reject non-finite level/xp in save validation | progression | H/L | unit | ⬜ |
-| R32 | survivorsAfterBattle: alive===true | progression | L/L | unit | ⬜ |
-| R33 | newSkillName hint checks sub-job | progression | L/L | unit | ⬜ |
-| R34 | Recruits seed XP onto party curve | progression | M/L | unit | ⬜ |
-| R35 | Test seize/defend/escort outcome branches | standalone | H/L | unit | ⬜ |
-| R36 | Test defend boundary at turnsElapsed===N | standalone | M/L | unit | ⬜ |
-| R37 | Assert defeat target name unique | standalone | M/L | unit | ⬜ |
-| R38 | Objective goal tiles not on lava/water | standalone | M/L | unit | ⬜ |
-| R39 | Solid prop not on objective goal tile | standalone | M/L | unit | ⬜ |
-| R40 | Spawn-fairness min separation | standalone | M/L | unit | ⬜ |
+| R31 | Reject non-finite level/xp in save validation | progression | H/L | unit | ✅ `b1af555` |
+| R32 | survivorsAfterBattle: alive===true | progression | L/L | unit | ✅ `0984d07` |
+| R33 | newSkillName hint checks sub-job | progression | L/L | unit | ✅ `466ef52` |
+| R34 | Recruits seed XP onto party curve | progression | M/L | unit | ✅ `af1e5f5` |
+| R35 | Test seize/defend/escort outcome branches | standalone | H/L | unit | ✅ `922f1e5` |
+| R36 | Test defend boundary at turnsElapsed===N | standalone | M/L | unit | ✅ `12f9cb8` |
+| R37 | Assert defeat target name unique | standalone | M/L | unit | ✅ `05a6c7d` |
+| R38 | Objective goal tiles not on lava/water | standalone | M/L | unit | ✅ `dcd266f` |
+| R39 | Solid prop not on objective goal tile | standalone | M/L | unit | ⏭️ skipped — already enforced (no-op test) |
+| R40 | Spawn-fairness min separation | standalone | M/L | unit | ✅ `5069a75` |
 | R41 | Diagonal knockback direction test | standalone | M/L | unit | ⬜ |
 | R42 | LOS sight-block at short range test | standalone | M/M | unit | ⬜ |
 | R43 | previewOrder vs advanceToNextActor tie test | standalone | M/L | unit | ⬜ |

@@ -674,7 +674,7 @@ export class PartyScene implements Scene {
     const screen = body;
     const inv = Object.entries(this.ctx.state.inventory)
       .filter(([, c]) => c > 0)
-      .map(([id, c]) => `${id} ×${c}`)
+      .map(([id, c]) => `${ITEMS[id]?.name ?? id} ×${c}`)
       .join("   ");
     screen.appendChild(el("div", { className: "inv-line", text: `Inventory: ${inv || "empty"}` }));
 

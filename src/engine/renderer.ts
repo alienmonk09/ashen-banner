@@ -138,6 +138,18 @@ export class Renderer {
   width = 0;
   height = 0;
 
+  /** Cache of baked static tile art, keyed by appearance (terrain|z|ao|prop). */
+  private tileBakes = new Map<string, HTMLCanvasElement>();
+
+  private static readonly ANIMATED: ReadonlySet<TerrainType> = new Set(["water", "spring", "lava"]);
+
+  private ctxOverride: CanvasRenderingContext2D | null = null;
+  /** The context current drawing should target (an offscreen bake or the screen).
+   *  Named drawCtx (not cx) to avoid colliding with the cx/cy coord locals. */
+  private get drawCtx(): CanvasRenderingContext2D {
+    return this.ctxOverride ?? this.ctx;
+  }
+
   constructor(private canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("2D canvas context unavailable");
@@ -329,8 +341,15 @@ export class Renderer {
         const z = grid.heightAt(it.x, it.y);
         const center = this.project(view, it.x, it.y, z);
         const terrain = grid.terrainAt(it.x, it.y);
-        this.drawTileWalls(center, z, terrain);
-        this.drawTileTop(center, z, terrain, it.x, it.y, this.neighborShade(grid, it.x, it.y, z), view.time);
+        const ao = this.neighborShade(grid, it.x, it.y, z);
+        if (Renderer.ANIMATED.has(terrain)) {
+          // Animated terrain can't be cached — draw live each frame.
+          this.drawTileWalls(center, z, terrain);
+          this.drawTileTop(center, z, terrain, it.x, it.y, ao, view.time);
+        } else {
+          const { canvas, ax, ay } = this.bakeTile(terrain, z, ao);
+          this.ctx.drawImage(canvas, Math.round(center.sx - ax), Math.round(center.sy - ay));
+        }
         const cols = overlays.get(`${it.x},${it.y}`);
         if (cols) for (const c of cols) this.paintDiamond(center, c);
       } else if (it.kind === "chest") {
@@ -409,9 +428,41 @@ export class Renderer {
     ctx.globalAlpha = 1;
   }
 
+  /** Drop cached tile bakes (call when a new battle/map loads). */
+  resetTileCache(): void {
+    this.tileBakes.clear();
+  }
+
+  /** Bake the static art for one tile (walls + textured top) to an offscreen
+   *  canvas. The tile-top center is anchored at (anchorX, anchorY) within the
+   *  canvas so the caller can blit by subtracting that anchor from screen center. */
+  private bakeTile(terrain: TerrainType, z: number, ao: number): { canvas: HTMLCanvasElement; ax: number; ay: number } {
+    const key = `${terrain}|${z}|${ao}`;
+    const wallH = z * TILE_Z;
+    const ax = TILE_W / 2 + 2;
+    const ay = TILE_H / 2 + 2;
+    const cached = this.tileBakes.get(key);
+    if (cached) return { canvas: cached, ax, ay };
+    const canvas = document.createElement("canvas");
+    canvas.width = TILE_W + 4;
+    canvas.height = TILE_H + wallH + 4;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+      const saved = this.ctxOverride;
+      this.ctxOverride = ctx;
+      const center: ScreenPoint = { sx: ax, sy: ay };
+      this.drawTileWalls(center, z, terrain);
+      this.drawTileTop(center, z, terrain, 0, 0, ao, 0); // tx,ty=0 → stable bake texture; time=0
+      this.ctxOverride = saved;
+    }
+    this.tileBakes.set(key, canvas);
+    return { canvas, ax, ay };
+  }
+
   private drawTileWalls(center: ScreenPoint, z: number, terrain: TerrainType): void {
     if (z <= 0) return;
-    const ctx = this.ctx;
+    const ctx = this.drawCtx;
     const corners = diamondCorners(center);
     const wallH = z * TILE_Z;
     const st = TERRAIN[terrain];
@@ -458,7 +509,7 @@ export class Renderer {
   }
 
   private drawTileTop(center: ScreenPoint, z: number, terrain: TerrainType, tx: number, ty: number, ao: number, time: number): void {
-    const ctx = this.ctx;
+    const ctx = this.drawCtx;
     const corners = diamondCorners(center);
     const st = TERRAIN[terrain];
     // Steeper height ramp so elevation reads at a glance, minus an ambient-
@@ -499,12 +550,14 @@ export class Renderer {
   }
 
   private dot(cx: number, cy: number, st: { h: number; s: number }, l: number, sz = 2): void {
-    this.ctx.fillStyle = `hsl(${st.h}, ${st.s}%, ${clampL(l)}%)`;
-    this.ctx.fillRect(Math.round(cx), Math.round(cy), sz, sz);
+    const ctx = this.drawCtx;
+    ctx.fillStyle = `hsl(${st.h}, ${st.s}%, ${clampL(l)}%)`;
+    ctx.fillRect(Math.round(cx), Math.round(cy), sz, sz);
   }
 
   /** Per-terrain texture drawn within the tile diamond (replaces the speckle). */
   private terrainMotif(center: ScreenPoint, terrain: TerrainType, tx: number, ty: number, lit: number, time: number): void {
+    const ctx = this.drawCtx;
     const st = TERRAIN[terrain];
     const cx = center.sx;
     const cy = center.sy;
@@ -521,38 +574,38 @@ export class Renderer {
       case "grass": {
         for (let i = 0; i < 5; i++) {
           const q = p(i);
-          this.ctx.fillStyle = `hsl(${st.h}, ${st.s + 8}%, ${clampL(lit + (i % 2 ? 10 : -8))}%)`;
-          this.ctx.fillRect(Math.round(q.x), Math.round(q.y), 1, 2 + (i % 2)); // blade tick
+          ctx.fillStyle = `hsl(${st.h}, ${st.s + 8}%, ${clampL(lit + (i % 2 ? 10 : -8))}%)`;
+          ctx.fillRect(Math.round(q.x), Math.round(q.y), 1, 2 + (i % 2)); // blade tick
         }
         if (this.tileHash(tx, ty, 7) > 0.82) { const q = p(9); this.dot(q.x, q.y, { h: 48, s: 70 }, 70); } // flower
         break;
       }
       case "dirt": {
         for (let i = 0; i < 4; i++) { const q = p(i); this.dot(q.x, q.y, st, lit + (i % 2 ? 8 : -10)); }
-        const c = p(6); this.ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit - 12)}%)`;
-        this.ctx.lineWidth = 1; this.ctx.beginPath(); this.ctx.moveTo(c.x, c.y); this.ctx.lineTo(c.x + 4, c.y + 2); this.ctx.stroke();
+        const c = p(6); ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit - 12)}%)`;
+        ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(c.x + 4, c.y + 2); ctx.stroke();
         break;
       }
       case "rock": {
         for (let i = 0; i < 3; i++) {
           const a = p(i), b = p(i + 20);
-          this.ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit + (i % 2 ? 12 : -16))}%)`;
-          this.ctx.lineWidth = 1; this.ctx.beginPath(); this.ctx.moveTo(a.x, a.y); this.ctx.lineTo(b.x, b.y); this.ctx.stroke();
+          ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit + (i % 2 ? 12 : -16))}%)`;
+          ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         }
         break;
       }
       case "sand": {
         for (let i = 0; i < 3; i++) {
-          const q = p(i); this.ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit - 8)}%)`;
-          this.ctx.lineWidth = 1; this.ctx.beginPath(); this.ctx.moveTo(q.x - 4, q.y); this.ctx.lineTo(q.x + 4, q.y + 1); this.ctx.stroke();
+          const q = p(i); ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit - 8)}%)`;
+          ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(q.x - 4, q.y); ctx.lineTo(q.x + 4, q.y + 1); ctx.stroke();
         }
         break;
       }
       case "wood": {
         for (let i = -1; i <= 1; i++) {
-          this.ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit - 12)}%)`;
-          this.ctx.lineWidth = 1; this.ctx.beginPath();
-          this.ctx.moveTo(cx - HW, cy + i * HH * 0.5); this.ctx.lineTo(cx + HW, cy + i * HH * 0.5); this.ctx.stroke();
+          ctx.strokeStyle = `hsl(${st.h}, ${st.s}%, ${clampL(lit - 12)}%)`;
+          ctx.lineWidth = 1; ctx.beginPath();
+          ctx.moveTo(cx - HW, cy + i * HH * 0.5); ctx.lineTo(cx + HW, cy + i * HH * 0.5); ctx.stroke();
         }
         break;
       }
@@ -560,10 +613,10 @@ export class Renderer {
       case "spring": {
         const drift = Math.sin(time * 1.6 + (tx + ty)) * 3;
         for (let i = -1; i <= 1; i++) {
-          this.ctx.strokeStyle = `hsla(${st.h}, ${st.s}%, ${clampL(lit + 18)}%, 0.5)`;
-          this.ctx.lineWidth = 1; this.ctx.beginPath();
-          this.ctx.moveTo(cx - HW * 0.7 + drift, cy + i * HH * 0.45);
-          this.ctx.lineTo(cx + HW * 0.7 + drift, cy + i * HH * 0.45); this.ctx.stroke();
+          ctx.strokeStyle = `hsla(${st.h}, ${st.s}%, ${clampL(lit + 18)}%, 0.5)`;
+          ctx.lineWidth = 1; ctx.beginPath();
+          ctx.moveTo(cx - HW * 0.7 + drift, cy + i * HH * 0.45);
+          ctx.lineTo(cx + HW * 0.7 + drift, cy + i * HH * 0.45); ctx.stroke();
         }
         if (this.tileHash(tx, ty, 3) > 0.6) { const q = p(4); this.dot(q.x, q.y, st, lit + 28, 1); }
         break;
@@ -572,8 +625,8 @@ export class Renderer {
         const pulse = 0.5 + 0.5 * Math.sin(time * 3 + (tx * 2 + ty));
         for (let i = 0; i < 2; i++) {
           const a = p(i), b = p(i + 30);
-          this.ctx.strokeStyle = `hsla(40, 100%, ${clampL(60 + pulse * 20)}%, ${0.6 + pulse * 0.3})`;
-          this.ctx.lineWidth = 1.5; this.ctx.beginPath(); this.ctx.moveTo(a.x, a.y); this.ctx.lineTo(b.x, b.y); this.ctx.stroke();
+          ctx.strokeStyle = `hsla(40, 100%, ${clampL(60 + pulse * 20)}%, ${0.6 + pulse * 0.3})`;
+          ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         }
         break;
       }

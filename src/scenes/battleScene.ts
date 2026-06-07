@@ -114,6 +114,7 @@ export class BattleScene implements Scene {
     private phaseIndex: number,
   ) {
     this.grid = new Grid(map);
+    this.ctx.renderer.resetTileCache();
     this.ui = new BattleUI(ctx.uiParent);
     this.buildUnits();
     this.bindInput();

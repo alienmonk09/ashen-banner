@@ -688,3 +688,50 @@ describe("planEnemyTurn: AoE friendly-fire penalty scales with ally harm", () =>
     expect(hitsAlly).toBe(false);
   });
 });
+
+describe("planEnemyTurn: low-HP units retreat", () => {
+  it("a critically wounded balanced unit with no in-range attack backs away from the nearest foe", () => {
+    const grid = flatGrid(16, 16);
+    // Melee knight (move 4, range 1) at (5,8); foe 9 tiles away — unreachable this turn.
+    const me = createUnit({ name: "Grunt", team: "enemy", classId: "knight", pos: { x: 5, y: 8 } });
+    me.stats.hp = Math.floor(me.stats.maxHp * 0.15); // critically wounded (< 25%)
+    const foe = createUnit({ name: "Hero", team: "player", classId: "knight", pos: { x: 14, y: 8 } });
+
+    const startDist = manhattan(me.pos, foe.pos);
+    const plan = planEnemyTurn(me, [me, foe], grid);
+
+    expect(plan.action.kind).toBe("wait");
+    // Retreat: it must end the turn FARTHER from the foe than it started.
+    expect(manhattan(plan.destination, foe.pos)).toBeGreaterThan(startDist);
+  });
+
+  it("an aggressive wounded unit still charges (retreat is gated off aggressive)", () => {
+    const grid = flatGrid(16, 16);
+    const me = createUnit({
+      name: "Berserker",
+      team: "enemy",
+      classId: "knight",
+      pos: { x: 5, y: 8 },
+      personality: "aggressive",
+    });
+    me.stats.hp = Math.floor(me.stats.maxHp * 0.15);
+    const foe = createUnit({ name: "Hero", team: "player", classId: "knight", pos: { x: 14, y: 8 } });
+
+    const startDist = manhattan(me.pos, foe.pos);
+    const plan = planEnemyTurn(me, [me, foe], grid);
+
+    // Aggressive ignores retreat: it closes the gap as usual.
+    expect(manhattan(plan.destination, foe.pos)).toBeLessThan(startDist);
+  });
+
+  it("a healthy unit with no in-range attack still advances (retreat only triggers when wounded)", () => {
+    const grid = flatGrid(16, 16);
+    const me = createUnit({ name: "Grunt", team: "enemy", classId: "knight", pos: { x: 5, y: 8 } });
+    const foe = createUnit({ name: "Hero", team: "player", classId: "knight", pos: { x: 14, y: 8 } });
+
+    const startDist = manhattan(me.pos, foe.pos);
+    const plan = planEnemyTurn(me, [me, foe], grid);
+
+    expect(manhattan(plan.destination, foe.pos)).toBeLessThan(startDist);
+  });
+});

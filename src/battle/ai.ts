@@ -418,6 +418,33 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
   if (!target) {
     return { path: [unit.pos], destination: unit.pos, action: { kind: "wait" } };
   }
+
+  // Retreat when critically wounded: a unit with no in-range attack (we're past
+  // the options loop, so it can't kill — or even reach — a foe this turn) should
+  // pull back rather than feed itself to the line. Aggressive units never flinch
+  // and keep charging; everyone else bails below 25% HP.
+  const hpFrac = unit.stats.hp / unit.stats.maxHp;
+  if (unit.personality !== "aggressive" && hpFrac < 0.25) {
+    // Back off: maximize manhattan distance to the nearest foe among reachable
+    // stands, folding in terrain so it won't flee onto a hazard. Ties (and a unit
+    // already cornered) leave it put, since its own tile is a candidate.
+    const retreatScore = (stand: Point): number =>
+      manhattan(stand, target.pos) * 10 + terrainPenalty(grid, stand, unit);
+    let bestTile = unit.pos;
+    let bestScore = retreatScore(unit.pos);
+    for (const stand of standTiles) {
+      const score = retreatScore(stand);
+      if (score > bestScore) {
+        bestScore = score;
+        bestTile = stand;
+      }
+    }
+    return {
+      path: pathTo(reach, bestTile) ?? [unit.pos],
+      destination: bestTile,
+      action: { kind: "wait" },
+    };
+  }
   // Threat reach: the farthest this unit can hit from — its weapon range or any
   // affordable damage skill's range, whichever is greater. A ranged unit aims to
   // park at this distance (firing range) rather than charge into melee; a melee

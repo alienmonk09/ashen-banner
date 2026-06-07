@@ -313,6 +313,39 @@ describe("planEnemyTurn: status & line of sight", () => {
     expect(plan.action.kind).toBe("skill");
     expect(plan.action.skillId).toBe("haste");
   });
+
+  it("kills a near-dead foe with direct damage instead of wasting Stop on it", () => {
+    const grid = flatGrid();
+    const me = createUnit({ name: "Hexer", team: "enemy", classId: "blackMage", learnedSkillIds: ["stop", "fire"], pos: { x: 3, y: 5 } });
+    const foe = createUnit({ name: "Hero", team: "player", classId: "knight", pos: { x: 3, y: 3 } });
+    // Foe is at a sliver of HP, well within Fire's kill range — burning Stop here
+    // is a wasted turn when the unit can simply finish the kill.
+    foe.stats.hp = 3;
+
+    const plan = planEnemyTurn(me, [me, foe], grid);
+
+    // It goes for the kill (a damaging skill or a basic swing) and never burns Stop.
+    expect(plan.action.skillId).not.toBe("stop");
+    expect(samePt(plan.action.targetTile!, foe.pos)).toBe(true);
+  });
+
+  it("prefers to Stop the healthy threat over the near-dead one", () => {
+    const grid = flatGrid();
+    // Only Stop available (no direct damage skill, and a feeble staff swing) so the
+    // skip-the-killable rule does not fire — this isolates the HP-fraction scaling.
+    const me = createUnit({ name: "Hexer", team: "enemy", classId: "blackMage", learnedSkillIds: ["stop"], pos: { x: 3, y: 5 } });
+    const healthy = createUnit({ name: "Tank", team: "player", classId: "knight", pos: { x: 2, y: 3 } });
+    const nearDead = createUnit({ name: "Wretch", team: "player", classId: "knight", pos: { x: 4, y: 3 } });
+    // Both are out of the mage's puny melee reach but inside Stop's range; the
+    // near-dead one should be the worse freeze target.
+    nearDead.stats.hp = Math.max(1, Math.round(nearDead.stats.maxHp * 0.05));
+
+    const plan = planEnemyTurn(me, [me, healthy, nearDead], grid);
+
+    expect(plan.action.kind).toBe("skill");
+    expect(plan.action.skillId).toBe("stop");
+    expect(samePt(plan.action.targetTile!, healthy.pos)).toBe(true);
+  });
 });
 
 /** A grid from an explicit terrain map (flat, fully walkable). */

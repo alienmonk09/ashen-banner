@@ -180,6 +180,28 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
   const buffSkills = knownSkills.filter((s) => s.effect === "buff" && s.statusKind && s.mpCost <= unit.stats.mp);
 
   const options: Option[] = [];
+  const weapon = getWeapon(unit.weaponId);
+
+  // Best single-hit direct damage this unit could deal to each foe this turn
+  // (basic swing or a damage skill, from any stand tile it can reach). Used by
+  // the debuff loop to skip control on a foe it could simply kill instead.
+  const bestDamageTo = new Map<string, number>();
+  for (const stand of standTiles) {
+    for (const target of enemies) {
+      let best = bestDamageTo.get(target.id) ?? 0;
+      const dw = manhattan(stand, target.pos);
+      if (dw > 0 && dw <= weapon.range && (weapon.range <= 1 || hasLineOfSight(grid, stand, target.pos))) {
+        best = Math.max(best, estimateWeaponDamage(unit, stand, target, grid));
+      }
+      for (const skill of damageSkills) {
+        const ds = manhattan(stand, target.pos);
+        if (ds === 0 || ds > skill.range) continue;
+        if (skill.range > 1 && !skill.leap && !hasLineOfSight(grid, stand, target.pos)) continue;
+        best = Math.max(best, estimateSkillDamage(unit, stand, target, skill, grid));
+      }
+      bestDamageTo.set(target.id, best);
+    }
+  }
 
   // --- Healing / support behavior ---
   // Personality shifts when a healer commits: aggressive units let allies ride
@@ -225,7 +247,6 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
   }
 
   // --- Offensive behavior ---
-  const weapon = getWeapon(unit.weaponId);
   for (const stand of standTiles) {
     // Basic weapon attack.
     for (const target of enemies) {
@@ -304,9 +325,20 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
         const d = manhattan(stand, target.pos);
         if (d === 0 || d > skill.range) continue;
         if (skill.range > 1 && !hasLineOfSight(grid, stand, target.pos)) continue;
-        const lowHp = (1 - target.stats.hp / target.stats.maxHp) * 10;
+        // A foe this unit could simply kill this turn isn't worth a debuff — don't
+        // freeze or poison a corpse-in-waiting when a finishing blow is available.
+        if (target.stats.hp <= (bestDamageTo.get(target.id) ?? 0)) continue;
+        const hpFrac = target.stats.hp / target.stats.maxHp;
+        // Control statuses (stop/slow) rob a foe of turns it won't get to spend if
+        // it's already dying — scale their worth by remaining HP so the AI saves
+        // them for healthy threats. Poison's drip is unaffected.
+        const base =
+          skill.statusKind === "stop" || skill.statusKind === "slow"
+            ? debuffScore(skill) * hpFrac
+            : debuffScore(skill);
+        const lowHp = (1 - hpFrac) * 10;
         options.push({
-          score: debuffScore(skill) + lowHp,
+          score: base + lowHp,
           destination: stand,
           action: { kind: "skill", skillId: skill.id, targetTile: { ...target.pos } },
           kind: "debuff",

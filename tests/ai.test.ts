@@ -314,6 +314,19 @@ describe("planEnemyTurn: status & line of sight", () => {
     expect(plan.action.skillId).toBe("haste");
   });
 
+  it("prefers Guard over a lesser buff (Regen) when no attack is available", () => {
+    const grid = flatGrid(20, 20);
+    // Knows both Guard (self-only defense buff) and Rejuvenate (Regen). With no
+    // foe in reach, the AI must pick a buff — and Guard should outrank Regen.
+    const me = createUnit({ name: "Warden", team: "enemy", classId: "whiteMage", learnedSkillIds: ["guard", "rejuvenate"], pos: { x: 3, y: 3 } });
+    const foe = createUnit({ name: "Hero", team: "player", classId: "knight", pos: { x: 18, y: 18 } });
+
+    const plan = planEnemyTurn(me, [me, foe], grid);
+
+    expect(plan.action.kind).toBe("skill");
+    expect(plan.action.skillId).toBe("guard");
+  });
+
   it("kills a near-dead foe with direct damage instead of wasting Stop on it", () => {
     const grid = flatGrid();
     const me = createUnit({ name: "Hexer", team: "enemy", classId: "blackMage", learnedSkillIds: ["stop", "fire"], pos: { x: 3, y: 5 } });

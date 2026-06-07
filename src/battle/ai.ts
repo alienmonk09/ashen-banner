@@ -136,6 +136,8 @@ function buffScore(skill: SkillDef): number {
     case "protect":
     case "shell":
       return 70;
+    case "guard":
+      return 65;
     case "regen":
       return 60;
     default:

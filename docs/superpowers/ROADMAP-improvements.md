@@ -13,7 +13,7 @@ green (`tsc` + `npm test` + `npm run build`), committed incrementally.
 | R01 | Stopped units should not counterattack | combat | H/L | unit | ✅ `e83984e` |
 | R02 | Slow & haste mutually exclusive | combat | M/L | unit | ✅ `6ed5a42` |
 | R03 | Net Poison+Regen into one HP delta/tick | combat | M/M | unit | ⏭️ skipped — conflicts with R07 (see note) |
-| R04 | Auto-Potion falls back to X-Potion | combat | M/L | unit | 🔄 retry (529) in batch 2 |
+| R04 | Auto-Potion falls back to X-Potion | combat | M/L | unit | ✅ `90e9a16` |
 | R05 | Exhaustiveness guard on resolveSkillOnTarget | combat | M/L | logic | ✅ `dccb079` |
 | R06 | Pin facing×defense×element×crit composition | combat | L/L | unit | ✅ `c894f5d` |
 | R07 | Pin Poison+Regen interaction in tests | combat | M/L | unit | ✅ `d826060` |
@@ -25,16 +25,16 @@ green (`tsc` + `npm test` + `npm run build`), committed incrementally.
 > net-zero HP, lethal-poison-blocks-regen) with good tests. R03's netting-into-one-delta would
 > contradict + undo R07 for a debatable cosmetic gain (the per-effect popups are informative; the
 > "poison kills before regen" worry is already the tested behavior). Not worth undoing tested code.
-| R11 | AI penalizes ending turn on lava/mire | ai | H/L | unit | ⬜ |
-| R12 | counterRisk for range-1 damage skills | ai | H/L | unit | ⬜ |
-| R13 | AoE friendly-fire penalty scales w/ dmg | ai | H/L | unit | ⬜ |
-| R14 | AI stops overvaluing debuffs on near-dead | ai | M/L | unit | ⬜ |
-| R15 | Heal triage favors most wounded ally | ai | M/L | unit | ⬜ |
-| R16 | AI buffScore recognizes Guard | ai | L/L | unit | ⬜ |
-| R17 | AI prefers high ground on equal damage | ai | M/L | unit | ⬜ |
-| R18 | AI seeks rear/flank on equal damage | ai | M/L | unit | ⬜ |
-| R19 | Ranged enemies stop at firing range | ai | H/M | unit | ⬜ |
-| R20 | Low-HP AI units retreat | ai | H/M | unit | ⬜ |
+| R11 | AI penalizes ending turn on lava/mire | ai | H/L | unit | ✅ `2c25e6a` |
+| R12 | counterRisk for range-1 damage skills | ai | H/L | unit | ✅ `c84bb37` |
+| R13 | AoE friendly-fire penalty scales w/ dmg | ai | H/L | unit | ✅ `b6bf87a` |
+| R14 | AI stops overvaluing debuffs on near-dead | ai | M/L | unit | ✅ `ce63adc` |
+| R15 | Heal triage favors most wounded ally | ai | M/L | unit | ✅ `23e77b0` |
+| R16 | AI buffScore recognizes Guard | ai | L/L | unit | ✅ `19da4e7` |
+| R17 | AI prefers high ground on equal damage | ai | M/L | unit | ✅ `3a3bd74` |
+| R18 | AI seeks rear/flank on equal damage | ai | M/L | unit | ✅ `7f1ef63` |
+| R19 | Ranged enemies stop at firing range | ai | H/M | unit | ✅ `9de5b30` |
+| R20 | Low-HP AI units retreat | ai | H/M | unit | ✅ `5793e4d` |
 | R21 | Make holy element mechanically active | data | M/L | unit | ⬜ |
 | R22 | Time Mage gets a unique skill | data | H/L | unit | ⬜ |
 | R23 | Knight gets reach/AoE skill(s) | data | H/L | unit | ⬜ |

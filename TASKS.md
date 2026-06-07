@@ -13,18 +13,19 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
 - Commit each finished feature on the branch with a clear message + Co-Authored-By.
 
 ## Current state (resume point)
-- **NEXT UP — implement SP1 "Rich battlefield rendering"** on branch
-  **`feat/rich-battlefield`** (off `feat/progression-rewards`; design + plan done,
-  no code yet). Spec: `docs/superpowers/specs/2026-06-06-rich-battlefield-rendering-design.md`.
-  Plan: `docs/superpowers/plans/2026-06-06-rich-battlefield-rendering.md` (5 TDD tasks).
-  - **Mode for next session:** ultracode + a **Workflow** that dispatches a subagent
-    per task. **Run tasks SEQUENTIALLY** (1→5): tasks share `renderer.ts` / `grid.ts` /
-    `battleScene.ts`, so parallel edits conflict. Browser-verify (puppeteer recipe below)
-    each rendering step; the main thread reviews + commits between tasks.
-  - SP1 scope: +50% tiles + auto-fit camera, per-terrain motifs, per-tile bake cache,
-    SpriteDef prop layer + deterministic scatter, LOS/movement hook + authored decor.
-  - SP2 (separate cycle later): bigger map dimensions, real pan/zoom/follow camera,
-    enemy rebalancing, terrain edge-blending.
+- **SP1 "Rich battlefield rendering" — DONE** on branch **`feat/rich-battlefield`**
+  (5 TDD tasks, ultracode sequential-workflow run; each impl→adversarial-verify, main
+  thread re-ran gates + browser-verified + committed). Branch kept as-is (never pushed),
+  awaiting user live eyeball-check before merge. Spec/plan under `docs/superpowers/`.
+  - **5 commits** (`0d3d431`→`fdd89d8`): +50% tiles + auto-fit camera; per-terrain
+    motifs (animated water/spring/lava); per-tile bake cache (occlusion preserved,
+    pixel-identical blit); SpriteDef prop layer + deterministic scatter; authored decor
+    + LOS-blocking props (verdantRuins seeded w/ trees+boulders). Build clean; **1362
+    tests passing** (1333 baseline + 29). Browser-verified phase1 + verdantRuins +
+    emberfall (motifs, animation, props, trees/boulders all render; rotation centers).
+  - **NEXT UP — SP2** (separate spec→plan→branch): bigger map dimensions (re-author all
+    17 maps), real pan/zoom/follow camera (replaces SP1 auto-fit), enemy rebalancing,
+    terrain edge/transition blending. Builds on SP1 visuals.
 - Branch: **`feat/progression-rewards`** (off `main`; not merged/pushed) — base of the
   rich-battlefield branch. Build: clean. Tests: **1333 passing**. Audio WIP for
   `feat/audio` is parked in `git stash` (restore: `git checkout feat/audio && git stash pop`).

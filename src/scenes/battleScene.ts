@@ -374,6 +374,9 @@ export class BattleScene implements Scene {
           if (r.killed) this.creditEnvironmentalKill(this.active);
         }
       }
+      // Poison/terrain damage can drop a still-standing player unit below the
+      // Auto-Potion threshold just like a direct hit — give the reaction a turn.
+      this.tryAutoPotion(this.active);
       // Count a COMPLETED turn (drives survive/defend objectives). The next
       // beginNextTurn's outcome check ends the battle if the count is now met,
       // before the following actor gets to act.

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { hasAutoPotion, resolveAutoPotion } from "../src/battle/combat";
+import {
+  hasAutoPotion,
+  resolveAutoPotion,
+  tickStatuses,
+  applyTerrainEffect,
+} from "../src/battle/combat";
 import { createUnit } from "../src/core/unit";
 import type { Unit } from "../src/core/types";
 
@@ -189,5 +194,55 @@ describe("resolveAutoPotion", () => {
 
     const resCustom = resolveAutoPotion(unit, inventory, 0.5);
     expect(resCustom).not.toBeNull(); // 40% < 50% custom threshold
+  });
+});
+
+// ---------------------------------------------------------------------------
+// End-of-turn integration: poison/terrain damage must be able to trigger the
+// same Auto-Potion reaction as a direct hit. Models the exact sequence the
+// battle scene runs at end-of-turn (tickStatuses → applyTerrainEffect →
+// resolveAutoPotion) and locks the contract that the reaction fires there.
+// ---------------------------------------------------------------------------
+
+describe("Auto-Potion on end-of-turn damage", () => {
+  it("fires when a poison tick drops a still-alive Thief below the threshold", () => {
+    const unit = thief();
+    unit.stats.maxHp = 100;
+    unit.stats.hp = 35; // 35% — above threshold BEFORE the tick
+    unit.statuses = [{ kind: "poison", turnsLeft: 3 }];
+    const inventory: Record<string, number> = { potion: 2 };
+
+    // End-of-turn step 1: poison ticks (10% of maxHp = 10 dmg → 25 HP, 25%).
+    const ticks = tickStatuses(unit);
+    expect(ticks.some((r) => r.status === "poison")).toBe(true);
+    expect(unit.alive).toBe(true);
+    expect(unit.stats.hp).toBe(25); // now below 30%
+
+    // End-of-turn step 2: the reaction the scene now wires after the ticks.
+    const res = resolveAutoPotion(unit, inventory);
+
+    expect(res).not.toBeNull();
+    expect(res!.kind).toBe("heal");
+    expect(inventory["potion"]).toBe(1); // consumed
+    expect(unit.stats.hp).toBeGreaterThan(25); // healed back up
+  });
+
+  it("fires when standing on lava drops a still-alive Thief below the threshold", () => {
+    const unit = thief();
+    unit.stats.maxHp = 100;
+    unit.stats.hp = 40; // 40% — above threshold BEFORE the terrain bite
+    const inventory: Record<string, number> = { potion: 1 };
+
+    // End-of-turn terrain step: lava deals 15% of maxHp = 15 dmg → 25 HP (25%).
+    const burn = applyTerrainEffect(unit, "lava");
+    expect(burn).not.toBeNull();
+    expect(unit.alive).toBe(true);
+    expect(unit.stats.hp).toBe(25); // now below 30%
+
+    const res = resolveAutoPotion(unit, inventory);
+
+    expect(res).not.toBeNull();
+    expect(res!.kind).toBe("heal");
+    expect(inventory["potion"]).toBe(0); // consumed
   });
 });

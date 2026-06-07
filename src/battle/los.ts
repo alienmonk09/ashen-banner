@@ -15,14 +15,20 @@ const EYE = 0.5;
  * the eye-to-eye segment crosses (including the orthogonal cells either side of
  * a diagonal step, so a thin wall in a diagonal gap still blocks) and reports no
  * sight if any intervening tile's top rises above the interpolated sightline.
- * Same/adjacent tiles always see each other. The high ground gets a clearer view
- * (its eye sits higher, so the line clears nearer terrain).
+ * Same and orthogonally-adjacent tiles always see each other (nothing between);
+ * a diagonal adjacency is range-2 and still vets its two grazed corner tiles.
+ * The high ground gets a clearer view (its eye sits higher, so the line clears
+ * nearer terrain).
  */
 export function hasLineOfSight(grid: Grid, from: Point, to: Point): boolean {
   if (from.x === to.x && from.y === to.y) return true;
   const dx = to.x - from.x;
   const dy = to.y - from.y;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) <= 1) return true; // nothing in between
+  // Orthogonal adjacency has no tile between the two — fast true. A *diagonal*
+  // adjacency (|dx|==|dy|==1) is Chebyshev-near but range-2: the eye-to-eye
+  // segment grazes the two orthogonal corner tiles, so a tall prop there must
+  // still occlude. Only the orthogonal case may short-circuit.
+  if (Math.abs(dx) + Math.abs(dy) <= 1) return true; // nothing in between
   const z0 = grid.heightAt(from.x, from.y) + EYE;
   const z1 = grid.heightAt(to.x, to.y) + EYE;
 

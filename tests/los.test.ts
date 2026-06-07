@@ -109,3 +109,39 @@ describe("line of sight blocked by a tall prop on flat ground", () => {
     expect(hasLineOfSight(g, { x: 0, y: 0 }, { x: 2, y: 0 })).toBe(false);
   });
 });
+
+describe("hasLineOfSight at short range: the adjacency shortcut", () => {
+  // Build a 2x2 grid where a sightBlock prop sits on one tile.
+  const grid2x2 = (decor?: MapDef["decor"]): Grid => new Grid({
+    id: "s", name: "s", intro: "", width: 2, height: 2,
+    heights: [[0, 0], [0, 0]], decor, playerSpawns: [], enemies: [],
+  });
+
+  it("orthogonal adjacency has no intervening tile, so it always sees", () => {
+    // (0,0)->(1,0): there is literally no tile between them. A tall prop on the
+    // *target* tile never occludes the target itself. Lock the fast path.
+    const g = grid2x2([{ pos: { x: 1, y: 0 }, propId: "tree" }]);
+    expect(hasLineOfSight(g, { x: 0, y: 0 }, { x: 1, y: 0 })).toBe(true);
+  });
+
+  it("a tall prop in a diagonal corner gap occludes a diagonal shot", () => {
+    // (0,0)->(1,1) is Chebyshev-adjacent but range-2: the segment grazes the
+    // two orthogonal corners (1,0) and (0,1). A tree on (1,0) must block the
+    // shot — the old `max(|dx|,|dy|)<=1` shortcut skipped these corners.
+    const blockAt10 = grid2x2([{ pos: { x: 1, y: 0 }, propId: "tree" }]);
+    expect(hasLineOfSight(blockAt10, { x: 0, y: 0 }, { x: 1, y: 1 })).toBe(false);
+    const blockAt01 = grid2x2([{ pos: { x: 0, y: 1 }, propId: "tree" }]);
+    expect(hasLineOfSight(blockAt01, { x: 0, y: 0 }, { x: 1, y: 1 })).toBe(false);
+  });
+
+  it("a clear diagonal corner gap still sees at range-2 diagonal", () => {
+    expect(hasLineOfSight(grid2x2(), { x: 0, y: 0 }, { x: 1, y: 1 })).toBe(true);
+  });
+
+  it("a short prop in a diagonal corner does not occlude (below eyeline)", () => {
+    // A stump-style prop has no sightBlock; corner-vetting must not over-block.
+    const g = grid2x2([{ pos: { x: 1, y: 0 }, propId: "stump" }]);
+    expect(PROPS.stump.sightBlock ?? 0).toBe(0);
+    expect(hasLineOfSight(g, { x: 0, y: 0 }, { x: 1, y: 1 })).toBe(true);
+  });
+});

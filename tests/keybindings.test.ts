@@ -7,6 +7,7 @@ import {
   setBinding,
   resetBindings,
   actionForKey,
+  formatKey,
   type Action,
 } from "../src/engine/keybindings";
 
@@ -35,6 +36,23 @@ describe("keybindings — module import", () => {
 // ---------------------------------------------------------------------------
 // Defaults
 // ---------------------------------------------------------------------------
+
+describe("keybindings — formatKey", () => {
+  it("upper-cases single letters (default endTurn 'e' → 'E')", () => {
+    expect(formatKey("e")).toBe("E");
+    expect(formatKey(getBinding("endTurn"))).toBe("E");
+  });
+
+  it("humanizes special keys", () => {
+    expect(formatKey("Escape")).toBe("Esc");
+    expect(formatKey(" ")).toBe("Space");
+    expect(formatKey("ArrowLeft")).toBe("←");
+  });
+
+  it("leaves the cancel binding readable (Escape → 'Esc')", () => {
+    expect(formatKey(getBinding("cancel"))).toBe("Esc");
+  });
+});
 
 describe("keybindings — defaults", () => {
   it("every Action has a non-empty default binding", () => {

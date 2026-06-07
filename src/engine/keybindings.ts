@@ -122,6 +122,19 @@ export function resetBindings(): void {
   }
 }
 
+/** Display a key name in a human-friendly format (e.g. "Escape" → "Esc"). */
+export function formatKey(key: string): string {
+  if (key === "Escape") return "Esc";
+  if (key === "Enter") return "Enter";
+  if (key === " ") return "Space";
+  if (key === "ArrowLeft") return "←";
+  if (key === "ArrowRight") return "→";
+  if (key === "ArrowUp") return "↑";
+  if (key === "ArrowDown") return "↓";
+  if (key.length === 1) return key.toUpperCase();
+  return key;
+}
+
 /**
  * Reverse lookup: which action does a pressed key trigger?
  * Single-letter keys are matched case-insensitively; special keys (Escape,

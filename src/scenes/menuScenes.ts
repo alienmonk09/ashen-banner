@@ -21,6 +21,7 @@ import {
   getBinding,
   setBinding,
   resetBindings,
+  formatKey,
   type Action,
 } from "../engine/keybindings";
 
@@ -83,19 +84,6 @@ class BannerScene implements Scene {
   dispose(): void {
     this.root.remove();
   }
-}
-
-/** Display a key name in a human-friendly format for the Controls section. */
-function formatKey(key: string): string {
-  if (key === "Escape") return "Esc";
-  if (key === "Enter") return "Enter";
-  if (key === " ") return "Space";
-  if (key === "ArrowLeft") return "←";
-  if (key === "ArrowRight") return "→";
-  if (key === "ArrowUp") return "↑";
-  if (key === "ArrowDown") return "↓";
-  if (key.length === 1) return key.toUpperCase();
-  return key;
 }
 
 /**

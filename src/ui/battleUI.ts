@@ -351,13 +351,13 @@ export class BattleUI {
       if (opts.key) b.appendChild(el("span", { className: "key-hint", text: opts.key }));
       return b;
     };
-    this.actionMenu.appendChild(mk("Move", state.canMove, state.onMove, { accent: "a-move", tip: "Walk to a highlighted tile (respects range, terrain & jump)" }));
+    this.actionMenu.appendChild(mk("Move", state.canMove, state.onMove, { accent: "a-move", key: "M", tip: "Walk to a highlighted tile (respects range, terrain & jump) — press M" }));
     if (state.canUndo) {
       this.actionMenu.appendChild(mk("Undo Move", true, state.onUndo ?? (() => {}), { accent: "a-undo", tip: "Take back your move — resets position so you can move again or choose elsewhere" }));
     }
-    this.actionMenu.appendChild(mk("Attack", state.canAct, state.onAttack, { accent: "a-attack", tip: "Strike an enemy in weapon range — flank or rear for bonus damage" }));
-    this.actionMenu.appendChild(mk("Skill", state.canAct, state.onSkill, { accent: "a-skill", tip: "Cast a learned class skill (costs MP)" }));
-    this.actionMenu.appendChild(mk("Item", state.canAct, state.onItem, { accent: "a-item", tip: "Use a shared consumable" }));
+    this.actionMenu.appendChild(mk("Attack", state.canAct, state.onAttack, { accent: "a-attack", key: "A", tip: "Strike an enemy in weapon range — flank or rear for bonus damage — press A" }));
+    this.actionMenu.appendChild(mk("Skill", state.canAct, state.onSkill, { accent: "a-skill", key: "S", tip: "Cast a learned class skill (costs MP) — press S" }));
+    this.actionMenu.appendChild(mk("Item", state.canAct, state.onItem, { accent: "a-item", key: "I", tip: "Use a shared consumable — press I" }));
     if (state.canRecruit) {
       this.actionMenu.appendChild(mk("Recruit", true, state.onRecruit ?? (() => {}), { accent: "a-recruit", tip: "Recruit an adjacent weakened enemy — they join your cause and follow you into future battles" }));
     }

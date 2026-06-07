@@ -30,7 +30,7 @@ import { planEnemyTurn } from "../battle/ai";
 import { screenToTile, worldToScreen, rotateTile, type Rotation, type ScreenPoint } from "../engine/iso";
 import { sfx } from "../engine/audio";
 import { startMusic, stopMusic, battleThemeForPhase } from "../engine/music";
-import { actionForKey, getBinding } from "../engine/keybindings";
+import { actionForKey, getBinding, formatKey } from "../engine/keybindings";
 import type { ActiveEffect, FloatingText } from "../engine/renderer";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
@@ -491,7 +491,7 @@ export class BattleScene implements Scene {
       onUndo: () => this.undoMove(),
       onRecruit: () => this.enterRecruit(),
     });
-    this.ui.setHint(`Left-click to act · Right-click to cancel · Enter/${getBinding("endTurn")} to end turn · ${getBinding("rotateLeft")}/${getBinding("rotateRight")} to rotate view`);
+    this.ui.setHint(`M Move · A Attack · S Skill · I Item · Enter/${formatKey(getBinding("endTurn"))} end turn · Right-click/${formatKey(getBinding("cancel"))} cancel · ${formatKey(getBinding("rotateLeft"))}/${formatKey(getBinding("rotateRight"))} rotate view`);
   }
 
   /**
@@ -686,7 +686,18 @@ export class BattleScene implements Scene {
     // in control (not mid-animation/resolve, not the enemy's turn).
     if (!this.playerInControl) return;
     if (action === "cancel") return this.cancelToMenu();
-    if (action === "endTurn") this.endActiveTurn();
+    if (action === "endTurn") return this.endActiveTurn();
+    // Menu-only action shortcuts: M/A/S/I open the same flows as the buttons,
+    // each gated on the same canMove/canAct guard the menu uses.
+    if (this.phase === "menu") {
+      const k = key.toLowerCase();
+      const canMove = !this.hasMoved;
+      const canAct = !this.hasActed;
+      if (k === "m" && canMove) return this.enterMove();
+      if (k === "a" && canAct) return this.enterAttack();
+      if (k === "s" && canAct) return this.enterSkillMenu();
+      if (k === "i" && canAct) return this.enterItemMenu();
+    }
   }
 
   private inRangeTiles(tile: Point): boolean {

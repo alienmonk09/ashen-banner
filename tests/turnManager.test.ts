@@ -288,6 +288,91 @@ describe("evaluateOutcome", () => {
     dead.alive = false;
     expect(evaluateOutcome([party(), dead], obj, 1)).toBe("player");
   });
+
+  it("seize: standing a living player on the marked tile wins", () => {
+    const obj = { kind: "seize" as const, x: 3, y: 4 };
+    const p = party();
+    const live = foe();
+    // Off the tile while a foe still lives: fight continues.
+    p.pos = { x: 0, y: 0 };
+    expect(evaluateOutcome([p, live], obj, 0)).toBeNull();
+    // On the tile: instant win even though the foe is alive.
+    p.pos = { x: 3, y: 4 };
+    expect(evaluateOutcome([p, live], obj, 0)).toBe("player");
+  });
+
+  it("seize: a dead player on the tile does not count", () => {
+    const obj = { kind: "seize" as const, x: 3, y: 4 };
+    const p = party();
+    p.pos = { x: 3, y: 4 };
+    p.alive = false;
+    // No living player at all means the party is wiped → enemy wins.
+    expect(evaluateOutcome([p, foe()], obj, 0)).toBe("enemy");
+  });
+
+  it("seize: routing every foe still wins when the tile is unreached", () => {
+    const obj = { kind: "seize" as const, x: 9, y: 9 };
+    const p = party();
+    p.pos = { x: 0, y: 0 }; // never stepped on the tile
+    const dead = foe();
+    dead.alive = false;
+    expect(evaluateOutcome([p, dead], obj, 0)).toBe("player");
+  });
+
+  it("defend: a living enemy reaching the marked tile loses the map", () => {
+    const obj = { kind: "defend" as const, x: 2, y: 2, turns: 10 };
+    const e = foe();
+    e.pos = { x: 0, y: 0 };
+    // Holding the line: fight continues before the timer.
+    expect(evaluateOutcome([party(), e], obj, 3)).toBeNull();
+    // Enemy breaches the tile → enemy wins, even with turns left.
+    e.pos = { x: 2, y: 2 };
+    expect(evaluateOutcome([party(), e], obj, 3)).toBe("enemy");
+  });
+
+  it("defend: surviving to the turn target wins", () => {
+    const obj = { kind: "defend" as const, x: 2, y: 2, turns: 5 };
+    const e = foe();
+    e.pos = { x: 0, y: 0 };
+    expect(evaluateOutcome([party(), e], obj, 4)).toBeNull();
+    expect(evaluateOutcome([party(), e], obj, 5)).toBe("player");
+  });
+
+  it("defend: routing the enemies wins early before the timer", () => {
+    const obj = { kind: "defend" as const, x: 2, y: 2, turns: 99 };
+    const dead = foe();
+    dead.alive = false;
+    dead.pos = { x: 2, y: 2 }; // dead foe on the tile must not trigger an enemy win
+    expect(evaluateOutcome([party(), dead], obj, 1)).toBe("player");
+  });
+
+  it("escort: delivering the VIP to the goal tile wins", () => {
+    const obj = { kind: "escort" as const, vipName: "p", x: 5, y: 6 };
+    const vip = party(); // name is "p" via makeUnit's id == name
+    const live = foe();
+    vip.pos = { x: 0, y: 0 };
+    expect(evaluateOutcome([vip, live], obj, 0)).toBeNull();
+    vip.pos = { x: 5, y: 6 };
+    expect(evaluateOutcome([vip, live], obj, 0)).toBe("player");
+  });
+
+  it("escort: a dead VIP hands the win to the enemy", () => {
+    const obj = { kind: "escort" as const, vipName: "p", x: 5, y: 6 };
+    const vip = party();
+    vip.pos = { x: 5, y: 6 }; // even sitting on the goal, death loses first
+    vip.alive = false;
+    // Keep another living player so the wipe guard doesn't short-circuit.
+    const ally = makeUnit({ id: "ally", team: "player" });
+    expect(evaluateOutcome([vip, ally, foe()], obj, 0)).toBe("enemy");
+  });
+
+  it("escort: an absent VIP falls back to a rout", () => {
+    const obj = { kind: "escort" as const, vipName: "ghost", x: 5, y: 6 };
+    const live = foe();
+    expect(evaluateOutcome([party(), live], obj, 0)).toBeNull();
+    live.alive = false;
+    expect(evaluateOutcome([party(), live], obj, 0)).toBe("player");
+  });
 });
 
 describe("previewOrder", () => {

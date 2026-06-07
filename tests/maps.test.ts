@@ -65,6 +65,20 @@ describe("map data invariants", () => {
         }
       });
 
+      it("keeps every enemy spawn a fair distance from the nearest player spawn", () => {
+        // No first-turn alpha-strike: each foe must start at least this many tiles
+        // (Manhattan) from the closest player seat. 4 is the real campaign floor.
+        const MIN_SEPARATION = 4;
+        for (const e of map.enemies) {
+          let nearest = Infinity;
+          for (const s of map.playerSpawns) {
+            const d = Math.abs(e.pos.x - s.x) + Math.abs(e.pos.y - s.y);
+            if (d < nearest) nearest = d;
+          }
+          expect(nearest).toBeGreaterThanOrEqual(MIN_SEPARATION);
+        }
+      });
+
       it("has exactly one enemy matching a defeat objective's target name", () => {
         const obj = map.objective;
         if (obj?.kind !== "defeat") return;

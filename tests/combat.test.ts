@@ -645,4 +645,67 @@ describe("tickStatuses", () => {
     tickStatuses(u);
     expect(u.statuses).toHaveLength(0);
   });
+
+  describe("poison + regen on the same unit", () => {
+    it("nets out to zero HP swing when starting at full HP (equal fractions)", () => {
+      const u = knight();
+      const tick = Math.round(u.stats.maxHp * 0.1); // POISON_FRAC === REGEN_FRAC
+      expect(u.stats.hp).toBe(u.stats.maxHp);
+      u.statuses.push({ kind: "poison", turnsLeft: 3 });
+      u.statuses.push({ kind: "regen", turnsLeft: 3 });
+
+      const results = tickStatuses(u);
+
+      // Poison opens a gap, regen fills it back: same fraction → net zero.
+      expect(tick).toBeGreaterThan(0);
+      expect(u.stats.hp).toBe(u.stats.maxHp);
+      expect(u.alive).toBe(true);
+
+      // Two HP-change results, poison before regen (array iteration order).
+      expect(results).toHaveLength(2);
+      expect(results[0]).toMatchObject({
+        unitId: u.id,
+        kind: "damage",
+        amount: tick,
+        status: "poison",
+        killed: false,
+        crit: false,
+        revived: false,
+      });
+      expect(results[1]).toMatchObject({
+        unitId: u.id,
+        kind: "heal",
+        amount: tick,
+        status: "regen",
+        killed: false,
+        crit: false,
+        revived: false,
+      });
+    });
+
+    it("a lethal poison tick prevents regen from firing or appearing in the results", () => {
+      const u = knight();
+      const tick = Math.round(u.stats.maxHp * 0.1);
+      u.stats.hp = tick; // poison tick is exactly lethal
+      u.statuses.push({ kind: "poison", turnsLeft: 3 });
+      u.statuses.push({ kind: "regen", turnsLeft: 3 });
+
+      const results = tickStatuses(u);
+
+      expect(u.alive).toBe(false);
+      expect(u.stats.hp).toBe(0);
+      // dealDamage clears statuses on death, so nothing survives to decrement.
+      expect(u.statuses).toEqual([]);
+
+      // Only the killing poison result — regen never ran, so no heal is reported.
+      expect(results).toHaveLength(1);
+      expect(results[0]).toMatchObject({
+        kind: "damage",
+        status: "poison",
+        killed: true,
+        amount: tick,
+      });
+      expect(results.some((r) => r.status === "regen")).toBe(false);
+    });
+  });
 });

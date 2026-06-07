@@ -238,7 +238,7 @@ export function resolveCounterAttack(
   rng: RNG,
   ctx?: AttackContext,
 ): HitResult | null {
-  if (!defender.alive || !attacker.alive || !canCounter(defender)) return null;
+  if (!defender.alive || !attacker.alive || !canCounter(defender) || isStopped(defender)) return null;
   const dist = Math.abs(defender.pos.x - attacker.pos.x) + Math.abs(defender.pos.y - attacker.pos.y);
   if (dist === 0 || dist > defenderWeapon.range) return null;
   return resolveWeaponAttack(defender, attacker, defenderWeapon, rng, ctx);

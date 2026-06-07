@@ -5,6 +5,7 @@ import {
   resolveWeaponAttack,
   resolveSkillOnTarget,
   resolveItem,
+  resolveCounterAttack,
   addStatus,
   tickStatuses,
 } from "../src/battle/combat";
@@ -69,6 +70,25 @@ describe("effectiveDef", () => {
     u.stats.def = 10;
     u.statuses.push({ kind: "slow", turnsLeft: 2 });
     expect(effectiveDef(u)).toBe(10);
+  });
+});
+
+describe("resolveCounterAttack", () => {
+  it("counters a melee attacker when able", () => {
+    const defender = knight({ pos: { x: 0, y: 0 } });
+    const attacker = enemyKnight({ pos: { x: 1, y: 0 } });
+    const sword = getWeapon("sword");
+    const result = resolveCounterAttack(defender, attacker, sword, new RNG(1));
+    expect(result).not.toBeNull();
+  });
+
+  it("does not counter while stopped", () => {
+    const defender = knight({ pos: { x: 0, y: 0 } });
+    const attacker = enemyKnight({ pos: { x: 1, y: 0 } });
+    addStatus(defender, { kind: "stop", turnsLeft: 2 });
+    const sword = getWeapon("sword");
+    const result = resolveCounterAttack(defender, attacker, sword, new RNG(1));
+    expect(result).toBeNull();
   });
 });
 

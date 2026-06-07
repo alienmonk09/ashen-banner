@@ -155,6 +155,8 @@ export interface WeaponDef {
   classes: ClassId[];
   /** Gold cost to purchase from the weapon shop. */
   price: number;
+  /** Elemental affinity of the weapon's damage (defaults to "none"). Drives weak/resist scaling. */
+  element?: Element;
 }
 
 export type ItemEffect = "healHp" | "healMp" | "revive" | "buff";

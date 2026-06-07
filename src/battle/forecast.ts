@@ -48,12 +48,14 @@ export interface Forecast {
  */
 export function forecastWeapon(attacker: Unit, target: Unit, weapon: WeaponDef, ctx?: AttackContext): Forecast {
   const stat = weapon.kind === "magical" ? attacker.stats.mag : attacker.stats.atk;
+  const element = weapon.element ?? "none";
   let amount = Math.max(1, stat + weapon.power - effectiveDef(target));
   amount *= positionalDamageMult(attacker, target, weapon.kind, ctx);
   amount *= defenseDamageMult(target, weapon.kind);
+  amount *= elementDamageMult(target, element);
   amount *= expectedCritMult(attacker, target, weapon.kind, ctx);
   amount = Math.max(1, Math.round(amount));
-  return { kind: "damage", amount, lethal: amount >= target.stats.hp };
+  return { kind: "damage", amount, lethal: amount >= target.stats.hp, affinity: elementAffinity(target, element) };
 }
 
 export function forecastSkill(caster: Unit, target: Unit, skill: SkillDef, ctx?: AttackContext): Forecast {

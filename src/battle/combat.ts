@@ -205,6 +205,7 @@ export function resolveWeaponAttack(
   let base = Math.max(1, power + weapon.power - effectiveDef(target));
   base *= positionalDamageMult(attacker, target, weapon.kind, ctx);
   base *= defenseDamageMult(target, weapon.kind);
+  base *= elementDamageMult(target, weapon.element ?? "none");
   base = Math.max(1, base);
   const critChance = CRIT_CHANCE + positionalCritBonus(attacker, target, weapon.kind, ctx);
   const { value, crit } = applyVarianceAndCrit(base, rng, weapon.kind === "physical", critChance);

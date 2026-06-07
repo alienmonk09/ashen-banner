@@ -13,7 +13,7 @@ import { createUnit } from "../src/core/unit";
 import { RNG } from "../src/core/rng";
 import { getWeapon } from "../src/data/weapons";
 import { getSkill } from "../src/data/skills";
-import type { SkillDef, Unit } from "../src/core/types";
+import type { SkillDef, Unit, WeaponDef } from "../src/core/types";
 
 /**
  * Deterministic RNG stub: `next()` walks a scripted sequence so we can pin the
@@ -246,6 +246,26 @@ describe("resolveWeaponAttack", () => {
     const r2 = resolveWeaponAttack(two.a, two.t, getWeapon("sword"), new RNG(2024));
     expect(r1.amount).toBe(r2.amount);
     expect(r1.crit).toBe(r2.crit);
+  });
+
+  it("honors elemental affinity: weak target takes more than a resistant one", () => {
+    // A fire-element magical weapon (no crit, so the same seed yields the same
+    // variance roll for both targets — isolating the elemental multiplier).
+    const fireRod: WeaponDef = { ...getWeapon("rod"), element: "fire" };
+    const attacker = createUnit({ name: "BM", team: "player", classId: "blackMage", pos: { x: 0, y: 0 } });
+    attacker.stats.mag = 80;
+    // Elf is weak to fire (×1.5); dwarf resists it (×0.5).
+    const weak = createUnit({ name: "Elf", team: "enemy", classId: "knight", raceId: "elf", pos: { x: 2, y: 0 } });
+    const resistant = createUnit({ name: "Dwarf", team: "enemy", classId: "knight", raceId: "dwarf", pos: { x: 2, y: 0 } });
+    // Zero def/res on both so the elemental multiplier is the ONLY difference
+    // (races also carry def/hp mods that would otherwise confound the comparison).
+    weak.stats.def = 0;
+    weak.stats.res = 0;
+    resistant.stats.def = 0;
+    resistant.stats.res = 0;
+    const weakRes = resolveWeaponAttack(attacker, weak, fireRod, new RNG(7));
+    const resistRes = resolveWeaponAttack(attacker, resistant, fireRod, new RNG(7));
+    expect(weakRes.amount).toBeGreaterThan(resistRes.amount);
   });
 });
 

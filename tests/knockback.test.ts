@@ -86,6 +86,26 @@ describe("knockbackTo", () => {
       const dest = knockbackTo(grid, [], caster, target, 1);
       expect(dest).toEqual({ x: 5, y: 4 });
     });
+
+    // directionTo collapses an exact diagonal to a cardinal, favouring the
+    // horizontal axis (|dx| >= |dy|). These lock that documented resolution.
+    it("shoves east (horizontal wins) on an exact SE diagonal", () => {
+      const grid = makeGrid(10, 10);
+      // caster NW of target on a perfect diagonal → bearing is SE; horizontal wins → east.
+      const caster: Point = { x: 2, y: 2 };
+      const target: Point = { x: 3, y: 3 };
+      const dest = knockbackTo(grid, [], caster, target, 1);
+      expect(dest).toEqual({ x: 4, y: 3 });
+    });
+
+    it("shoves west (horizontal wins) on an exact SW diagonal", () => {
+      const grid = makeGrid(10, 10);
+      // caster NE of target on a perfect diagonal → bearing is SW; horizontal wins → west.
+      const caster: Point = { x: 4, y: 2 };
+      const target: Point = { x: 3, y: 3 };
+      const dest = knockbackTo(grid, [], caster, target, 1);
+      expect(dest).toEqual({ x: 2, y: 3 });
+    });
   });
 
   it("moves two tiles when clear (distance 2)", () => {
@@ -344,5 +364,27 @@ describe("knockbackTo — pull variant", () => {
     const target: Point = { x: 5, y: 4 };
     const dest = knockbackTo(grid, [], caster, target, 1, true);
     expect(dest).toEqual({ x: 5, y: 3 });
+  });
+
+  // Pull reverses the collapsed cardinal: an exact diagonal favours horizontal,
+  // so the pull travels along the (reversed) horizontal axis.
+  it("pulls west on an exact SE diagonal (horizontal wins, reversed)", () => {
+    const grid = makeGrid(10, 10);
+    // caster NW of target on a perfect diagonal → bearing SE → horizontal "east";
+    // pull reverses to west → target moves to (2,3).
+    const caster: Point = { x: 2, y: 2 };
+    const target: Point = { x: 3, y: 3 };
+    const dest = knockbackTo(grid, [], caster, target, 1, true);
+    expect(dest).toEqual({ x: 2, y: 3 });
+  });
+
+  it("pulls east on an exact SW diagonal (horizontal wins, reversed)", () => {
+    const grid = makeGrid(10, 10);
+    // caster NE of target on a perfect diagonal → bearing SW → horizontal "west";
+    // pull reverses to east → target moves to (4,3).
+    const caster: Point = { x: 4, y: 2 };
+    const target: Point = { x: 3, y: 3 };
+    const dest = knockbackTo(grid, [], caster, target, 1, true);
+    expect(dest).toEqual({ x: 4, y: 3 });
   });
 });

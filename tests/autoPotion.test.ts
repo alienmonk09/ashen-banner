@@ -149,6 +149,35 @@ describe("resolveAutoPotion", () => {
     expect(unit.stats.hp).toBe(62);
   });
 
+  it("falls back to 'xPotion' when neither 'potion' nor 'hiPotion' is available", () => {
+    const unit = thief();
+    unit.stats.maxHp = 200;
+    unit.stats.hp = 20;
+    const inventory: Record<string, number> = { potion: 0, hiPotion: 0, xPotion: 2 };
+
+    const res = resolveAutoPotion(unit, inventory);
+
+    expect(res).not.toBeNull();
+    expect(res!.kind).toBe("heal");
+    expect(inventory["potion"]).toBe(0); // unchanged
+    expect(inventory["hiPotion"]).toBe(0); // unchanged
+    expect(inventory["xPotion"]).toBe(1); // decremented
+    // xPotion heals 84 HP; 20 + 84 = 104 (under maxHp 200)
+    expect(unit.stats.hp).toBe(104);
+  });
+
+  it("prefers cheaper potions: hiPotion over xPotion when both are present", () => {
+    const unit = thief();
+    unit.stats.maxHp = 200;
+    unit.stats.hp = 20;
+    const inventory: Record<string, number> = { potion: 0, hiPotion: 1, xPotion: 1 };
+
+    resolveAutoPotion(unit, inventory);
+
+    expect(inventory["hiPotion"]).toBe(0); // hiPotion consumed first
+    expect(inventory["xPotion"]).toBe(1); // xPotion untouched
+  });
+
   it("respects a custom threshold", () => {
     const unit = thief();
     unit.stats.maxHp = 100;

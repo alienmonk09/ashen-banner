@@ -286,7 +286,8 @@ export function coverFor(target: Unit, units: Unit[]): Unit | null {
 /**
  * When a player unit drops below `threshold` HP fraction after taking damage,
  * automatically consume a potion from the shared party inventory and heal.
- * Prefers "potion" over "hiPotion". Returns a heal HitResult, or null if the
+ * Prefers cheaper stock first: "potion" -> "hiPotion" -> "xPotion". Returns a
+ * heal HitResult, or null if the
  * reaction cannot fire (wrong class, HP above threshold, no stock, or dead).
  * Mutates both the unit's HP and the inventory count.
  */
@@ -302,7 +303,9 @@ export function resolveAutoPotion(
       ? "potion"
       : (inventory["hiPotion"] ?? 0) > 0
         ? "hiPotion"
-        : null;
+        : (inventory["xPotion"] ?? 0) > 0
+          ? "xPotion"
+          : null;
   if (!itemId) return null;
   const item = getItem(itemId);
   const res = resolveItem(unit, "healHp", item.amount);

@@ -23,14 +23,32 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
     + LOS-blocking props (verdantRuins seeded w/ trees+boulders). Build clean; **1362
     tests passing** (1333 baseline + 29). Browser-verified phase1 + verdantRuins +
     emberfall (motifs, animation, props, trees/boulders all render; rotation centers).
-- **SP2 decomposed into SP2a/SP2b/SP2c.** **SP2a — real camera (pan/zoom/follow)**:
-  **spec + plan DONE, NOT implemented** (feel feature — parked for user's live eyeball).
-  Branch `feat/rich-battlefield-camera` (off `feat/rich-battlefield`); spec
-  `docs/superpowers/specs/2026-06-06-sp2a-camera-design.md` (hardened through 5 adversarial
-  review rounds — transform math numerically verified, boot pixel-identical to SP1), plan
-  `docs/superpowers/plans/2026-06-06-sp2a-camera.md` (5 TDD tasks). **To implement:** ultracode
-  sequential-workflow run on that branch. SP2b (bigger maps + rebalance) / SP2c (edge-blending)
-  are later cycles that build on SP2a.
+- **SP2 decomposed into SP2a/SP2b/SP2c.** **SP2a — real camera (pan/zoom/follow) — DONE**
+  on branch **`feat/rich-battlefield-camera`** (rebased onto `main`; kept, not merged —
+  **feel feature awaiting the user's live eyeball** before merge). 5 TDD tasks, ultracode
+  sequential-workflow run (each impl→adversarial-verify; main thread re-ran gates +
+  browser-verified + committed). **5 commits** (`67ce19b`→`3a34318`):
+  - pure unit-tested `engine/camera.ts` (origin=M/zoom−center; panBy; zoom-to-cursor;
+    per-axis clamp w/ fits-viewport pin + overscroll; dt-correct follow ease;
+    reset/setViewport/reframeForRotation/recenterFit) + `iso.tileScreen`; boot pixel-identical
+    to SP1's `computeCamera` (verified exact across sizes+rotations).
+  - input: wheel (deltaMode-normalized) + drag (pure `isPan` tap/pan split) + held keys;
+    `recenter` keybinding (c).
+  - scene wiring: drag-pan + wheel-zoom (gated on playerInControl), `Grid.interpHeightAt`
+    (renderer + follow share one elevation source), removed `Renderer.computeCamera`,
+    per-frame guarded menu re-anchor (`placeFloatingFast`, no reflow).
+  - smart-follow (player+AI) from the 2nd turn w/ first-turn whole-map boot exemption;
+    manual-pan suspends, committed move/action re-arms; recenter key + ⊙ button.
+  - rotation reframe (focused tile stays centered + clamps for the new orientation).
+  Tests **1524→1544** (+20: camera 13, input 5, interpHeightAt 2), tsc strict clean, build
+  clean. Adversarial-reviewed (camera math: 4 lenses; follow state machine: full edge-case
+  trace — a clamp pin-regime bug + a vacuous test were found & fixed). Browser-verified
+  (puppeteer/Edge, canvas pixel-signature vs animation noise-floor): boot whole-map,
+  pan/zoom, small-map pin, follow tracks committed moves + auto-centers each new actor,
+  recenter (key+button), rotation framed across all 4 orientations on a non-square map,
+  picking accurate under pan/zoom/rotation. Spec `docs/superpowers/specs/2026-06-06-sp2a-camera-design.md`,
+  plan `docs/superpowers/plans/2026-06-06-sp2a-camera.md`.
+  **SP2b** (bigger maps + rebalance) / **SP2c** (edge-blending) are later cycles that build on SP2a.
 - **DONE — 50-improvements roadmap** (autonomous overnight run, ultracode) on branch
   **`feat/improvements-roadmap`** (off `feat/rich-battlefield`; kept, not merged): a broad game
   sweep (combat/AI/UX/a11y/content/juice/progression/code-quality). **47 implemented + committed,

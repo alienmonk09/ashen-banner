@@ -23,9 +23,9 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
     + LOS-blocking props (verdantRuins seeded w/ trees+boulders). Build clean; **1362
     tests passing** (1333 baseline + 29). Browser-verified phase1 + verdantRuins +
     emberfall (motifs, animation, props, trees/boulders all render; rotation centers).
-- **SP2 decomposed into SP2a/SP2b/SP2c.** **SP2a — real camera (pan/zoom/follow) — DONE**
-  on branch **`feat/rich-battlefield-camera`** (rebased onto `main`; kept, not merged —
-  **feel feature awaiting the user's live eyeball** before merge). 5 TDD tasks, ultracode
+- **SP2 decomposed into SP2a/SP2b/SP2c.** **SP2a — real camera (pan/zoom/follow) — DONE +
+  MERGED to `main` + pushed** (2026-06-07; user approved the feel). Branch
+  `feat/rich-battlefield-camera` fast-forwarded into `main`. 5 TDD tasks, ultracode
   sequential-workflow run (each impl→adversarial-verify; main thread re-ran gates +
   browser-verified + committed). **5 commits** (`67ce19b`→`3a34318`):
   - pure unit-tested `engine/camera.ts` (origin=M/zoom−center; panBy; zoom-to-cursor;
@@ -48,6 +48,13 @@ Living task list for the autonomous build. The roadmap (`ROADMAP.md`) is the
   recenter (key+button), rotation framed across all 4 orientations on a non-square map,
   picking accurate under pan/zoom/rotation. Spec `docs/superpowers/specs/2026-06-06-sp2a-camera-design.md`,
   plan `docs/superpowers/plans/2026-06-06-sp2a-camera.md`.
+  - **Post-eyeball UX fixes** (from the user's live test — synthetic-event verification had
+    masked these; re-tested with REAL puppeteer `page.mouse`/`keyboard` input): the camera
+    felt dead because at the whole-map fit zoom pan is (correctly) pinned, and the only unlock
+    (zoom-in) was wheel-only + capped at native 1.0 (a ~15% step on big maps → imperceptible).
+    Fix: clickable **＋／－** zoom buttons + `+/-` keys + a hint, and **raised MAX_ZOOM 1.0→2.5×**
+    (boot still fits at ≤1; only manual zoom-in exceeds native). Lesson: **verify camera/input
+    with real trusted input, not `dispatchEvent`** — see [[browser-verification]].
   **SP2b** (bigger maps + rebalance) / **SP2c** (edge-blending) are later cycles that build on SP2a.
 - **DONE — 50-improvements roadmap** (autonomous overnight run, ultracode) on branch
   **`feat/improvements-roadmap`** (off `feat/rich-battlefield`; kept, not merged): a broad game

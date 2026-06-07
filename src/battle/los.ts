@@ -30,7 +30,7 @@ export function hasLineOfSight(grid: Grid, from: Point, to: Point): boolean {
     if (!grid.inBounds(cx, cy)) return false;
     if ((cx === from.x && cy === from.y) || (cx === to.x && cy === to.y)) return false;
     const lineZ = z0 + (z1 - z0) * t;
-    return grid.heightAt(cx, cy) > lineZ + 1e-6;
+    return grid.heightAt(cx, cy) + grid.sightBlockAt(cx, cy) > lineZ + 1e-6;
   };
 
   const steps = Math.max(2, Math.ceil(Math.hypot(dx, dy) * 4));

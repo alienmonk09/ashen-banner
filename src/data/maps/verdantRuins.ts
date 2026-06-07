@@ -86,4 +86,10 @@ export const verdantRuins: MapDef = {
     { pos: { x: 2, y: 8 }, loot: { gold: 90, items: ["hiPotion"] } },
     { pos: { x: 12, y: 8 }, loot: { gold: 110, items: ["hourglass"] } },
   ],
+  decor: [
+    { pos: { x: 0, y: 0 }, propId: "tree" },
+    { pos: { x: 14, y: 0 }, propId: "tree" },
+    { pos: { x: 4, y: 6 }, propId: "boulder" },
+    { pos: { x: 10, y: 6 }, propId: "boulder" },
+  ],
 };

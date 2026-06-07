@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Grid, key, manhattan, samePoint, occupancy, moveBlockers } from "../src/battle/grid";
 import type { MapDef, Point, Unit } from "../src/core/types";
+import { PROPS } from "../src/data/props";
 
 // --- Helpers -------------------------------------------------------------
 
@@ -354,6 +355,25 @@ describe("Grid.maxHeight", () => {
   });
   it("is 0 for an all-flat grid", () => {
     expect(gridOf([[0, 0], [0, 0]]).maxHeight()).toBe(0);
+  });
+});
+
+describe("Grid.sightBlockAt", () => {
+  it("is 0 where there is no sight-blocking decor", () => {
+    const g = gridOf([[0, 0], [0, 0]]);
+    expect(g.sightBlockAt(0, 0)).toBe(0);
+  });
+  it("returns a tree's sightBlock on its tile", () => {
+    const map: MapDef = {
+      id: "d", name: "d", intro: "", width: 3, height: 1,
+      heights: [[0, 0, 0]],
+      blocked: [[false, true, false]],
+      decor: [{ pos: { x: 1, y: 0 }, propId: "tree" }],
+      playerSpawns: [], enemies: [],
+    };
+    const g = new Grid(map);
+    expect(g.sightBlockAt(1, 0)).toBe(PROPS.tree.sightBlock);
+    expect(g.sightBlockAt(0, 0)).toBe(0);
   });
 });
 

@@ -1,5 +1,6 @@
 import type { MapDef, Point, Team, TerrainType, Unit } from "../core/types";
 import { defaultTerrain } from "../data/terrain";
+import { PROPS } from "../data/props";
 
 /** Runtime battle grid: tile heights, blocked mask, terrain, and occupancy. */
 export class Grid {
@@ -8,6 +9,7 @@ export class Grid {
   private readonly heights: number[][];
   private readonly blocked: boolean[][];
   private readonly terrain: TerrainType[][];
+  private readonly sightBlock: number[][];
   private readonly _maxHeight: number;
 
   constructor(map: MapDef) {
@@ -22,6 +24,11 @@ export class Grid {
         map.terrain?.[y]?.[x] ?? defaultTerrain(this.blocked[y]?.[x] ?? false, this.heights[y]?.[x] ?? 0),
       ),
     );
+    this.sightBlock = Array.from({ length: this.height }, () => Array(this.width).fill(0));
+    for (const d of map.decor ?? []) {
+      const sb = PROPS[d.propId]?.sightBlock ?? 0;
+      if (sb > 0 && this.inBounds(d.pos.x, d.pos.y)) this.sightBlock[d.pos.y][d.pos.x] = sb;
+    }
     let mx = 0;
     for (const row of this.heights) for (const z of row) if (z > mx) mx = z;
     this._maxHeight = mx;
@@ -33,6 +40,11 @@ export class Grid {
 
   heightAt(x: number, y: number): number {
     return this.inBounds(x, y) ? this.heights[y][x] : 0;
+  }
+
+  /** Extra LOS occlusion (in tile-z) from a sight-blocking prop on this tile. */
+  sightBlockAt(x: number, y: number): number {
+    return this.inBounds(x, y) ? this.sightBlock[y][x] : 0;
   }
 
   /** Tallest tile height on the map (for camera fit). Computed once. */

@@ -6,6 +6,7 @@ import { SKILLS } from "../src/data/skills";
 import { ITEMS } from "../src/data/items";
 import { partyCapForPhase } from "../src/data/party";
 import { Grid } from "../src/battle/grid";
+import { PROPS } from "../src/data/props";
 
 describe("map data invariants", () => {
   PHASES.forEach((map, index) => {
@@ -94,6 +95,32 @@ describe("map data invariants", () => {
           for (const id of c.loot.items ?? []) expect(ITEMS[id]).toBeDefined();
           // No overlap with units/objective, and no two chests on the same tile.
           const k = `${c.pos.x},${c.pos.y}`;
+          expect(taken.has(k)).toBe(false);
+          expect(seen.has(k)).toBe(false);
+          seen.add(k);
+        }
+      });
+
+      it("places decor on valid tiles (solid props on blocked tiles)", () => {
+        if (!map.decor) return;
+        const grid = new Grid(map);
+        const taken = new Set<string>();
+        for (const s of map.playerSpawns) taken.add(`${s.x},${s.y}`);
+        for (const e of map.enemies) taken.add(`${e.pos.x},${e.pos.y}`);
+        for (const a of map.allies ?? []) taken.add(`${a.pos.x},${a.pos.y}`);
+        for (const c of map.chests ?? []) taken.add(`${c.pos.x},${c.pos.y}`);
+        const o = map.objective;
+        if (o && (o.kind === "seize" || o.kind === "defend" || o.kind === "escort")) taken.add(`${o.x},${o.y}`);
+        const seen = new Set<string>();
+        for (const d of map.decor) {
+          expect(d.pos.x).toBeGreaterThanOrEqual(0);
+          expect(d.pos.y).toBeGreaterThanOrEqual(0);
+          expect(d.pos.x).toBeLessThan(map.width);
+          expect(d.pos.y).toBeLessThan(map.height);
+          const prop = PROPS[d.propId];
+          expect(prop).toBeDefined();
+          if (prop.solid) expect(grid.isBlocked(d.pos.x, d.pos.y)).toBe(true);
+          const k = `${d.pos.x},${d.pos.y}`;
           expect(taken.has(k)).toBe(false);
           expect(seen.has(k)).toBe(false);
           seen.add(k);

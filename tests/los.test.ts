@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { MapDef } from "../src/core/types";
 import { Grid } from "../src/battle/grid";
 import { hasLineOfSight } from "../src/battle/los";
+import { PROPS } from "../src/data/props";
 
 function gridFromHeights(heights: number[][]): Grid {
   const h = heights.length;
@@ -89,5 +90,22 @@ describe("hasLineOfSight", () => {
     const a = { x: 0, y: 0 };
     const b = { x: 4, y: 0 };
     expect(hasLineOfSight(g, a, b)).toBe(hasLineOfSight(g, b, a));
+  });
+});
+
+describe("line of sight blocked by a tall prop on flat ground", () => {
+  const flat3 = (decor?: MapDef["decor"]): Grid => new Grid({
+    id: "l", name: "l", intro: "", width: 3, height: 1,
+    heights: [[0, 0, 0]], blocked: [[false, true, false]],
+    decor, playerSpawns: [], enemies: [],
+  });
+
+  it("sees across flat ground with no prop", () => {
+    expect(hasLineOfSight(flat3(), { x: 0, y: 0 }, { x: 2, y: 0 })).toBe(true);
+  });
+  it("is blocked by a tree (sightBlock) in the middle", () => {
+    const g = flat3([{ pos: { x: 1, y: 0 }, propId: "tree" }]);
+    expect(PROPS.tree.sightBlock).toBeGreaterThan(0);
+    expect(hasLineOfSight(g, { x: 0, y: 0 }, { x: 2, y: 0 })).toBe(false);
   });
 });

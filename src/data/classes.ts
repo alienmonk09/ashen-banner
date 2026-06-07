@@ -18,7 +18,7 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     description: "Ranged physical damage. Fast and accurate.",
     base: { hp: 54, mp: 24, atk: 11, def: 7, mag: 5, res: 7, spd: 12, move: 5, jump: 3 },
     growth: { hp: 5, mp: 3, atk: 1.8, def: 0.9, mag: 0.5, res: 0.9, spd: 1.0 },
-    skillIds: ["aimedShot", "cripple"],
+    skillIds: ["aimedShot", "cripple", "multishot", "pinningShot"],
     weaponIds: ["bow", "longbow", "warbow"],
     color: "#5fbf72",
   },

@@ -72,3 +72,45 @@ describe("Knight gets reach/AoE skills (R23)", () => {
     }
   });
 });
+
+describe("Archer gets ranged AoE/control skills (R24)", () => {
+  it("Archer has more than 2 skills, keeping its originals", () => {
+    const ids = CLASSES.archer.skillIds;
+    expect(ids).toContain("aimedShot");
+    expect(ids).toContain("cripple");
+    expect(ids.length).toBeGreaterThan(2);
+  });
+
+  it("multishot is a ranged cross-AoE physical attack", () => {
+    const s = SKILLS.multishot;
+    expect(s, "missing skill: multishot").toBeTruthy();
+    expect(getSkill("multishot").id).toBe("multishot");
+    expect(s.effect).toBe("damage");
+    expect(s.scaling).toBe("physical");
+    expect(s.aoe).toBe("cross");
+    expect(s.range).toBeGreaterThanOrEqual(4);
+    expect(s.power).toBeGreaterThan(0);
+    expect(CLASSES.archer.skillIds).toContain("multishot");
+  });
+
+  it("pinningShot is a ranged shot that knocks back and slows", () => {
+    const s = SKILLS.pinningShot;
+    expect(s, "missing skill: pinningShot").toBeTruthy();
+    expect(getSkill("pinningShot").id).toBe("pinningShot");
+    expect(s.effect).toBe("debuff");
+    expect(s.scaling).toBe("physical");
+    expect(s.range).toBeGreaterThanOrEqual(4);
+    expect(s.aoe).toBe("single");
+    expect(s.statusKind).toBe("slow");
+    expect(s.knockback ?? 0).toBeGreaterThanOrEqual(1);
+    expect(CLASSES.archer.skillIds).toContain("pinningShot");
+  });
+
+  it("both new Archer skills resolve to a sprite and a VFX family (no missing assets)", () => {
+    for (const id of ["multishot", "pinningShot"]) {
+      const s = SKILLS[id];
+      expect(getSkillSprite(id)).toBeTruthy();
+      expect(getVfx(vfxKeyForSkill(s))).toBeTruthy();
+    }
+  });
+});

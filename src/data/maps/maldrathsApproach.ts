@@ -81,4 +81,11 @@ export const maldrathsApproach: MapDef = {
     { name: "Ashfall Seer", classId: "summoner", level: 8, weaponId: "grimoire", skillIds: ["callIfrit","callShiva"], pos: { x: 7, y: 4 }, personality: "balanced", raceId: "gnome" },
     { name: "Maldrath's Herald", classId: "paladin", level: 9, weaponId: "mjolnir", skillIds: ["smite","holyLance","sanctuary"], pos: { x: 7, y: 2 }, personality: "balanced", raceId: "orc" },
   ],
+  // Basalt perches and a ruined gate buttress flanking the causeway. All seated on
+  // already-blocked tiles (solid props require it) — no walkability change.
+  decor: [
+    { pos: { x: 7, y: 1 }, propId: "wallSegment" },
+    { pos: { x: 0, y: 3 }, propId: "boulder" },
+    { pos: { x: 14, y: 3 }, propId: "boulder" },
+  ],
 };

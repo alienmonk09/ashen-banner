@@ -79,4 +79,14 @@ export const gravewatchHollow: MapDef = {
     { name: "Bone Sentinel", classId: "knight", level: 8, weaponId: "greatsword", skillIds: ["powerStrike","guard"], pos: { x: 9, y: 2 }, personality: "defensive", raceId: "orc" },
     { name: "Mortilex the Gravewatcher", classId: "summoner", level: 9, weaponId: "grimoire", skillIds: ["callShiva","callTitan"], pos: { x: 7, y: 1 }, personality: "balanced", raceId: "human" },
   ],
+  // Leaning crypt walls and toppled cairns ringing the sunken basin. All seated on
+  // already-blocked tiles (solid props require it) — no walkability change.
+  decor: [
+    { pos: { x: 5, y: 1 }, propId: "wallSegment" },
+    { pos: { x: 8, y: 1 }, propId: "wallSegment" },
+    { pos: { x: 3, y: 5 }, propId: "boulder" },
+    { pos: { x: 10, y: 5 }, propId: "boulder" },
+    { pos: { x: 1, y: 6 }, propId: "deadTree" },
+    { pos: { x: 12, y: 6 }, propId: "deadTree" },
+  ],
 };

@@ -79,4 +79,13 @@ export const howlingSteppe: MapDef = {
     { name: "Gale Caller", classId: "blackMage", level: 8, weaponId: "rod", skillIds: ["bolt","fireball","stop"], pos: { x: 8, y: 7 }, personality: "balanced", raceId: "gnome" },
     { name: "Steppe Warlord", classId: "berserker", level: 9, weaponId: "bloodAxe", skillIds: ["rampage","crushingBlow"], pos: { x: 8, y: 1 }, personality: "aggressive", raceId: "orc" },
   ],
+  // Weathered tors and wind-blasted deadwood crowning the rocky rises. All seated
+  // on already-blocked tiles (solid props require it) — no walkability change.
+  decor: [
+    { pos: { x: 3, y: 0 }, propId: "boulder" },
+    { pos: { x: 12, y: 0 }, propId: "boulder" },
+    { pos: { x: 4, y: 1 }, propId: "deadTree" },
+    { pos: { x: 13, y: 1 }, propId: "deadTree" },
+    { pos: { x: 8, y: 6 }, propId: "wallSegment" },
+  ],
 };

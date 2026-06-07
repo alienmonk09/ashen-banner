@@ -223,8 +223,14 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
         // Use the shared forecast so physical-scaling heals (e.g. Monk's Chakra)
         // are scored off the right stat, matching what resolution will restore.
         const heal = Math.min(missing, forecastSkill(unit, ally, skill).amount);
+        // Triage: penalize healing a fuller ally so the most wounded reachable
+        // one wins — a near-dead ally would otherwise lose to a near-full one
+        // whose larger absolute missing HP edges it out under the maxHp clamp.
+        // Phrased as a penalty (vs a +(1 - hp/maxHp) bonus) so it only reorders
+        // targets without inflating the heal-vs-attack ceiling.
+        const triage = (ally.stats.hp / ally.stats.maxHp) * 40;
         options.push({
-          score: 200 + heal, // healing prioritized over attacking
+          score: 200 + heal - triage, // healing prioritized over attacking
           destination: stand,
           action: { kind: "skill", skillId: skill.id, targetTile: { ...ally.pos } },
           kind: "heal",

@@ -492,6 +492,34 @@ describe("planEnemyTurn: healer behavior", () => {
     // Stand tile must be within Cure's range of the ally.
     expect(manhattan(plan.destination, ally.pos)).toBeLessThanOrEqual(3);
   });
+
+  it("triages the most wounded ally even when a less-hurt ally has more missing HP", () => {
+    const grid = flatGrid();
+    const healer = createUnit({
+      name: "Cleric",
+      team: "enemy",
+      classId: "whiteMage",
+      learnedSkillIds: ["cure"],
+      pos: { x: 3, y: 3 },
+    });
+    // Both allies are hurt (< healAt) and within Cure's range (3). Cure forecast
+    // is ~31, so the heal amount clamps for the decoy (missing 55 -> 31) while the
+    // near-dead ally's smaller missing (25) is the binding term. Without triage,
+    // the old `200 + min(missing, forecast)` would prefer the decoy (231 > 225);
+    // the (1 - hp/maxHp) triage term must flip the choice to the near-dead ally.
+    const decoy = createUnit({ name: "Decoy", team: "enemy", classId: "knight", pos: { x: 3, y: 2 } });
+    decoy.stats.maxHp = 100;
+    decoy.stats.hp = 45; // ratio 0.45, missing 55
+    const nearDead = createUnit({ name: "Crit", team: "enemy", classId: "knight", pos: { x: 3, y: 4 } });
+    nearDead.stats.maxHp = 30;
+    nearDead.stats.hp = 5; // ratio ~0.17, missing 25 — the one who actually needs it
+
+    const plan = planEnemyTurn(healer, [healer, decoy, nearDead], grid);
+
+    expect(plan.action.kind).toBe("skill");
+    expect(plan.action.skillId).toBe("cure");
+    expect(samePt(plan.action.targetTile!, nearDead.pos)).toBe(true);
+  });
 });
 
 describe("planEnemyTurn: counter risk on range-1 damage skills", () => {

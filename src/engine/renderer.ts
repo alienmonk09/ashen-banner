@@ -4,6 +4,7 @@ import { dirVector } from "../battle/facing";
 import { bakeSprite, spriteHeight, type AnimDef, type SpriteDef } from "./sprite";
 import { getUnitSprite } from "../data/sprites";
 import { TERRAIN } from "../data/terrain";
+import { edgeBlends } from "./terrainEdges";
 import { PROPS, type PlacedProp } from "../data/props";
 import {
   TILE_W,
@@ -314,6 +315,13 @@ export class Renderer {
           const { canvas, ax, ay } = this.bakeTile(terrain, z, ao, propId);
           this.ctx.drawImage(canvas, Math.round(center.sx - ax), Math.round(center.sy - ay));
         }
+        // SP2c: soften terrain seams — bleed a fringe of any higher-priority
+        // neighbor terrain onto this tile's edge. Drawn live (not baked) so it
+        // stays correct under camera rotation; only boundary tiles pay any cost.
+        // Run even on propped tiles: props bake centered/upward, the fringe hugs
+        // the rim — skipping it would break a continuous shoreline at any tile
+        // that happens to carry a tree/rock.
+        this.drawTileFringe(view, center, it.x, it.y, z, ao);
         const cols = overlays.get(`${it.x},${it.y}`);
         if (cols) for (const c of cols) this.paintDiamond(center, c);
       } else if (it.kind === "chest") {
@@ -507,6 +515,58 @@ export class Renderer {
       ctx.lineTo(corners[0].sx, corners[0].sy);
       ctx.lineTo(corners[1].sx, corners[1].sy);
       ctx.stroke();
+    }
+  }
+
+  /** SP2c terrain edge blending: for each orthogonal neighbor whose terrain
+   *  outranks this tile's (see TERRAIN_BLEND_RANK), feather a thin band of the
+   *  neighbor's color along the diamond edge facing it — softening hard seams
+   *  (shorelines, sandy fringes) into transitions. Live-drawn on this.ctx after
+   *  the (baked or animated) tile top, so it inherits camera rotation via the
+   *  projected neighbor direction and never needs a per-rotation bake. */
+  private drawTileFringe(view: BattleView, center: ScreenPoint, x: number, y: number, z: number, ao: number): void {
+    const blends = edgeBlends(view.grid, x, y);
+    if (blends.length === 0) return;
+    const ctx = this.ctx;
+    const corners = diamondCorners(center);
+    const INSET = 0.42; // how far the fringe reaches in from the edge toward center
+    for (const b of blends) {
+      // Screen direction toward the neighbor (rotation-correct via project).
+      const nc = this.project(view, x + b.dx, y + b.dy, z);
+      const sdx = nc.sx - center.sx;
+      const sdy = nc.sy - center.sy;
+      // Pick the diamond edge whose outward side faces the neighbor. Iso ortho
+      // neighbors always project to (±hw, ±hh) — both components nonzero for
+      // every rotation — so sdx/sdy are never 0 here and the >=/< boundaries are
+      // unreachable tie-breaks. (Holds while projection stays orthogonal iso and
+      // neighbor coords stay integer; a shear or fractional coords would break it.)
+      let a: ScreenPoint, c: ScreenPoint;
+      if (sdx >= 0 && sdy < 0) { a = corners[0]; c = corners[1]; } // toward top-right (N-ish)
+      else if (sdx > 0 && sdy >= 0) { a = corners[1]; c = corners[2]; } // bottom-right (E-ish)
+      else if (sdx <= 0 && sdy > 0) { a = corners[2]; c = corners[3]; } // bottom-left (S-ish)
+      else { a = corners[3]; c = corners[0]; } // top-left (W-ish)
+      const ai = { sx: a.sx + (center.sx - a.sx) * INSET, sy: a.sy + (center.sy - a.sy) * INSET };
+      const ci = { sx: c.sx + (center.sx - c.sx) * INSET, sy: c.sy + (center.sy - c.sy) * INSET };
+      // Shade the fringe with the NEIGHBOR's elevation (so a raised water tile
+      // bleeding onto low grass keeps its lit color, not a too-dark sliver), but
+      // keep this tile's AO plane since the band physically sits on this tile.
+      const st = TERRAIN[b.terrain];
+      const nz = view.grid.heightAt(x + b.dx, y + b.dy);
+      const lit = clampL(st.l + nz * 6 - ao * 4);
+      // Feather: opaque at the edge, fading to transparent toward the inset line.
+      const mx = (a.sx + c.sx) / 2, my = (a.sy + c.sy) / 2;
+      const ix = (ai.sx + ci.sx) / 2, iy = (ai.sy + ci.sy) / 2;
+      const g = ctx.createLinearGradient(mx, my, ix, iy);
+      g.addColorStop(0, `hsla(${st.h}, ${st.s}%, ${lit}%, 0.7)`);
+      g.addColorStop(1, `hsla(${st.h}, ${st.s}%, ${lit}%, 0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(a.sx, a.sy);
+      ctx.lineTo(c.sx, c.sy);
+      ctx.lineTo(ci.sx, ci.sy);
+      ctx.lineTo(ai.sx, ai.sy);
+      ctx.closePath();
+      ctx.fill();
     }
   }
 

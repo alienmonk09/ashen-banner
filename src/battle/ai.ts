@@ -5,6 +5,7 @@ import { aoeTiles, tilesInRange } from "./targeting";
 import { forecastSkill, forecastWeapon } from "./forecast";
 import { canCounter, hasStatus, isStopped, type AttackContext } from "./combat";
 import { hasLineOfSight } from "./los";
+import { attackAngle } from "./facing";
 import { getWeapon } from "../data/weapons";
 import { getSkill } from "../data/skills";
 import { terrainEffect } from "../data/terrain";
@@ -83,6 +84,21 @@ function ctxFrom(grid: Grid, stand: Point, target: Point): AttackContext {
  */
 function highGroundBonus(grid: Grid, stand: Point, target: Point): number {
   return Math.min(2, Math.max(0, grid.heightAt(stand.x, stand.y) - grid.heightAt(target.x, target.y))) * 0.5;
+}
+
+/**
+ * Sub-point nudge toward striking an exposed side. The forecast already rewards
+ * flank/rear hits via the damage multiplier, but for feeble trades that bonus
+ * rounds away (a 1-damage poke is 1 from every angle), leaving the AI no reason
+ * to circle. This tiebreak — +1.0 rear, +0.5 flank — only reorders otherwise-equal
+ * stands; it never overrides a bigger forecast (and so never trumps a kill).
+ */
+function facingBonus(stand: Point, target: Unit): number {
+  switch (attackAngle(stand, target.pos, target.facing)) {
+    case "rear": return 1.0;
+    case "flank": return 0.5;
+    default: return 0;
+  }
 }
 
 /** Deterministic estimate of a basic weapon attack from a candidate stand tile. */
@@ -271,7 +287,7 @@ export function planEnemyTurn(unit: Unit, units: Unit[], grid: Grid): AIPlan {
       if (d > weapon.range || d === 0) continue;
       if (weapon.range > 1 && !hasLineOfSight(grid, stand, target.pos)) continue;
       const dmg = estimateWeaponDamage(unit, stand, target, grid);
-      let score = scoreTarget(dmg, target) + highGroundBonus(grid, stand, target.pos);
+      let score = scoreTarget(dmg, target) + highGroundBonus(grid, stand, target.pos) + facingBonus(stand, target);
       // A target that survives this blow and can reach back will counter — weigh
       // that punish (0.6×, so a strong trade is still worth taking).
       if (dmg < target.stats.hp) score -= counterRisk(unit, target, stand, grid) * 0.6;

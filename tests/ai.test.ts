@@ -596,6 +596,31 @@ describe("planEnemyTurn: high-ground positional tiebreak", () => {
   });
 });
 
+describe("planEnemyTurn: facing positional tiebreak", () => {
+  it("circles to the rear when the blow is too feeble for the facing multiplier to break the tie", () => {
+    // A 1-ATK attacker against a 20-DEF foe deals the floor of 1 damage from EVERY
+    // angle — the flank/rear damage multiplier (1.1x/1.25x) rounds clean away, so
+    // the forecast can no longer steer the AI behind the foe. Without a sub-point
+    // facing tiebreak the AI settles for whatever tile enumeration hands it first
+    // (here the frontal (5,4)). The foe faces north (toward -y), so its rear is
+    // (5,6); with move 7 the knight can circle all the way around to reach it.
+    const grid = flatGrid();
+    const me = createUnit({ name: "Goblin", team: "enemy", classId: "knight", pos: { x: 2, y: 2 } });
+    me.stats.move = 7;
+    me.stats.atk = 1;
+    const foe = createUnit({ name: "Hero", team: "player", classId: "knight", pos: { x: 5, y: 5 }, facing: "n" });
+    foe.stats.def = 20;
+
+    const plan = planEnemyTurn(me, [me, foe], grid);
+
+    expect(plan.action.kind).toBe("attack");
+    expect(samePt(plan.action.targetTile!, foe.pos)).toBe(true);
+    // Behind the north-facing foe is (5,6) (+y). The tiebreak must land it there
+    // rather than on the equal-damage frontal (5,4) or a flank tile.
+    expect(samePt(plan.destination, { x: 5, y: 6 })).toBe(true);
+  });
+});
+
 describe("planEnemyTurn: AoE friendly-fire penalty scales with ally harm", () => {
   it("won't drop a Fireball that catches and kills an ally, even when it nets an extra foe", () => {
     // The blast at (3,3) catches two foes (3,2)+(4,3) — tempting — but its 3x3

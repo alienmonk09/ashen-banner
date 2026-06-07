@@ -38,9 +38,9 @@ export const RACES: Record<RaceId, RaceDef> = {
   orc: {
     id: "orc",
     name: "Orc",
-    description: "Brutal and hardy, with little aptitude for magic. Toxin-tough, but lightning fells them.",
+    description: "Brutal and hardy, with little aptitude for magic. Toxin-tough, but lightning fells them — and holy light scourges their dark blood.",
     mod: { hp: 10, atk: 3, mag: -3, res: -2 },
-    weak: ["bolt"],
+    weak: ["bolt", "holy"],
     resist: ["nature"],
   },
   gnome: {

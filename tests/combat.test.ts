@@ -8,6 +8,7 @@ import {
   resolveCounterAttack,
   addStatus,
   tickStatuses,
+  elementDamageMult,
 } from "../src/battle/combat";
 import { createUnit } from "../src/core/unit";
 import { RNG } from "../src/core/rng";
@@ -266,6 +267,13 @@ describe("resolveWeaponAttack", () => {
     const weakRes = resolveWeaponAttack(attacker, weak, fireRod, new RNG(7));
     const resistRes = resolveWeaponAttack(attacker, resistant, fireRod, new RNG(7));
     expect(weakRes.amount).toBeGreaterThan(resistRes.amount);
+  });
+
+  it("makes the holy element mechanically active: orcs take extra holy damage", () => {
+    // The dark, brutish orc is smitten by holy light — without a race carrying a
+    // holy affinity, the 10 holy-element skills would all scale at ×1 (pure flavor).
+    const orc = createUnit({ name: "Orc", team: "enemy", classId: "knight", raceId: "orc", pos: { x: 0, y: 0 } });
+    expect(elementDamageMult(orc, "holy")).toBeGreaterThan(1);
   });
 });
 
